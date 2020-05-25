@@ -10,7 +10,7 @@
 #' that several pathways are reported for a same pair.
 #' @export
 #' @examples
-#' \dontrun{}
+#' \dontrun{
 #' data(sdc,package="BulkSignalR")
 #' sample.types <- rep("tumor",ncol(sdc))
 #' sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
