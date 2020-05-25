@@ -1,0 +1,30 @@
+Package: BulkSignalR
+Type: Package
+Title: Infer Ligand-Receptor Interactions from Bulk Transcriptomic or Proteomic Data
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Jacques","Colinge",email="jacques.colinge@inserm.fr",role="aut"),
+    person("Simon","Cabello-Aguilar",email="simon.cabello-aguilar@inserm.fr",role="cre"))
+Description: Inference of ligand-receptor (LR) interactions from bulk
+    (transcirptomic or proteomic) data. BulkSignalR bases its inferences
+    on the LRdb database included in our other package, SingleCellSignalR
+    available from Bioconductor. It relies on a statistical model that
+    is specific to bulk data sets. Different visualization and data
+    summary functions are proposed to help navigating prediction results.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.6.1.0)
+Imports:
+    foreach,
+    multtest,
+    doMC,
+    igraph,
+    SingleCellSignalR,
+    dplyr
+Suggests:
+    ComplexHeatmap (>= 2.0.0),
+    grid,
+    limma (>= 3.0.0),
+    edgeR (>= 3.0.0)
+RoxygenNote: 7.1.0
