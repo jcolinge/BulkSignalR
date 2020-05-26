@@ -23,12 +23,13 @@ ds.LR <- checkReceptorSignaling(ds,ds.LR)
 pp <- pValuesLR(ds.LR,ds$param)
 
 # extract gene signatures to report ligand-receptor-downstream pathway scores
-p.red.P <- reduceToPathway(pp)
-signatures <- getLRGeneSignatures(p.red.P,qval.thres=1e-5)
+pp.red <- reduceToBestPathway(pp)
+p.red.P <- reduceToPathway(pp.red)
+signatures <- getLRGeneSignatures(p.red.P,qval.thres=1e-4)
 scores <- scoreLRGeneSignatures(ds,signatures,rename.by.pathway=T)
-simpleHeatmap(scores,"SDC-LR-heatmap.pdf",width=6,height=4.5,pointsize=4)
+simpleHeatmap(scores,"SDC-LR-heatmap.pdf",width=6,height=4,pointsize=4)
 
 # correlate with the microenvironment
 data(tme.signatures,package="BulkSignalR")
 tme.scores <- scoreSignatures(ds,tme.signatures)
-dualHeatmap(scores,tme.scores,"SDC-LR-TME-heatmap.pdf",width=6,height=5,pointsize=4,vert.p=0.85)
+dualHeatmap(scores,tme.scores,"SDC-LR-TME-heatmap.pdf",width=6,height=4.5,pointsize=4,vert.p=0.8)
