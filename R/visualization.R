@@ -446,13 +446,15 @@ simpleHeatmap <- function(mat.c,file.name,dend.row=NULL,dend.spl=NULL,cols=NULL,
 #' tme.scores <- scoreSignatures(ds,tme.signatures)
 #' dualHeatmap(mat.c,mat.e,"example-with-TME.pdf",width=9,height=7,pointsize=4)
 #' }
-dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height,pointsize=4,cut.p=0.01){
+dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height,pointsize=4,cut.p=0.01,vert.p=0.9){
 
   if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
     stop("Package \"ComplexHeatmap\" needed for this function to work. Please install it.")
   if (cut.p<0 || cut.p>0.1)
     stop("cut.p must lie in [0;0.1]")
-
+  if (vert.p<0.05 || vert.p>0.95)
+    stop("vert.p must lie in [0.05;0.95]")
+  
   if (is.null(cols))
     cols <- c(grDevices::colorRampPalette(c("royalblue3","white"),space="Lab")(trunc(-100*min(mat.c))),grDevices::colorRampPalette(c("white","orange"),space="Lab")(trunc(100*max(mat.c)))[-1])
   if (is.null(cols.e))
@@ -479,9 +481,9 @@ dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e
   }
 
   hm.LR <- ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
-                   row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=0.9*height)
+                   row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=vert.p*height)
   hm.e <- ComplexHeatmap::Heatmap(mat.e,cluster_rows=dend.e,cluster_columns=dend.spl,col=cols.e,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
-                  row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=0.1*height)
+                  row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=(1-vert.p)*height)
 
   grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
   ComplexHeatmap::draw(hm.LR %v% hm.e,gap=grid::unit(1,"mm"))

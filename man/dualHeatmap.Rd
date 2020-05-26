@@ -16,7 +16,8 @@ dualHeatmap(
   width,
   height,
   pointsize = 4,
-  cut.p = 0.01
+  cut.p = 0.01,
+  vert.p = 0.9
 )
 }
 \arguments{
