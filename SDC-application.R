@@ -14,7 +14,7 @@ ds <- prepareDataset(sdc[,-grep("^N",names(sdc))],sample.types)
 ds <- learnParameters(ds,normal="normal",induced="tumor",verbose=TRUE)
 save(ds,file="ds.rda",compress="bzip2")
 
-# stop cluster, no paralle computations beyond this point [optional]
+# stop cluster, no parallel computations beyond this point [optional]
 stopCluster(cl)
 
 # score ligand-receptor interactions
