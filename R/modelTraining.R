@@ -74,13 +74,21 @@
 .getEmpiricalNull <- function(ncounts,n.rand=5,min.cor=-1,with.complex=TRUE,max.pw.size=200,min.pw.size=5,min.positive=4){
 
   pindices <- .buildPermutationIndices(ncounts)
-  foreach::foreach(k=1:n.rand,.combine=c) %do% {
-    r.ncounts <- .buildPermutatedCountMatrix(ncounts,pindices)
-    r.LR <- getCorrelatedLR(r.ncounts,min.cor=min.cor)
-    r.LR <- checkReceptorSignaling(r.ncounts,r.LR,with.complex=with.complex,max.pw.size=max.pw.size,min.pw.size=min.pw.size,min.positive=min.positive)
-    list(r.LR$merged.pairs)
-  }
-
+  if (getDoParWorkers()>1)
+    foreach::foreach(k=1:n.rand,.combine=c) %dopar% {
+      r.ncounts <- .buildPermutatedCountMatrix(ncounts,pindices)
+      r.LR <- getCorrelatedLR(r.ncounts,min.cor=min.cor)
+      r.LR <- checkReceptorSignaling(r.ncounts,r.LR,with.complex=with.complex,max.pw.size=max.pw.size,min.pw.size=min.pw.size,min.positive=min.positive)
+      list(r.LR$merged.pairs)
+    }
+  else
+    foreach::foreach(k=1:n.rand,.combine=c) %do% {
+      r.ncounts <- .buildPermutatedCountMatrix(ncounts,pindices)
+      r.LR <- getCorrelatedLR(r.ncounts,min.cor=min.cor)
+      r.LR <- checkReceptorSignaling(r.ncounts,r.LR,with.complex=with.complex,max.pw.size=max.pw.size,min.pw.size=min.pw.size,min.positive=min.positive)
+      list(r.LR$merged.pairs)
+    }
+  
 } # .getEmpiricalNull
 
 
@@ -113,12 +121,12 @@
 .getEmpiricalNullCorrLR <- function(ncounts,n.rand=5,min.cor=-1){
 
   pindices <- .buildPermutationIndices(ncounts)
-  foreach::foreach(k=1:n.rand,.combine=c) %dopar% {
+  foreach::foreach(k=1:n.rand,.combine=c) %do% {
     r.ncounts <- .buildPermutatedCountMatrix(ncounts,pindices)
     r.LR <- getCorrelatedLR(r.ncounts,min.cor=min.cor)
     list(r.LR$putative.pairs)
   }
-
+  
 } # .getEmpiricalNullCorrLR
 
 

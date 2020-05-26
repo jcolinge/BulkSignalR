@@ -18,9 +18,9 @@ Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.6.1.0)
 Imports:
+    doParallel,
     foreach,
     multtest,
-    doMC,
     igraph,
     SingleCellSignalR,
     dplyr

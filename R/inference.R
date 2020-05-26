@@ -74,7 +74,7 @@ getCorrelatedLR <- function(ds,min.cor=0.3,restrict.genes=NULL){
   corrg <- stats::cor(t(rncounts),method="spearman")
   # global computation above is faster than for the receptors only
   corrg <- corrg[unique(lr$putative.pairs$R),]
-  reg.proc <- foreach::foreach(r=unique(lr$putative.pairs$R),.combine=rbind) %dopar% {
+  reg.proc <- foreach::foreach(r=unique(lr$putative.pairs$R),.combine=rbind) %do% {
     # reg.proc <- NULL
     # for (r in unique(lr$putative.pairs$R)){
     pa <- intersect(pw[pw[[gene.col]]==r,id.col],names(pw.size))
