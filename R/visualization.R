@@ -491,4 +491,3 @@ dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e
   grDevices::dev.off()
 
 } # dualHeatmap
-
