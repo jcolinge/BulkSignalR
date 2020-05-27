@@ -486,6 +486,7 @@ dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e
                   row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=(1-vert.p)*height)
 
   grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
+  import::from(ComplexHeatmap,"%v%")
   ComplexHeatmap::draw(hm.LR %v% hm.e,gap=grid::unit(1,"mm"))
   grDevices::dev.off()
 

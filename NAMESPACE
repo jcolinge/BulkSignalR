@@ -20,4 +20,3 @@ export(simpleHeatmap)
 
 importFrom(foreach,"%do%","%dopar%")
 importFrom(dplyr,"%>%")
-importFrom(ComplexHeatmap,"%v%")

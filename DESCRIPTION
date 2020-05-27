@@ -23,7 +23,8 @@ Imports:
     multtest,
     igraph,
     SingleCellSignalR,
-    dplyr
+    dplyr,
+    import
 Suggests:
     ComplexHeatmap (>= 2.0.0),
     grid,
