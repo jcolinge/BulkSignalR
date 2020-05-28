@@ -6,7 +6,7 @@
 \usage{
 simpleHeatmap(
   mat.c,
-  file.name,
+  file.name = NULL,
   dend.row = NULL,
   dend.spl = NULL,
   cols = NULL,
@@ -23,7 +23,7 @@ simpleHeatmap(
 \arguments{
 \item{mat.c}{A matrix with the signature scores such as output by \code{scoreLRGeneSignatures()}.}
 
-\item{file.name}{The name of the PDF file.}
+\item{file.name}{A PDF file name.}
 
 \item{dend.row}{A precomputed row dendrogram.}
 
@@ -48,7 +48,8 @@ simpleHeatmap(
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
 }
 \value{
-A file containing the heatmap.
+A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
+PDF file name and plot in a file (much faster).
 
 Extreme values (top and bottom) can be replaced by global quantiles at \code{cut.p} and \code{1-cut.p}
 to avoid color scales shrunk by a few outliers.

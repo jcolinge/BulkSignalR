@@ -7,14 +7,14 @@
 dualHeatmap(
   mat.c,
   mat.e,
-  file.name,
+  file.name = NULL,
   dend.row = NULL,
   dend.spl = NULL,
   dend.e = NULL,
   cols = NULL,
   cols.e = NULL,
   width,
-  height,
+  height = 6,
   pointsize = 4,
   cut.p = 0.01,
   vert.p = 0.9
@@ -25,7 +25,7 @@ dualHeatmap(
 
 \item{mat.e}{A second matrix to feature below mat.c.}
 
-\item{file.name}{The name of the PDF file.}
+\item{file.name}{A PDF file name.}
 
 \item{dend.row}{A precomputed row dendrogram for \code{mat.c}.}
 
@@ -46,7 +46,8 @@ dualHeatmap(
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
 }
 \value{
-A file containing the heatmap.
+A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
+PDF file name and plot in a file (much faster).
 
 Extreme values (top and bottom) can be replaced by global quantiles at \code{cut.p} and \code{1-cut.p}
 to avoid color scales shrunk by a few outliers.
@@ -57,7 +58,7 @@ should be controled, users should implement their own function, e.g., strarting 
 of \code{dualHeatmap()}.
 }
 \description{
-Generate a PDF file with a stack of heatmaps. The top heatmap represents ligand-receptor gene signature scores,
+Generate a stack of heatmaps. The top heatmap represents ligand-receptor gene signature scores,
 while the bottom heatmap represents the second, user-chosen data set to feature along with gene signatures.
 }
 \examples{

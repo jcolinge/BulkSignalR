@@ -42,12 +42,12 @@ getPathwayStats <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL
     stop("One selection criterion out of P-value, Q-value, or LLR only")
 
   if (!is.null(LLR.thres))
-    pairs <- pairs[pairs$LLR>LLR.thres,]
+    pairs <- pairs[pairs$LLR>=LLR.thres,]
   else
     if (!is.null(pval.thres))
-      pairs <- pairs[pairs$pval<pval.thres,]
+      pairs <- pairs[pairs$pval<=pval.thres,]
     else
-      pairs <- pairs[pairs$qval<qval.thres,]
+      pairs <- pairs[pairs$qval<=qval.thres,]
 
     # pairs reduced to the receptor & pathway names
     pairs.R <- unique(pairs[,c("R","pw.id","pw.name")])
@@ -123,12 +123,12 @@ getLRGeneSignatures <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=
     stop("One selection criterion out of P-value, Q-value, or LLR only")
 
   if (!is.null(LLR.thres))
-    pairs <- pairs[pairs$LLR>LLR.thres,]
+    pairs <- pairs[pairs$LLR>=LLR.thres,]
   else
     if (!is.null(pval.thres))
-      pairs <- pairs[pairs$pval<pval.thres,]
+      pairs <- pairs[pairs$pval<=pval.thres,]
     else
-      pairs <- pairs[pairs$qval<qval.thres,]
+      pairs <- pairs[pairs$qval<=qval.thres,]
     LR <- reduceToBestPathway(pairs)
 
     foreach::foreach(i=1:nrow(LR),.combine=rbind) %do% {
@@ -310,7 +310,7 @@ scoreSignatures <- function(ds,ref.signatures,sample.types=NULL,robust=FALSE){
 #' Generate a PDF file with a heatmap representing ligand-receptor gene signature scores.
 #'
 #' @param mat.c         A matrix with the signature scores such as output by \code{scoreLRGeneSignatures()}.
-#' @param file.name     The name of the PDF file.
+#' @param file.name     A PDF file name.
 #' @param dend.row       A precomputed row dendrogram.
 #' @param dend.spl       A precompute sample (column) dendrogram.
 #' @param cols           A vector of colors to use for the heatmap.
@@ -322,7 +322,8 @@ scoreSignatures <- function(ds,ref.signatures,sample.types=NULL,robust=FALSE){
 #' @param n.row.clust    Number of row clusters.
 #' @param gap.size       Gap size between clusters.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
-#' @return A file containing the heatmap.
+#' @return A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
+#' PDF file name and plot in a file (much faster).
 #'
 #' Extreme values (top and bottom) can be replaced by global quantiles at \code{cut.p} and \code{1-cut.p}
 #' to avoid color scales shrunk by a few outliers.
@@ -351,7 +352,7 @@ scoreSignatures <- function(ds,ref.signatures,sample.types=NULL,robust=FALSE){
 #' scores <- scoreLRGeneSignatures(ds,signatures,rename.by.pathway=TRUE)
 #' simpleHeatmap(scores,"example.pdf",width=9,height=5)
 #' }
-simpleHeatmap <- function(mat.c,file.name,dend.row=NULL,dend.spl=NULL,cols=NULL,width,height,pointsize=4,bottom.annotation=NULL,
+simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=NULL,width,height,pointsize=4,bottom.annotation=NULL,
                           n.col.clust=0,n.row.clust=0,gap.size=0.5,cut.p=0.01){
 
   if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
@@ -375,7 +376,8 @@ simpleHeatmap <- function(mat.c,file.name,dend.row=NULL,dend.spl=NULL,cols=NULL,
     dend.row <- stats::as.dendrogram(hc.gene)
   }
 
-  grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
+  if (!is.null(file.name))
+    grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
   if (n.row.clust>0)
     if (n.col.clust>0)
       print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
@@ -393,19 +395,20 @@ simpleHeatmap <- function(mat.c,file.name,dend.row=NULL,dend.spl=NULL,cols=NULL,
   else
     print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                   row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,bottom_annotation=bottom.annotation))
-  grDevices::dev.off()
+  if (!is.null(file.name))
+    grDevices::dev.off()
 
 } # simpleHeatmap
 
 
 #' Heatmap function for LR scores and additional data
 #'
-#' Generate a PDF file with a stack of heatmaps. The top heatmap represents ligand-receptor gene signature scores,
+#' Generate a stack of heatmaps. The top heatmap represents ligand-receptor gene signature scores,
 #' while the bottom heatmap represents the second, user-chosen data set to feature along with gene signatures.
 #'
 #' @param mat.c         A matrix with the signature scores such as output by \code{scoreLRGeneSignatures()}.
 #' @param mat.e         A second matrix to feature below mat.c.
-#' @param file.name     The name of the PDF file.
+#' @param file.name     A PDF file name.
 #' @param dend.row       A precomputed row dendrogram for \code{mat.c}.
 #' @param dend.e         A precomputed row dendrogram for \code{mat.e}.
 #' @param dend.spl       A precompute sample (column) dendrogram.
@@ -415,7 +418,8 @@ simpleHeatmap <- function(mat.c,file.name,dend.row=NULL,dend.spl=NULL,cols=NULL,
 #' @param height         PDF height.
 #' @param pointsize      PDF pointsize.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
-#' @return A file containing the heatmap.
+#' @return A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
+#' PDF file name and plot in a file (much faster).
 #'
 #' Extreme values (top and bottom) can be replaced by global quantiles at \code{cut.p} and \code{1-cut.p}
 #' to avoid color scales shrunk by a few outliers.
@@ -446,7 +450,7 @@ simpleHeatmap <- function(mat.c,file.name,dend.row=NULL,dend.spl=NULL,cols=NULL,
 #' tme.scores <- scoreSignatures(ds,tme.signatures)
 #' dualHeatmap(mat.c,mat.e,"example-with-TME.pdf",width=9,height=7,pointsize=4)
 #' }
-dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height,pointsize=4,cut.p=0.01,vert.p=0.9){
+dualHeatmap <- function(mat.c,mat.e,file.name=NULL,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height=6,pointsize=4,cut.p=0.01,vert.p=0.9){
 
   if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
     stop("Package \"ComplexHeatmap\" needed for this function to work. Please install it.")
@@ -481,13 +485,15 @@ dualHeatmap <- function(mat.c,mat.e,file.name,dend.row=NULL,dend.spl=NULL,dend.e
   }
 
   hm.LR <- ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
-                   row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=vert.p*height)
+                   row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,height=vert.p*height)
   hm.e <- ComplexHeatmap::Heatmap(mat.e,cluster_rows=dend.e,cluster_columns=dend.spl,col=cols.e,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
-                  row_names_gp=grid::gpar(fontsize=4),show_row_dend=TRUE,height=(1-vert.p)*height)
+                  row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,height=(1-vert.p)*height)
 
-  grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
+  if (!is.null(file.name))
+    grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
   import::from(ComplexHeatmap,"%v%")
   ComplexHeatmap::draw(hm.LR %v% hm.e,gap=grid::unit(1,"mm"))
-  grDevices::dev.off()
+  if (!is.null(file.name))
+    grDevices::dev.off()
 
 } # dualHeatmap
