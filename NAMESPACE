@@ -19,6 +19,8 @@ export(scoreSignatures)
 export(simpleHeatmap)
 export(getLRNetwork)
 export(getMultipleLRNetworks)
+export(getLRIntracellNetwork)
+export(getMultipleLRIntracellNetworks)
 
 importFrom(foreach,"%do%","%dopar%")
 importFrom(dplyr,"%>%")

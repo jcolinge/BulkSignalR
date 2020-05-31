@@ -84,7 +84,12 @@ getCorrelatedLR <- function(ds,min.cor=0.3,restrict.genes=NULL){
         # for (p in pa){
         int <- SingleCellSignalR::PwC_ReactomeKEGG[SingleCellSignalR::PwC_ReactomeKEGG$a.gn%in%pw[pw[[id.col]]==p,gene.col] & SingleCellSignalR::PwC_ReactomeKEGG$b.gn%in%pw[pw[[id.col]]==p,gene.col],]
         directed <- int$type%in%directed.int
-        d.int <- unique(rbind(int[directed,c("a.gn","b.gn")],int[!directed,c("a.gn","b.gn")],int[!directed,c("b.gn","a.gn")]))
+
+        ret <- int[!directed,c("a.gn","b.gn")]
+        from <- ret$a.gn
+        ret$a.gn <- ret$b.gn
+        ret$b.gn <- from
+        d.int <- unique(rbind(int[,c("a.gn","b.gn")],ret))
         g <- igraph::graph_from_data_frame(d.int,directed=TRUE)
         if (r%in%d.int$a.gn || r%in%d.int$b.gn){
           target.genes <- setdiff(c(int[int$type%in%incomplex.int & int$a.gn==r,"b.gn"],int[int$type%in%incomplex.int & int$b.gn==r,"a.gn"],int[int$type%in%directed.int,"b.gn"]),r)
@@ -169,12 +174,10 @@ getCorrelatedLR <- function(ds,min.cor=0.3,restrict.genes=NULL){
 #' ds.LR <- getCorrelatedLR(ds)
 #' ds.LR <- checkReceptorSignaling(ds,ds.LR)
 #' }
-checkReceptorSignaling <- function(ds,lr,method=c("reactome-GOBP","reactome","GOBP")[1],max.pw.size=200,min.pw.size=5,min.positive=4,restrict.pw=NULL,with.complex=TRUE){
+checkReceptorSignaling <- function(ds,lr,method=c("reactome-GOBP","reactome","GOBP"),max.pw.size=200,min.pw.size=5,min.positive=4,restrict.pw=NULL,with.complex=TRUE){
 
   results <- lr
-  method <- toupper(method)
-  if (!(method %in% c("REACTOME-GOBP","REACTOME","GOBP")))
-    stop("invalid method parameter")
+  method <- toupper(match.arg(method))
   results$method <- method
 
   # reactome pathways
