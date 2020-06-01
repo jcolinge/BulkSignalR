@@ -17,7 +17,9 @@ dualHeatmap(
   height = 6,
   pointsize = 4,
   cut.p = 0.01,
-  vert.p = 0.9
+  vert.p = 0.9,
+  ros.names.1 = TRUE,
+  row.names.2 = TRUE
 )
 }
 \arguments{
@@ -44,6 +46,10 @@ dualHeatmap(
 \item{pointsize}{PDF pointsize.}
 
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
+
+\item{row.names.2}{A logical to turn on/off the display of row (gene) names in the bottom heatmap.}
+
+\item{row.names.1}{A logical to turn on/off the display of row (gene) names in the top heatmap.}
 }
 \value{
 A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a

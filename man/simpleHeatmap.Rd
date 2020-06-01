@@ -17,7 +17,8 @@ simpleHeatmap(
   n.col.clust = 0,
   n.row.clust = 0,
   gap.size = 0.5,
-  cut.p = 0.01
+  cut.p = 0.01,
+  row.names = TRUE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ simpleHeatmap(
 \item{gap.size}{Gap size between clusters.}
 
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
+
+\item{row.names}{A logical to turn on/off the display of row (gene) names.}
 }
 \value{
 A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a

@@ -322,6 +322,7 @@ scoreSignatures <- function(ds,ref.signatures,sample.types=NULL,robust=FALSE){
 #' @param n.row.clust    Number of row clusters.
 #' @param gap.size       Gap size between clusters.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
+#' @param row.names      A logical to turn on/off the display of row (gene) names.
 #' @return A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
 #' PDF file name and plot in a file (much faster).
 #'
@@ -353,7 +354,7 @@ scoreSignatures <- function(ds,ref.signatures,sample.types=NULL,robust=FALSE){
 #' simpleHeatmap(scores,"example.pdf",width=9,height=5)
 #' }
 simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=NULL,width,height,pointsize=4,bottom.annotation=NULL,
-                          n.col.clust=0,n.row.clust=0,gap.size=0.5,cut.p=0.01){
+                          n.col.clust=0,n.row.clust=0,gap.size=0.5,cut.p=0.01,row.names=TRUE){
 
   if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
     stop("Package \"ComplexHeatmap\" needed for this function to work. Please install it.")
@@ -380,20 +381,20 @@ simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=
     grDevices::pdf(file.name,width=width,height=height,pointsize=pointsize,useDingbats=FALSE)
   if (n.row.clust>0)
     if (n.col.clust>0)
-      print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
+      print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=row.names,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                     row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,bottom_annotation=bottom.annotation,
                     split=n.row.clust,gap=grid::unit(gap.size,"mm"),column_split=n.col.clust,column_gap=grid::unit(gap.size,"mm")))
   else
-    print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
+    print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=row.names,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                   row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,bottom_annotation=bottom.annotation,
                   split=n.row.clust,gap=grid::unit(gap.size,"mm")))
   else
     if (n.col.clust)
-      print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
+      print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=row.names,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                     row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,bottom_annotation=bottom.annotation,
                     column_split=n.col.clust,column_gap=grid::unit(gap.size,"mm")))
   else
-    print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
+    print(ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=row.names,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                   row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,bottom_annotation=bottom.annotation))
   if (!is.null(file.name))
     grDevices::dev.off()
@@ -418,6 +419,8 @@ simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=
 #' @param height         PDF height.
 #' @param pointsize      PDF pointsize.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
+#' @param row.names.1      A logical to turn on/off the display of row (gene) names in the top heatmap.
+#' @param row.names.2      A logical to turn on/off the display of row (gene) names in the bottom heatmap.
 #' @return A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
 #' PDF file name and plot in a file (much faster).
 #'
@@ -450,7 +453,7 @@ simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=
 #' tme.scores <- scoreSignatures(ds,tme.signatures)
 #' dualHeatmap(mat.c,mat.e,"example-with-TME.pdf",width=9,height=7,pointsize=4)
 #' }
-dualHeatmap <- function(mat.c,mat.e,file.name=NULL,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height=6,pointsize=4,cut.p=0.01,vert.p=0.9){
+dualHeatmap <- function(mat.c,mat.e,file.name=NULL,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height=6,pointsize=4,cut.p=0.01,vert.p=0.9,ros.names.1=TRUE,row.names.2=TRUE){
 
   if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
     stop("Package \"ComplexHeatmap\" needed for this function to work. Please install it.")
@@ -484,9 +487,9 @@ dualHeatmap <- function(mat.c,mat.e,file.name=NULL,dend.row=NULL,dend.spl=NULL,d
     dend.e <- stats::as.dendrogram(hc.e)
   }
 
-  hm.LR <- ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
+  hm.LR <- ComplexHeatmap::Heatmap(mat.c,cluster_rows=dend.row,cluster_columns=dend.spl,col=cols,show_row_names=row.names.1,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                    row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,height=vert.p*height)
-  hm.e <- ComplexHeatmap::Heatmap(mat.e,cluster_rows=dend.e,cluster_columns=dend.spl,col=cols.e,show_row_names=TRUE,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
+  hm.e <- ComplexHeatmap::Heatmap(mat.e,cluster_rows=dend.e,cluster_columns=dend.spl,col=cols.e,show_row_names=row.names.2,show_column_names=FALSE,use_raster=TRUE,raster_device="png",raster_quality=8,
                   row_names_gp=grid::gpar(fontsize=pointsize),show_row_dend=TRUE,height=(1-vert.p)*height)
 
   if (!is.null(file.name))

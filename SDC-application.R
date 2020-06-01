@@ -16,9 +16,6 @@ ds <- learnParameters(ds,normal="normal",induced="tumor",verbose=TRUE)
 save(ds,file="ds.rda",compress="bzip2")
 #load("ds.rda")
 
-# stop cluster, no parallel computations beyond this point [optional]
-stopCluster(cl)
-
 # score ligand-receptor interactions
 ds.LR <- getCorrelatedLR(ds,min.cor=0.25)
 ds.LR <- checkReceptorSignaling(ds,ds.LR)
@@ -41,10 +38,10 @@ simpleHeatmap(scores,"SDC-LR-heatmap.pdf",width=6,height=4,pointsize=4)
 # correlate with the microenvironment
 data(tme.signatures,package="BulkSignalR")
 tme.scores <- scoreSignatures(ds,tme.signatures)
-dualHeatmap(scores,tme.scores,pointsize=8,vert.p=0.8)
-dualHeatmap(scores,tme.scores,"SDC-LR-TME-heatmap.pdf",width=6,height=4.5,pointsize=4,vert.p=0.8)
+dualHeatmap(scores,tme.scores,pointsize=8,vert.p=0.82)
+dualHeatmap(scores,tme.scores,"SDC-LR-TME-heatmap.pdf",width=6,height=4.5,pointsize=4,vert.p=0.82)
 
-# generate ligand-receptor networks and export in .graphML for Cytoscape or similar tools
+# generate a ligand-receptor network and export it in .graphML for Cytoscape or similar tools
 gLR <- getLRNetwork(pp,qval.thres=0.01)
 write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
 
@@ -86,7 +83,7 @@ bl[sapply(bl,function(x) length(x)<20 && any(V(u.gLR)[x]$label%in%c("CTLA-4","TG
 mult.net <- getMultipleLRNetworks(ds,pp,n.clusters=4,qval.thres=0.01)
 plot(mult.net$hclust.spl)
 table(mult.net$clusters)
-simpleHeatmap(mult.net$scores,file.name="SDC-clusters-LR-heatmap.pdf",dend.spl=as.dendrogram(mult.net$hclust.spl),n.col.clust=4) # cluster numbers are different in the ComplexHeatmap output
+simpleHeatmap(mult.net$scores,file.name="SDC-clusters-LR-heatmap.pdf",dend.spl=as.dendrogram(mult.net$hclust.spl),n.col.clust=4,row.names=FALSE) # cluster numbers are different in the ComplexHeatmap output
 lay.2 <- layout_with_kk(mult.net$networks[[2]])
 plot(mult.net$networks[[2]],
      layout=lay.2,
@@ -126,3 +123,40 @@ plot(cb.4,ug.4,
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75,
      edge.color="black")
+
+# generate a ligand-receptor network complemented with intracellular, receptor downstream pathways [computations are a bit longer here]
+gLRintra <- getLRIntracellNetwork(pp,qval.thres=0.01)
+write.graph(gLRintra,file="SDC-LR-intracellular-network.graphml",format="graphml")
+lay <- layout_with_kk(gLRintra)
+plot(gLRintra,
+     layout=lay,
+     vertex.label.color="black",
+     vertex.label.family="Helvetica",
+     vertex.label.cex=0.75)
+
+# reduce complexity by focusing on strongly targeted pathways
+top <- unique(pp[pp$pval<1e-10,c("pw.id","pw.name")])
+top
+gLRintra.res <- getLRIntracellNetwork(pp,qval.thres=0.01,restrict.pw=top$pw.id)
+lay <- layout_with_kk(gLRintra.res)
+plot(gLRintra.res,
+     layout=lay,
+     vertex.label.color="black",
+     vertex.label.family="Helvetica",
+     vertex.label.cex=0.75)
+
+# generate different ligand-receptor-intracellular downstream pathway networks depending on the gene signature clusters [lengthy computation]
+mult.net.intra <- getMultipleLRIntracellNetworks(ds,pp,n.clusters=4,qval.thres=0.01)
+plot(mult.net$hclust.spl)
+table(mult.net$clusters)
+simpleHeatmap(mult.net$scores,dend.spl=as.dendrogram(mult.net$hclust.spl),n.col.clust=4,row.names=FALSE) # cluster numbers are different in the ComplexHeatmap output
+lay.1 <- layout_with_kk(mult.net.intra$networks[[1]])
+plot(mult.net.intra$networks[[1]],
+     layout=lay.1,
+     vertex.label.color="black",
+     vertex.label.family="Helvetica",
+     vertex.label.cex=0.75)
+
+# stop cluster if parallel computation was used [optional]
+stopCluster(cl)
+

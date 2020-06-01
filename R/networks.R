@@ -186,8 +186,7 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
   
   directed.int <- c("controls-state-change-of","catalysis-precedes","controls-expression-of","controls-transport-of","controls-phosphorylation-of")
 
-  arcs <- NULL
-  for (i in 1:nrow(pairs)){
+  arcs <- foreach::foreach(i=1:nrow(pairs),.combine=rbind) %dopar% {
     r <- pairs$R[i]
     p <- pairs$pw.id[i]
     tg <- strsplit(pairs$target.genes[i],split=";")[[1]]
@@ -208,20 +207,20 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 
     # keep shortest paths from the receptor to the targets only
     if ((r%in%d.int$a.gn || r%in%d.int$b.gn) && length(targets)>0){
-      paths <- suppressWarnings(igraph::shortest_paths(g,from=V(g)[V(g)$name==r],to=V(g)[V(g)$name%in%targets],output="vpath"))
+      paths <- suppressWarnings(igraph::shortest_paths(g,from=igraph::V(g)[igraph::V(g)$name==r],to=igraph::V(g)[igraph::V(g)$name%in%targets],output="vpath"))
       if (length(paths$vpath)>0)
         for (j in 1:length(paths$vpath)){
           vertices <- paths$vpath[[j]]
           if (length(vertices)>0)
             for (k in 2:length(vertices)){
-              from <- V(g)$name[vertices[k-1]]
-              to <- V(g)$name[vertices[k]]
+              from <- igraph::V(g)$name[vertices[k-1]]
+              to <- igraph::V(g)$name[vertices[k]]
               edge.type <- SingleCellSignalR::PwC_ReactomeKEGG[SingleCellSignalR::PwC_ReactomeKEGG$a.gn==from & SingleCellSignalR::PwC_ReactomeKEGG$b.gn==to,"type"][1]
               a.iter <- rbind(a.iter,data.frame(from=from,to=to,edge.type=edge.type,stringsAsFactors=FALSE))
             }
         }
     }
-    arcs <- rbind(arcs,unique(a.iter))
+    unique(a.iter)
   }
   
   unique(arcs)
