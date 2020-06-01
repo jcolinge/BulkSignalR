@@ -7,7 +7,7 @@
 checkReceptorSignaling(
   ds,
   lr,
-  method = c("reactome-GOBP", "reactome", "GOBP")[1],
+  method = c("reactome-GOBP", "reactome", "GOBP"),
   max.pw.size = 200,
   min.pw.size = 5,
   min.positive = 4,

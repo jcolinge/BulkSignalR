@@ -23,7 +23,7 @@
 #'
 #' ds.LR <- getCorrelatedLR(ds)
 #' ds.LR <- checkReceptorSignaling(ds,ds.LR)
-#' pairs.p <- pValuesLR(ds.LR,ds$param)
+#' pp <- pValuesLR(ds.LR,ds$param)
 #' gLR <- getLRNetwork(pp,qval.thres=0.01)
 #' plot(gLR)
 #' write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
@@ -100,6 +100,7 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
 #' @param pval.thres    P-value threshold in \code{pairs}.
 #' @param qval.thres    Q-value threshold in \code{pairs}.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
+#' @param node.size     Default node size in the network.
 #' @return A list containing the main elements of the clustering analysis as well as an inner list
 #' containing the \code{igraph} objects created for each cluster.
 #' 
@@ -119,12 +120,14 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
 #'
 #' ds.LR <- getCorrelatedLR(ds)
 #' ds.LR <- checkReceptorSignaling(ds,ds.LR)
-#' pairs.p <- pValuesLR(ds.LR,ds$param)
+#' pp <- pValuesLR(ds.LR,ds$param)
 #' gLR <- getLRNetwork(pp,qval.thres=0.01)
-#' plot(gLR)
-#' write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
+#' mult.net <- getMultipleLRNetworks(ds,pp,n.clusters=4,qval.thres=0.01)
+#' plot(mult.net$hclust.spl)
+#' lay <- layout_with_kk(mult.net$networks[[1]])
+#' plot(mult.net$networks[[1]],layout=lay)
 #' }
-getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01){
+getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,node.size=5){
   
   t <- sum(c("pval","LLR") %in% names(pairs))
   if (t ==2)
@@ -161,7 +164,7 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
   networks <- foreach::foreach(i=1:n.clusters,.combine=c) %do% {
     LRscores <- rowMeans(scores[,cluster==i])
     sel.pairs <- pairs[LRscores>=min.score,]
-    list(getLRNetwork(sel.pairs,pval.thres=1))
+    list(getLRNetwork(sel.pairs,pval.thres=1,node.size=node.size))
   }
   
   list(pairs=pairs,hclust.spl=hc.spl,signatures=signatures,scores=scores,n.clusters=n.clusters,clusters=cluster,networks=networks)
@@ -169,6 +172,16 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 } # getMultipleLRNetworks
 
 
+#' Internal function to generate a ligand-receptor-downstream signaling network
+#'
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pw              A table defining the reference pathways.
+#' @param id.col          Column index or name in \code{pw} for the pathway IDs.
+#' @param gene.col        Column index or name in \code{pw} for the gene symbols.
+#' @param min.cor       Minimum correlation required for the target genes.
+#' @param signed        A logical indicating whether \code{min.cor} is imposed to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).
+#' @return An \code{igraph} object featuring the ligand-receptor-downstream signaling network. Default colors and node sizes are assigned.
+#' @export
 .edgesLRIntracell <- function(pairs,pw,id.col,gene.col,min.cor=0.3,signed=FALSE){
   
   directed.int <- c("controls-state-change-of","catalysis-precedes","controls-expression-of","controls-transport-of","controls-phosphorylation-of")
@@ -216,6 +229,44 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 } # .edgesLRIntracell
 
 
+#' Generate a ligand-receptor-downstream signaling network
+#'
+#' Generate a ligand-receptor network from a ligand-receptor table and add the shortest paths from the receptor to correlated
+#' target genes following Reactome and KEGG pathways.
+#'
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param LLR.thres     Log-likelihood threshold.
+#' @param pval.thres    P-value threshold.
+#' @param qval.thres    Q-value threshold.
+#' @param min.cor       Minimum correlation required for the target genes.
+#' @param signed        A logical indicating whether \code{min.cor} is imposed to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).
+#' @param restrict.pw   A vector of pathway IDs to which receptor downstream signaling is restricted.
+#' @param node.size     Default node size in the network.
+#' @return An \code{igraph} object featuring the ligand-receptor-downstream signaling network. Default colors and node sizes are assigned,
+#' which can be changed afterwards if necessary.
+#' 
+#' The target genes to which the \code{min.cor} correlation is imposed are those listed in \code{pairs$target.genes}, correlations are in \code{pairs$all.cor}.
+#' The construction of shortest paths from the receptors to those selected targets adds other genes, which were either some targets with too little correlation
+#' or genes along the shortest paths to reach the selected targets.
+#' @export
+#' @examples
+#' \dontrun{
+#' data(sdc,package="BulkSignalR")
+#' sample.types <- rep("tumor",ncol(sdc))
+#' sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
+#' ds <- prepareDataset(sdc,sample.types)
+#' ds <- learnParameters(ds)
+#'
+#' # since model training takes time and it can be reused, it is advisable to save the model
+#' save(ds,file="...",compress="bzip2")
+#'
+#' ds.LR <- getCorrelatedLR(ds)
+#' ds.LR <- checkReceptorSignaling(ds,ds.LR)
+#' pp <- pValuesLR(ds.LR,ds$param)
+#' gLRintra <- getLRIntracellNetwork(pp,qval.thres=0.01)
+#' plot(gLRintra)
+#' write.graph(gLRintra,file="SDC-LR-intracellular-network.graphml",format="graphml")
+#' }
 getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
   
   t <- sum(c("pval","LLR") %in% names(pairs))
@@ -301,7 +352,89 @@ getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thre
 } # getLRIntracellNetwork
 
 
-getMultipleLRIntracellNetworks <- function(){
+#' Generate multiple ligand-receptor-downstrem signaling networks
+#'
+#' For each cluster of samples based on ligand-receptor gene signatures, generate a ligand-receptor network
+#' from a ligand-receptor table and add the shortest paths from the receptor to correlated
+#' target genes following Reactome and KEGG pathways.
+#'
+#' @param ds         A BulkSignalR data set.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param n.clusters    The number of clusters.
+#' @param min.score     The minimum required average z-score of a gene signature in a cluster.
+#' @param LLR.thres     Log-likelihood threshold in \code{pairs}.
+#' @param pval.thres    P-value threshold in \code{pairs}.
+#' @param qval.thres    Q-value threshold in \code{pairs}.
+#' @param cut.p          Proportion of top and bottom values for thresholding.
+#' @param min.cor       Minimum correlation required for the target genes.
+#' @param signed        A logical indicating whether \code{min.cor} is imposed to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).
+#' @param restrict.pw   A vector of pathway IDs to which receptor downstream signaling is restricted.
+#' @param node.size     Default node size in the network.
+#' @return A list containing the main elements of the clustering analysis as well as an inner list
+#' containing the \code{igraph} objects created for each cluster.
+#' 
+#' The elements of clustering are the retained global ligand-receptor table, the correspondinf gene signatures and their
+#' scores across \code{ds} samples, the resulting hierarchical cultering and sample membership. 
+#' @export
+#' @examples
+#' \dontrun{
+#' data(sdc,package="BulkSignalR")
+#' sample.types <- rep("tumor",ncol(sdc))
+#' sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
+#' ds <- prepareDataset(sdc,sample.types)
+#' ds <- learnParameters(ds)
+#'
+#' # since model training takes time and it can be reused, it is advisable to save the model
+#' save(ds,file="...",compress="bzip2")
+#'
+#' ds.LR <- getCorrelatedLR(ds)
+#' ds.LR <- checkReceptorSignaling(ds,ds.LR)
+#' pp <- pValuesLR(ds.LR,ds$param)
+#' mult.intra.net <- getMultipleLRNetworks(ds,pp,n.clusters=4,qval.thres=0.01)
+#' plot(mult.intra.net$hclust.spl)
+#' lay <- layout_with_kk(mult.intra.net$networks[[1]])
+#' plot(mult.intra.net$networks[[1]],layout=lay)
+#' }
+getMultipleLRIntracellNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
   
+  t <- sum(c("pval","LLR") %in% names(pairs))
+  if (t ==2)
+    stop("Both P/Q-values and LLR present in LR table")
+  if (t == 0)
+    stop("P/Q-values or LLR must be available in LR table")
+  if (is.null(LLR.thres)+is.null(pval.thres)+is.null(qval.thres) != 2)
+    stop("One selection criterion out of P-value, Q-value, or LLR only")
+  red.mode.R <- (sum(regexpr("^{",pairs$R,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$R,perl=TRUE)==nchar(pairs$R))==nrow(pairs))
+  red.mode.L <- (sum(regexpr("^{",pairs$L,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$L,perl=TRUE)==nchar(pairs$L))==nrow(pairs))
+  if (red.mode.L || red.mode.R)
+    stop("Does not work with ligand-receptor pais already reduced to the ligands or the receptors")
+  if (n.clusters<1 || n.clusters>ncol(ds$ncounts))
+    stop("n.clusters must be > 1 and <= ncol(ds$ncounts)")
+  
+  if (!is.null(LLR.thres))
+    pairs <- pairs[pairs$LLR>=LLR.thres,]
+  else
+    if (!is.null(pval.thres))
+      pairs <- pairs[pairs$pval<=pval.thres,]
+  else
+    pairs <- pairs[pairs$qval<=qval.thres,]
+  
+  pairs <- reduceToBestPathway(pairs)
+  ref <- paste(pairs$L,pairs$R,sep="||")
+  dup <- duplicated(ref)
+  pairs <- pairs[!dup,] # different pathways for the same LR pair can have the same P-value
+  signatures <- getLRGeneSignatures(pairs,pval.thres=1) # already filtered
+  scores <- scoreLRGeneSignatures(ds,signatures)
+  mat.c <- .cutExtremeValues(scores,cut.p)
+  di.spl <- stats::dist(t(mat.c))
+  hc.spl <- stats::hclust(di.spl,method="ward.D")
+  cluster <- cutree(hc.spl,n.clusters)
+  networks <- foreach::foreach(i=1:n.clusters,.combine=c) %do% {
+    LRscores <- rowMeans(scores[,cluster==i])
+    sel.pairs <- pairs[LRscores>=min.score,]
+    list(getLRIntracellNetwork(sel.pairs,pval.thres=1,min.cor=min.cor,signed=signed,restrict.pw=restrict.pw,node.size=node.size))
+  }
+  
+  list(pairs=pairs,hclust.spl=hc.spl,signatures=signatures,scores=scores,n.clusters=n.clusters,clusters=cluster,min.cor=min.cor,signed=signed,restrict.pw=restrict.pw,networks=networks)
   
 } # getMultipleLRIntracellNetworks

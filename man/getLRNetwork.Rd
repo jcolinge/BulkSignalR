@@ -43,7 +43,7 @@ save(ds,file="...",compress="bzip2")
 
 ds.LR <- getCorrelatedLR(ds)
 ds.LR <- checkReceptorSignaling(ds,ds.LR)
-pairs.p <- pValuesLR(ds.LR,ds$param)
+pp <- pValuesLR(ds.LR,ds$param)
 gLR <- getLRNetwork(pp,qval.thres=0.01)
 plot(gLR)
 write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
