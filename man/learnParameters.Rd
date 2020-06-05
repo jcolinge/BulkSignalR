@@ -12,20 +12,20 @@ learnParameters(
   verbose = FALSE,
   n.rand.LR = 5,
   n.rand.RT = 2,
-  learn.altern = FALSE,
   with.complex = TRUE,
   max.pw.size = 200,
   min.pw.size = 5,
   min.positive = 4,
+  quick = TRUE,
   force.altern = FALSE
 )
 }
 \arguments{
 \item{ds}{A BulkSignalR data set, i.e., a list with the normalized read counts and sample types.}
 
-\item{normal}{A character vector defining the sample types that correspond to the "normal" condition in case \code{learn.altern} is set to \code{TRUE}.}
+\item{normal}{A character vector defining the sample types that correspond to the "normal" condition in case alternative distributions are learnt.}
 
-\item{induced}{A character vector defining the sample types that correspond to the "induced" condition in case \code{learn.altern} is set to \code{TRUE}.}
+\item{induced}{A character vector defining the sample types that correspond to the "induced" condition in case alternative distributions are learnt.}
 
 \item{plot.folder}{A folder name for generating control plots.}
 
@@ -35,8 +35,6 @@ learnParameters(
 
 \item{n.rand.RT}{The number of random expression matrices to use for learning the receptor-target genes correlation distribution.}
 
-\item{learn.altern}{A logical specifying whether alternative distributions must be learnt.}
-
 \item{with.complex}{A logical indicating whether receptor co-complex members should be included in the target genes.}
 
 \item{max.pw.size}{Maximum pathway size to consider from the pathway reference.}
@@ -45,14 +43,16 @@ learnParameters(
 
 \item{min.positive}{Minimum number of target genes to be found in a given pathway.}
 
+\item{quick}{A logical indicating whether approximate parameters for the receptor-target correlations should be used.}
+
 \item{force.altern}{A logical to force computations when learning the alternative distributions on a limited number of data.}
 }
 \value{
-The BulkSignalR data set \code{ds} extended with a slot \code{param} that contains all the null model parameters
-as well as parameters that were used to specify how they were learnt. Provided \code{learn.altern} was \code{TRUE}, the
-alternative model parameters are also added into \code{param}. \code{param} is a multi-level named list.
+The BulkSignalR data set \code{ds} extended with a slot \code{ds$param} that contains all the null model parameters
+as well as parameters that were used to specify how they were learnt. Provided \code{induced} and \code{normal} are set, the
+alternative model parameters are also added into \code{ds$param}. \code{ds$param} is a multi-level named list.
 
-In a pathway of the reference, i.e., a Reactome pathway or the genes of a GOBP term, the target genes are the
+In a reference pathway, i.e., a Reactome pathway or the genes of a GOBP term, the target genes are the
 genes coding for proteins forming a complex with the receptor and the genes in the pathway downstream the receptor,
 which are given as regulated by the pathway. If \code{with.complex} is set to \code{FALSE}, then only the
 regulated genes are considered. Participation to a complex and being regulated as well as the pathway directed topologies
@@ -64,7 +64,7 @@ to use different parameters that could nonetheless introduce biases, but for sav
 The maximum pathway size is used to limit the redundancy inherent to GOBP and Reactome. The minimum pathway size is
 used to avoid overspecific, noninformative results.
 
-If alternative distributions must be learnt (\code{learn.altern==TRUE}), then the \code{induced} and \code{normal} conditions
+If alternative distributions are learnt, then the \code{induced} and \code{normal} conditions
 define the samples involved in the comparison "normal" versus "induced". To train alternative ditribution parameters is necessary
 in case one wants to use log-likelihood ratios (LLR) to score ligand-receptor pairs (\code{\link{naiveBayesLR}}) instead of simpler P-value estimations
 (\code{\link{pValuesLR}}) based on the sole null distributions. Such a training relies on differential pathways

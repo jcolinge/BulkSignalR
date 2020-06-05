@@ -31,7 +31,11 @@
 #' pairs.p <- pValuesLR(ds.LR,ds$param)
 #' pw.stat <- getPathwayStats(pairs.p,qval.thres=0.01)
 #' }
+#' @importFrom foreach %do% %dopar%
 getPathwayStats <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL){
+  
+  # local binding
+  id <- NULL
 
   t <- sum(c("pval","LLR") %in% names(pairs))
   if (t ==2)
@@ -112,7 +116,11 @@ getPathwayStats <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL
 #' pairs.p <- pValuesLR(ds.LR,ds$param)
 #' signatures <- getPathwayStats(pairs.p,qval.thres=0.01)
 #' }
+#' @importFrom foreach %do% %dopar%
 getLRGeneSignatures <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,signed=TRUE){
+  
+  # local binding
+  i <- NULL
 
   t <- sum(c("pval","LLR") %in% names(pairs))
   if (t ==2)
@@ -136,7 +144,7 @@ getLRGeneSignatures <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=
       if (signed)
         signature <- tg[LR$rank[i]:length(tg)]
       else{
-        corr <- as.numeric(unlist(strsplit(LRl$all.corr[i],split=";")))
+        corr <- as.numeric(unlist(strsplit(LR$all.corr[i],split=";")))
         o <- order(corr**2)
         signature <- tg[o][LR$rank[i]:length(tg)]
       }
@@ -178,6 +186,7 @@ getLRGeneSignatures <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=
 #' signatures <- getPathwayStats(p.red.P,qval.thres=0.01)
 #' scores <- scoreLRGeneSignatures(ds,signatures,rename.by.pathway=TRUE)
 #' }
+#' @importFrom foreach %do% %dopar%
 scoreLRGeneSignatures <- function(ds,sig,sample.types=NULL,LR.weight=0.5,robust=FALSE,rename.by.pathway=FALSE){
 
   if (LR.weight<=0 || LR.weight>=1)
@@ -419,6 +428,7 @@ simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=
 #' @param height         PDF height.
 #' @param pointsize      PDF pointsize.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
+#' @param vert.p         Proportion of total height dedicated to the top heatmap.
 #' @param row.names.1      A logical to turn on/off the display of row (gene) names in the top heatmap.
 #' @param row.names.2      A logical to turn on/off the display of row (gene) names in the bottom heatmap.
 #' @return A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
@@ -453,7 +463,7 @@ simpleHeatmap <- function(mat.c,file.name=NULL,dend.row=NULL,dend.spl=NULL,cols=
 #' tme.scores <- scoreSignatures(ds,tme.signatures)
 #' dualHeatmap(mat.c,mat.e,"example-with-TME.pdf",width=9,height=7,pointsize=4)
 #' }
-dualHeatmap <- function(mat.c,mat.e,file.name=NULL,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height=6,pointsize=4,cut.p=0.01,vert.p=0.9,ros.names.1=TRUE,row.names.2=TRUE){
+dualHeatmap <- function(mat.c,mat.e,file.name=NULL,dend.row=NULL,dend.spl=NULL,dend.e=NULL,cols=NULL,cols.e=NULL,width,height=6,pointsize=4,cut.p=0.01,vert.p=0.9,row.names.1=TRUE,row.names.2=TRUE){
 
   if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
     stop("Package \"ComplexHeatmap\" needed for this function to work. Please install it.")

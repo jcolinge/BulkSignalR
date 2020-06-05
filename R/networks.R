@@ -69,7 +69,7 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
   g.shapes[g.names%in%pairs$R] <- "square"
   g <- igraph::set_vertex_attr(g,name="shape",value=g.shapes)
   g <- igraph::set_edge_attr(g,name="edge.type",value="LR")
-  el <- as_edgelist(g)
+  el <- igraph::as_edgelist(g)
   pval <- NULL
   qval <- NULL
   corr <- NULL
@@ -127,7 +127,11 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
 #' lay <- layout_with_kk(mult.net$networks[[1]])
 #' plot(mult.net$networks[[1]],layout=lay)
 #' }
+#' @importFrom foreach %do% %dopar%
 getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,node.size=5){
+  
+  # local binding
+  i <- NULL
   
   t <- sum(c("pval","LLR") %in% names(pairs))
   if (t ==2)
@@ -160,7 +164,7 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
   mat.c <- .cutExtremeValues(scores,cut.p)
   di.spl <- stats::dist(t(mat.c))
   hc.spl <- stats::hclust(di.spl,method="ward.D")
-  cluster <- cutree(hc.spl,n.clusters)
+  cluster <- stats::cutree(hc.spl,n.clusters)
   networks <- foreach::foreach(i=1:n.clusters,.combine=c) %do% {
     LRscores <- rowMeans(scores[,cluster==i])
     sel.pairs <- pairs[LRscores>=min.score,]
@@ -182,7 +186,11 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 #' @param signed        A logical indicating whether \code{min.cor} is imposed to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).
 #' @return An \code{igraph} object featuring the ligand-receptor-downstream signaling network. Default colors and node sizes are assigned.
 #' @export
+#' @importFrom foreach %do% %dopar%
 .edgesLRIntracell <- function(pairs,pw,id.col,gene.col,min.cor=0.3,signed=FALSE){
+  
+  # local binding
+  i <- NULL
   
   directed.int <- c("controls-state-change-of","catalysis-precedes","controls-expression-of","controls-transport-of","controls-phosphorylation-of")
 
@@ -394,7 +402,11 @@ getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thre
 #' lay <- layout_with_kk(mult.intra.net$networks[[1]])
 #' plot(mult.intra.net$networks[[1]],layout=lay)
 #' }
+#' @importFrom foreach %do% %dopar%
 getMultipleLRIntracellNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
+  
+  # local binding
+  i <- NULL
   
   t <- sum(c("pval","LLR") %in% names(pairs))
   if (t ==2)
@@ -427,7 +439,7 @@ getMultipleLRIntracellNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.t
   mat.c <- .cutExtremeValues(scores,cut.p)
   di.spl <- stats::dist(t(mat.c))
   hc.spl <- stats::hclust(di.spl,method="ward.D")
-  cluster <- cutree(hc.spl,n.clusters)
+  cluster <- stats::cutree(hc.spl,n.clusters)
   networks <- foreach::foreach(i=1:n.clusters,.combine=c) %do% {
     LRscores <- rowMeans(scores[,cluster==i])
     sel.pairs <- pairs[LRscores>=min.score,]

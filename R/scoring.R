@@ -25,6 +25,7 @@
 #' pairs.p <- pValuesLR(ds.LR,ds$param)
 #' pairs.red <- reduceToBestPathway(pairs.p)
 #' }
+#' @importFrom rlang .data
 reduceToBestPathway <- function(pairs){
 
   t <- sum(c("pval","LLR") %in% names(pairs))
@@ -34,9 +35,9 @@ reduceToBestPathway <- function(pairs){
     stop("P-values or LLR must be available in the ligand-receptor table")
 
   if ("pval" %in% names(pairs))
-    pairs %>% dplyr::group_by(L,R) %>% dplyr::filter(pval==min(pval))
+    pairs %>% dplyr::group_by(.data$L,.data$R) %>% dplyr::filter(.data$pval==min(.data$pval))
   else
-    pairs %>% dplyr::group_by(L,R) %>% dplyr::filter(LLR==max(LLR))
+    pairs %>% dplyr::group_by(.data$L,.data$R) %>% dplyr::filter(.data$LLR==max(.data$LLR))
 
 } # reduceToBestPathway
 
@@ -254,6 +255,7 @@ naiveBayesLR <- function(lr,param,rank.p=0.75,signed=TRUE,use.gamma=FALSE,best.p
 #' pairs.p <- pValuesLR(ds.LR,ds$param)
 #' pairs.recept <- reduceToReceptor(pairs.p)
 #' }
+#' @importFrom rlang .data
 reduceToReceptor <- function(pairs){
 
   t <- sum(c("pval","LLR") %in% names(pairs))
@@ -268,12 +270,12 @@ reduceToReceptor <- function(pairs){
 
   # best LLR or pval per receptor/pathway
   if ("pval" %in% names(pairs))
-    best <- pairs %>% dplyr::group_by(R,pw.id) %>% dplyr::filter(pval==min(pval))
+    best <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
   else
-    best <- pairs %>% dplyr::group_by(R,pw.id) %>% dplyr::filter(LLR==max(LLR))
+    best <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::filter(.data$LLR==max(.data$LLR))
 
   # list of ligands for each receptor/pathway combination
-  ligands <- pairs %>% dplyr::group_by(R,pw.id) %>% dplyr::summarize(Ls=paste0('{',paste(L,collapse=';'),'}'))
+  ligands <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::summarize(Ls=paste0('{',paste(.data$L,collapse=';'),'}'))
 
   # replace ligands by ligand lists
   rpw <- paste(best$R,best$pw.id,sep="|")
@@ -313,6 +315,7 @@ reduceToReceptor <- function(pairs){
 #' pairs.p <- pValuesLR(ds.LR,ds$param)
 #' pairs.lig <- reduceToLigand(pairs.p)
 #' }
+#' @importFrom rlang .data
 reduceToLigand <- function(pairs){
 
   t <- sum(c("pval","LLR") %in% names(pairs))
@@ -327,12 +330,12 @@ reduceToLigand <- function(pairs){
 
   # best LLR or pval per receptor/pathway
   if ("pval" %in% names(pairs))
-    best <- pairs %>% dplyr::group_by(L,pw.id) %>% dplyr::filter(pval==min(pval))
+    best <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
   else
-    best <- pairs %>% dplyr::group_by(L,pw.id) %>% dplyr::filter(LLR==max(LLR))
+    best <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::filter(.data$LLR==max(.data$LLR))
 
   # list of receptors for each ligand/pathway combination
-  receptors <- pairs %>% dplyr::group_by(L,pw.id) %>% dplyr::summarize(Rs=paste0('{',paste(R,collapse=';'),'}'))
+  receptors <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::summarize(Rs=paste0('{',paste(.data$R,collapse=';'),'}'))
 
   # replace receptor by receptor lists
   lpw <- paste(best$L,best$pw.id,sep="|")
@@ -373,6 +376,7 @@ reduceToLigand <- function(pairs){
 #' pairs.pw <- reduceToPathway(pairs.p)
 #' pairs.pw.red <- reduceToBestPathway(pairs.pw)
 #' }
+#' @importFrom rlang .data
 reduceToPathway <- function(pairs){
 
   t <- sum(c("pval","LLR") %in% names(pairs))
@@ -383,13 +387,13 @@ reduceToPathway <- function(pairs){
 
   # best LLR or pval per pathway
   if ("pval" %in% names(pairs))
-    best <- pairs %>% dplyr::group_by(pw.id) %>% dplyr::filter(pval==min(pval))
+    best <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
   else
-    best <- pairs %>% dplyr::group_by(pw.id) %>% dplyr::filter(LLR==max(LLR))
+    best <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::filter(.data$LLR==max(.data$LLR))
 
   # list of ligands and receptors for each pathway
-  lire <- pairs %>% dplyr::group_by(pw.id) %>% dplyr::summarize(Ls=paste0('{',paste(unique(unlist(strsplit(gsub("}$","",gsub("^{","",L,perl=TRUE)),split=";"))),collapse=';'),'}'),
-                                                                Rs=paste0('{',paste(unique(unlist(strsplit(gsub("}$","",gsub("^{","",R,perl=TRUE)),split=";"))),collapse=';'),'}'))
+  lire <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::summarize(Ls=paste0('{',paste(unique(unlist(strsplit(gsub("}$","",gsub("^{","",.data$L,perl=TRUE)),split=";"))),collapse=';'),'}'),
+                                                                      Rs=paste0('{',paste(unique(unlist(strsplit(gsub("}$","",gsub("^{","",.data$R,perl=TRUE)),split=";"))),collapse=';'),'}'))
 
   # replace ligands and receptors by lists
   rpwL <- stats::setNames(lire$Ls,lire$pw.id)

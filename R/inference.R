@@ -19,7 +19,11 @@
 #' ds <- prepareDataset(sdc,sample.types)
 #' ds.LR <- getCorrelatedLR(ds)
 #' }
+#' @importFrom foreach %do% %dopar%
 getCorrelatedLR <- function(ds,min.cor=0.3,restrict.genes=NULL){
+  
+  # local binding
+  i <- NULL
 
   if ((min.cor < -1) || (min.cor > 1))
     stop("min.cor must lie in [-1;+1]")
@@ -59,7 +63,11 @@ getCorrelatedLR <- function(ds,min.cor=0.3,restrict.genes=NULL){
 #' This BulkSignalR internal function is made visible for advanced users who might want to use it to implement
 #' alternative analyses.
 #' @export
+#' @importFrom foreach %do% %dopar%
 .downstreamSignaling <- function(lr,pw,pw.size,rncounts,id.col,gene.col,pw.col,min.positive,with.complex=TRUE){
+  
+  # local binding
+  r <- p <- pl <- id <- NULL
 
   # define interaction types
   control.int <- "controls-expression-of"

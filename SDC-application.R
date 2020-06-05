@@ -12,14 +12,14 @@ registerDoParallel(cl)
 data(sdc,package="BulkSignalR")
 sample.types <- rep("tumor",ncol(sdc)-2)
 ds <- prepareDataset(sdc[,-grep("^N",names(sdc))],sample.types)
-ds <- learnParameters(ds,normal="normal",induced="tumor",verbose=TRUE)
-save(ds,file="ds.rda",compress="bzip2")
+ds <- learnParameters(ds,verbose=TRUE)
+#save(ds,file="ds.rda",compress="bzip2")
 #load("ds.rda")
 
 # score ligand-receptor interactions
 ds.LR <- getCorrelatedLR(ds,min.cor=0.25)
 ds.LR <- checkReceptorSignaling(ds,ds.LR)
-save(ds.LR,file="ds-LR.rda",compress="bzip2")
+#save(ds.LR,file="ds-LR.rda",compress="bzip2")
 #load("ds-LR.rda")
 pp <- pValuesLR(ds.LR,ds$param)
 pp <- pp[order(pp$qval),]
@@ -39,7 +39,6 @@ simpleHeatmap(scores,"SDC-LR-heatmap.pdf",width=6,height=4,pointsize=4)
 data(tme.signatures,package="BulkSignalR")
 tme.scores <- scoreSignatures(ds,tme.signatures)
 dualHeatmap(scores,tme.scores,pointsize=8,vert.p=0.82)
-dualHeatmap(scores,tme.scores,"SDC-LR-TME-heatmap.pdf",width=6,height=4.5,pointsize=4,vert.p=0.82)
 
 # generate a ligand-receptor network and export it in .graphML for Cytoscape or similar tools
 gLR <- getLRNetwork(pp,qval.thres=0.01)
@@ -48,12 +47,6 @@ write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
 # play around with igraph functions as an alternative to Cytoscape
 plot(gLR)
 plot(gLR,
-     vertex.label.color="black",
-     vertex.label.family="Helvetica",
-     vertex.label.cex=0.75)
-lay <- layout_with_kk(gLR)
-plot(gLR,
-     layout=lay,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -77,7 +70,7 @@ h <- hierarchy(cb)
 h <- set_vertex_attr(h,name="size",value=7)
 plot(h)
 bl <- blocks(cb)
-bl[sapply(bl,function(x) length(x)<20 && any(V(u.gLR)[x]$label%in%c("CTLA-4","TGFB3","JAG1","CD274")))]
+bl[sapply(bl,function(x) length(x)<20 && any(V(u.gLR)[x]$label%in%c("CTLA-4","JAG1","CD274")))]
 
 # generate different ligand-receptor networks depending on the gene signature clusters
 mult.net <- getMultipleLRNetworks(ds,pp,n.clusters=4,qval.thres=0.01)
@@ -150,9 +143,9 @@ mult.net.intra <- getMultipleLRIntracellNetworks(ds,pp,n.clusters=4,qval.thres=0
 plot(mult.net$hclust.spl)
 table(mult.net$clusters)
 simpleHeatmap(mult.net$scores,dend.spl=as.dendrogram(mult.net$hclust.spl),n.col.clust=4,row.names=FALSE) # cluster numbers are different in the ComplexHeatmap output
-lay.1 <- layout_with_kk(mult.net.intra$networks[[1]])
-plot(mult.net.intra$networks[[1]],
-     layout=lay.1,
+lay.4 <- layout_with_kk(mult.net.intra$networks[[4]])
+plot(mult.net.intra$networks[[4]],
+     layout=lay.4,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)

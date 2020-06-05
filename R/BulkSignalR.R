@@ -10,3 +10,5 @@
 #' @docType package
 #' @name BulkSignalR
 NULL
+
+globalVariables(c("%v%","%>%","%do%","%dopar","ComplexHeatmap"))
