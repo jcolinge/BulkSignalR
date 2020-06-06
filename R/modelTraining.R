@@ -363,7 +363,7 @@
 #' save(ds,file="...",compress="bzip2")
 #' }
 learnParameters <- function(ds,normal=NULL,induced=NULL,plot.folder=NULL,verbose=FALSE,n.rand.LR=5,n.rand.RT=2,
-                            with.complex=TRUE,max.pw.size=200,min.pw.size=5,min.positive=4,quick=TRUE,force.altern=FALSE){
+                            with.complex=TRUE,max.pw.size=200,min.pw.size=5,min.positive=4,quick=FALSE,force.altern=FALSE){
 
   n.rand.LR <- trunc(n.rand.LR)
   if (n.rand.LR < 1)

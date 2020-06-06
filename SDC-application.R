@@ -12,7 +12,7 @@ registerDoParallel(cl)
 data(sdc,package="BulkSignalR")
 sample.types <- rep("tumor",ncol(sdc)-2)
 ds <- prepareDataset(sdc[,-grep("^N",names(sdc))],sample.types)
-ds <- learnParameters(ds,verbose=TRUE)
+ds <- learnParameters(ds,verbose=TRUE,quick=TRUE)
 #save(ds,file="ds.rda",compress="bzip2")
 #load("ds.rda")
 
@@ -47,6 +47,7 @@ write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
 # play around with igraph functions as an alternative to Cytoscape
 plot(gLR)
 plot(gLR,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -80,6 +81,7 @@ simpleHeatmap(mult.net$scores,file.name="SDC-clusters-LR-heatmap.pdf",dend.spl=a
 lay.2 <- layout_with_kk(mult.net$networks[[2]])
 plot(mult.net$networks[[2]],
      layout=lay.2,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -93,6 +95,7 @@ plot(cb.2,ug.2,
 lay.3 <- layout_with_kk(mult.net$networks[[3]])
 plot(mult.net$networks[[3]],
      layout=lay.3,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -106,6 +109,7 @@ plot(cb.3,ug.3,
 lay.4 <- layout_with_kk(mult.net$networks[[4]])
 plot(mult.net$networks[[4]],
      layout=lay.4,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -123,6 +127,7 @@ write.graph(gLRintra,file="SDC-LR-intracellular-network.graphml",format="graphml
 lay <- layout_with_kk(gLRintra)
 plot(gLRintra,
      layout=lay,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -131,9 +136,10 @@ plot(gLRintra,
 top <- unique(pp[pp$pval<1e-10,c("pw.id","pw.name")])
 top
 gLRintra.res <- getLRIntracellNetwork(pp,qval.thres=0.01,restrict.pw=top$pw.id)
-lay <- layout_with_kk(gLRintra.res)
+lay <- layout_with_fr(gLRintra.res)
 plot(gLRintra.res,
      layout=lay,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -143,9 +149,10 @@ mult.net.intra <- getMultipleLRIntracellNetworks(ds,pp,n.clusters=4,qval.thres=0
 plot(mult.net$hclust.spl)
 table(mult.net$clusters)
 simpleHeatmap(mult.net$scores,dend.spl=as.dendrogram(mult.net$hclust.spl),n.col.clust=4,row.names=FALSE) # cluster numbers are different in the ComplexHeatmap output
-lay.4 <- layout_with_kk(mult.net.intra$networks[[4]])
+lay.4 <- layout_with_fr(mult.net.intra$networks[[4]])
 plot(mult.net.intra$networks[[4]],
      layout=lay.4,
+     edge.arrow.size=0.6,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)

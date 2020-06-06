@@ -65,6 +65,9 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
   g.colors <- rep("green",length(g.names))
   g.colors[g.names%in%pairs$R] <- "red"
   g <- igraph::set_vertex_attr(g,name="color",value=g.colors)
+  # g.shapes <- rep("circle",length(g.names))
+  # g.shapes[g.names%in%pairs$R] <- "square"
+  # g <- igraph::set_vertex_attr(g,name="shape",value=g.shapes)
   g <- igraph::set_edge_attr(g,name="edge.type",value="LR")
   el <- igraph::as_edgelist(g)
   pval <- NULL
@@ -348,6 +351,10 @@ getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thre
   g.colors[g.names%in%pairs$R] <- "red"
   g.colors[g.names%in%pairs$L] <- "green"
   g <- igraph::set_vertex_attr(g,name="color",value=g.colors)
+  # g.shapes <- rep("rectangle",length(g.names))
+  # g.shapes[g.names%in%pairs$R] <- "square"
+  # g.shapes[g.names%in%pairs$L] <- "circle"
+  # g <- igraph::set_vertex_attr(g,name="shape",value=g.shapes)
 
 } # getLRIntracellNetwork
 
