@@ -232,12 +232,11 @@ naiveBayesLR <- function(lr,param,rank.p=0.75,signed=TRUE,use.gamma=FALSE,best.p
 #' Simplifies a ligand-receptor table to focus on the receptors.
 #'
 #' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
-#' @return A table with the same structure as \code{pairs} but reduced to only report one row per receptor.
-#' All the ligands are combined in a semi-colon-separated list surounded by curly braces.
+#' @return A table with the same structure as \code{pairs} but reduced to only report one row per receptor
+#' within each pathway. All the ligands are combined in a semi-colon-separated list surounded by curly braces.
 #'
-#' To limit the output table to a single line per receptor, this function also selects the pathway
-#' with the smallest P-value, respectively the largest log-likelihood ratio. The reported list of target genes
-#' and their respective correlations are those of this single selected pathway.
+#' The reported P-value or LLR, and target genes are those from the line with the smallest P-value, respectively the
+#' largest log-likelihood ratio.
 #' @export
 #' @examples
 #' \dontrun{
@@ -293,11 +292,10 @@ reduceToReceptor <- function(pairs){
 #'
 #' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
 #' @return A table with the same structure as \code{pairs} but reduced to only report one row per ligand.
-#' All the receptors are combined in a semi-colon-separated list surounded by curly braces.
+#' within each pathway. All the receptors are combined in a semi-colon-separated list surounded by curly braces.
 #'
-#' To limit the output table to a single line per ligand, this function also selects the pathway
-#' with the smallest P-value, respectively the largest log-likelihood ratio. The reported list of target genes
-#' and their respective correlations are those of this single selected pathway.
+#' The reported P-value or LLR, and target genes are those from the line with the smallest P-value, respectively the
+#' largest log-likelihood ratio.
 #' @export
 #' @examples
 #' \dontrun{
@@ -355,6 +353,8 @@ reduceToLigand <- function(pairs){
 #' @return A table with the same structure as \code{pairs} but reduced to only report one row per pathway.
 #' All the ligands and all the receptors forming pairs related to a certain pathway, are combined in two semi-colon-separated
 #' lists surounded by curly braces. The information of which ligand interacted with which receptor is lost.
+#' For a given pathway, the reported P-values/LLR and target genes are those of the best ligand-receptor pair that
+#' was in this pathway.
 #'
 #' There is no pathway selection, i.e. potentially redundant pathways with different P-values or log-likelihood ratios (LLRs)
 #' are all kept in the output. \code{reduceToBestPathway()} can be used to select the one with best P-value or LLR.

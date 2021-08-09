@@ -208,11 +208,11 @@ scoreLRGeneSignatures <- function(ds,sig,sample.types=NULL,LR.weight=0.5,robust=
   tg <- tg[good]
   sig <- sig[good,]
   if (red.mode.L)
-    ligands <- unlist(strsplit(gsub("}$","",gsub("^{","",sig$L,perl=TRUE)),split=";"))
+    ligands <- unlist(strsplit(gsub("}$","",gsub("^{","",sig$L,perl=TRUE),perl=TRUE),split=";"))
   else
     ligands <- sig$L
   if (red.mode.R)
-    receptors <- unlist(strsplit(gsub("}$","",gsub("^{","",sig$R,perl=TRUE)),split=";"))
+    receptors <- unlist(strsplit(gsub("}$","",gsub("^{","",sig$R,perl=TRUE),perl=TRUE),split=";"))
   else
     receptors <- sig$R
   pool <- unique(c(unlist(tg),receptors,ligands))
@@ -221,7 +221,7 @@ scoreLRGeneSignatures <- function(ds,sig,sample.types=NULL,LR.weight=0.5,robust=
   if (is.null(sample.types))
     sample.types <- unique(ds$types)
   if (ds$log.transformed)
-    ncounts <- ds$ncounts
+    ncounts <- data.matrix(ds$ncounts[pool,ds$types%in%sample.types])
   else
     ncounts <- data.matrix(log10(1+ds$ncounts[pool,ds$types%in%sample.types]))
   if (robust)
@@ -292,9 +292,13 @@ scoreSignatures <- function(ds,ref.signatures,sample.types=NULL,robust=FALSE){
   # compute the gene signature scores
   pop <- unique(ref.signatures$signature)
   sig <- matrix(0,nrow=length(pop),ncol=ncol(ncounts),dimnames=list(pop,colnames(ncounts)))
-  for (p in pop)
-    sig[p,] <- as.numeric(colSums(z[ref.signatures$gene[ref.signatures$signature==p],])/sum(ref.signatures$signature==p))
-
+  for (p in pop){
+    n <- sum(ref.signatures$signature==p)
+    if (n > 1)
+      sig[p,] <- as.numeric(colSums(z[ref.signatures$gene[ref.signatures$signature==p],])/n)
+    else
+      sig[p,] <- as.numeric(z[ref.signatures$gene[ref.signatures$signature==p],])
+  }
   sig
 
 } # scoreSignatures

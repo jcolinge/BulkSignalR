@@ -78,10 +78,24 @@ mult.net <- getMultipleLRNetworks(ds,pp,n.clusters=4,qval.thres=0.01)
 plot(mult.net$hclust.spl)
 table(mult.net$clusters)
 simpleHeatmap(mult.net$scores,file.name="SDC-clusters-LR-heatmap.pdf",dend.spl=as.dendrogram(mult.net$hclust.spl),n.col.clust=4,row.names=FALSE) # cluster numbers are different in the ComplexHeatmap output
+lay.1 <- layout_with_kk(mult.net$networks[[1]])
+plot(mult.net$networks[[1]],
+     layout=lay.1,
+     edge.arrow.size=0.3,
+     vertex.label.color="black",
+     vertex.label.family="Helvetica",
+     vertex.label.cex=0.75)
+ug.1 <- as.undirected(mult.net$networks[[1]])
+cb.1 <- cohesive_blocks(ug.1)
+plot(cb.1,ug.1,
+     vertex.label.color="black",
+     vertex.label.family="Helvetica",
+     vertex.label.cex=0.75,
+     edge.color="black")
 lay.2 <- layout_with_kk(mult.net$networks[[2]])
 plot(mult.net$networks[[2]],
      layout=lay.2,
-     edge.arrow.size=0.6,
+     edge.arrow.size=0.3,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
@@ -95,7 +109,7 @@ plot(cb.2,ug.2,
 lay.3 <- layout_with_kk(mult.net$networks[[3]])
 plot(mult.net$networks[[3]],
      layout=lay.3,
-     edge.arrow.size=0.6,
+     edge.arrow.size=0.3,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
