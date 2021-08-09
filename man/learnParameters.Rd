@@ -16,7 +16,7 @@ learnParameters(
   max.pw.size = 200,
   min.pw.size = 5,
   min.positive = 4,
-  quick = TRUE,
+  quick = FALSE,
   force.altern = FALSE
 )
 }
