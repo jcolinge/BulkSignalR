@@ -9,7 +9,6 @@ getMultipleLRNetworks(
   pairs,
   n.clusters,
   min.score = 0,
-  LLR.thres = NULL,
   pval.thres = NULL,
   qval.thres = NULL,
   cut.p = 0.01,
@@ -19,13 +18,11 @@ getMultipleLRNetworks(
 \arguments{
 \item{ds}{A BulkSignalR data set.}
 
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{n.clusters}{The number of clusters.}
 
 \item{min.score}{The minimum required average z-score of a gene signature in a cluster.}
-
-\item{LLR.thres}{Log-likelihood threshold in \code{pairs}.}
 
 \item{pval.thres}{P-value threshold in \code{pairs}.}
 
@@ -39,8 +36,8 @@ getMultipleLRNetworks(
 A list containing the main elements of the clustering analysis as well as an inner list
 containing the \code{igraph} objects created for each cluster.
 
-The elements of clustering are the retained global ligand-receptor table, the correspondinf gene signatures and their
-scores across \code{ds} samples, the resulting hierarchical cultering and sample membership.
+The elements of clustering are the retained global ligand-receptor table, the corresponding gene signatures and their
+scores across \code{ds} samples, the resulting hierarchical clustering and sample membership.
 }
 \description{
 Generate a ligand-receptor network for each cluster of samples based on ligand-receptor gene signatures.

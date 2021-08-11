@@ -12,7 +12,7 @@ A data frame with 209 rows and 2 variables:
 }
 }
 \source{
-Becht et al., Genome Biol, 2016, and Angelova et al., Genome Biol, 2015.
+Becht et al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
 }
 \usage{
 tme.signatures

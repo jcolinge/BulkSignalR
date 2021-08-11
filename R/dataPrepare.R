@@ -1,15 +1,15 @@
 #' Prepare a BulkSignalR data set
 #'
 #' Take a matrix or data frame containing read counts along with sample types and combine them
-#' in a list for subsequent use with BulkSignalR. Expression proteomics data could be used as well.
+#' into a list for subsequent use with BulkSignalR. Expression proteomics data could be used as well.
 #'
 #' @param counts     A table or matrix of read counts.
 #' @param types      A vector of characters defining sample types.
-#' @param normalize  A logical indicating whether \code{counts} should be normalized according to \code{method} or if it was normalized beforehand.
-#' @param symbol.col The index of the column containing the gene symbols in case those are not rownames of \code{counts} already.
+#' @param normalize  A logical indicating whether \code{counts} should be normalized according to \code{method} or it was normalized beforehand.
+#' @param symbol.col The index of the column containing the gene symbols in case those are not the rownames of \code{counts} already.
 #' @param min.count  The minimum read count of a gene to be considered expressed in a sample.
 #' @param prop       The minimum proportion of samples where a must be expressed to keep that gene.
-#' @param method     The normalization method ("TC" for total count or "UQ" for upper quartile).
+#' @param method     The normalization method ("UQ" for upper quartile or "TC" for total count).
 #' @param log.transformed  A logical indicating whether expression data were already log-transformed, e.g., some microarray data.
 #' @return A list containing the read counts and the sample types for further use in BulkSignalR.
 #'
@@ -19,18 +19,16 @@
 #' This column must be specified with \code{symbol.col}. In such a case, \code{prepareDataset} will extract
 #' this column and use it to set the row names. Because row names must be unique, \code{prepareDataset}
 #' will eliminate rows with duplicated gene symbols by keeping the rows with maximum average expression.
-#' Gene symbol dupplication typically occurs in protein coding genes after genome alignment due to
-#' errors in geneome feature annotation files (GTF/GFF), where a handful of deprecated gene annotations may remain
+#' Gene symbol duplication typically occurs in protein coding genes after genome alignment due to
+#' errors in genome feature annotation files (GTF/GFF), where a handful of deprecated gene annotations may remain
 #' along with the current ones, or some genes are not given their fully specific symbols. If your
 #' read count extraction pipeline does not take care of this phenomenon, the maximum mean expression
-#' selection strategy implemeneted here should solve this difficulty for the sake of inferring ligand-receptor
+#' selection strategy implemented here should solve this difficulty for the sake of inferring ligand-receptor
 #' interactions.
 #'
 #' If \code{normalize} is \code{TRUE} then normalization is performed according to \code{method}.
-#' If those two simple methods are not sufficient, then it is possible to provide a pre-normalized
-#' matrix, e.g., using \code{\link[edgeR]{calcNormFactors}}.
-#' (Remember though that \code{\link[edgeR]{calcNormFactors}} does not normalize the matrix, it only
-#' returns the normalization factors.)
+#' If those two simple methods are not satisfying, then it is possible to provide a pre-normalized
+#' matrix, e.g., using edgeR TMM algorithm.
 #'
 #' In case proteomic data are provided,
 #' \code{min.count} must be understood as its equivalent with respect to those data (spectral counts, iBAQ, etc.).
@@ -40,7 +38,7 @@
 #' sample.types <- rep("tumor",ncol(sdc))
 #' sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
 #' ds <- prepareDataset(sdc,sample.types)
-prepareDataset <- function(counts,types,normalize=TRUE,symbol.col=NULL,min.count=10,prop=0.1,method=c("TC","UQ"),log.transformed=FALSE){
+prepareDataset <- function(counts,types,normalize=TRUE,symbol.col=NULL,min.count=10,prop=0.1,method=c("UQ","TC"),log.transformed=FALSE){
 
   if (prop<0 || prop>1)
     stop("prop must lie in [0;1]")

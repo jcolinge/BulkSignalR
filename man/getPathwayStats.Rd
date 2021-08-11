@@ -4,12 +4,10 @@
 \alias{getPathwayStats}
 \title{Basic statistics about hit pathways}
 \usage{
-getPathwayStats(pairs, LLR.thres = NULL, pval.thres = NULL, qval.thres = NULL)
+getPathwayStats(pairs, pval.thres = NULL, qval.thres = NULL)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
-
-\item{LLR.thres}{Log-likelihood threshold.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{pval.thres}{P-value threshold.}
 
@@ -20,9 +18,9 @@ A table with the pathways selected after the chosen threshold was applied to row
 Each pathway is reported along with various statistics:
 the number of selected receptors in this pathway, the total number of receptors described this pathway,
 the number of selected ligand-receptor pairs hitting this pathway, and the total number of
-ligand-receptor pairs described taht could hit this pathway.
+ligand-receptor pairs described that could hit this pathway.
 
-Obviously, one could imagine computing enrichments in receptors or ligand-receptor pairs
+Obviously, one could imagine computing enrichment in receptors or ligand-receptor pairs
 based on such statistics, but the actual meaning of such an analysis would be ambiguous since
 the pathways were already selected as significantly regulated by the receptor. We thus did not implement
 this (elementary) computation.

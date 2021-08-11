@@ -10,7 +10,7 @@
 \item{pind}{Permutation indices such as returned by \code{.buildPermutationIndices}.}
 }
 \value{
-A list with same structure as \code{pind} but shulled indices within each bin.
+A list with same structure as \code{pind} but shuffled indices within each bin.
 }
 \description{
 Internal function to shuffle permutation indices

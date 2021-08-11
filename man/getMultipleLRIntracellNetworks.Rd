@@ -9,7 +9,6 @@ getMultipleLRIntracellNetworks(
   pairs,
   n.clusters,
   min.score = 0,
-  LLR.thres = NULL,
   pval.thres = NULL,
   qval.thres = NULL,
   cut.p = 0.01,
@@ -22,13 +21,11 @@ getMultipleLRIntracellNetworks(
 \arguments{
 \item{ds}{A BulkSignalR data set.}
 
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{n.clusters}{The number of clusters.}
 
 \item{min.score}{The minimum required average z-score of a gene signature in a cluster.}
-
-\item{LLR.thres}{Log-likelihood threshold in \code{pairs}.}
 
 \item{pval.thres}{P-value threshold in \code{pairs}.}
 

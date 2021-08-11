@@ -2,8 +2,7 @@
 #'
 #' Generate a ligand-receptor network from a ligand-receptor table.
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
-#' @param LLR.thres     Log-likelihood threshold.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
 #' @param node.size     Default node size in the network.
@@ -28,27 +27,22 @@
 #' plot(gLR)
 #' write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
 #' }
-getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,node.size=5){
+getLRNetwork <- function(pairs,pval.thres=NULL,qval.thres=NULL,node.size=5){
     
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P/Q-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
-    stop("P/Q-values or LLR must be available in LR table")
-  if (is.null(LLR.thres)+is.null(pval.thres)+is.null(qval.thres) != 2)
-    stop("One selection criterion out of P-value, Q-value, or LLR only")
+    stop("P/Q-values must be available in LR table")
+  if (is.null(pval.thres)+is.null(qval.thres) != 1)
+    stop("One selection criterion out of P-value or Q-value only")
   red.mode.R <- (sum(regexpr("^{",pairs$R,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$R,perl=TRUE)==nchar(pairs$R))==nrow(pairs))
   red.mode.L <- (sum(regexpr("^{",pairs$L,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$L,perl=TRUE)==nchar(pairs$L))==nrow(pairs))
   if (red.mode.L || red.mode.R)
     stop("Does not work with ligand-receptor pairs already reduced to the ligands or the receptors")
   
-  if (!is.null(LLR.thres))
-    pairs <- pairs[pairs$LLR>=LLR.thres,]
+  if (!is.null(pval.thres))
+    pairs <- pairs[pairs$pval<=pval.thres,]
   else
-    if (!is.null(pval.thres))
-      pairs <- pairs[pairs$pval<=pval.thres,]
-    else
-      pairs <- pairs[pairs$qval<=qval.thres,]
+    pairs <- pairs[pairs$qval<=qval.thres,]
     
   pairs <- reduceToBestPathway(pairs)
   ref <- paste(pairs$L,pairs$R,sep="||")
@@ -93,10 +87,9 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
 #' Generate a ligand-receptor network for each cluster of samples based on ligand-receptor gene signatures.
 #'
 #' @param ds         A BulkSignalR data set.
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @param n.clusters    The number of clusters.
 #' @param min.score     The minimum required average z-score of a gene signature in a cluster.
-#' @param LLR.thres     Log-likelihood threshold in \code{pairs}.
 #' @param pval.thres    P-value threshold in \code{pairs}.
 #' @param qval.thres    Q-value threshold in \code{pairs}.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
@@ -104,8 +97,8 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
 #' @return A list containing the main elements of the clustering analysis as well as an inner list
 #' containing the \code{igraph} objects created for each cluster.
 #' 
-#' The elements of clustering are the retained global ligand-receptor table, the correspondinf gene signatures and their
-#' scores across \code{ds} samples, the resulting hierarchical cultering and sample membership. 
+#' The elements of clustering are the retained global ligand-receptor table, the corresponding gene signatures and their
+#' scores across \code{ds} samples, the resulting hierarchical clustering and sample membership. 
 #' @export
 #' @examples
 #' \dontrun{
@@ -128,18 +121,16 @@ getLRNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,no
 #' plot(mult.net$networks[[1]],layout=lay)
 #' }
 #' @importFrom foreach %do% %dopar%
-getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,node.size=5){
+getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,node.size=5){
   
   # local binding
   i <- NULL
   
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P/Q-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
-    stop("P/Q-values or LLR must be available in LR table")
-  if (is.null(LLR.thres)+is.null(pval.thres)+is.null(qval.thres) != 2)
-    stop("One selection criterion out of P-value, Q-value, or LLR only")
+    stop("P/Q-values must be available in LR table")
+  if (is.null(pval.thres)+is.null(qval.thres) != 1)
+    stop("One selection criterion out of P-value or Q-value only")
   red.mode.R <- (sum(regexpr("^{",pairs$R,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$R,perl=TRUE)==nchar(pairs$R))==nrow(pairs))
   red.mode.L <- (sum(regexpr("^{",pairs$L,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$L,perl=TRUE)==nchar(pairs$L))==nrow(pairs))
   if (red.mode.L || red.mode.R)
@@ -147,11 +138,8 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
   if (n.clusters<1 || n.clusters>ncol(ds$ncounts))
     stop("n.clusters must be > 1 and <= ncol(ds$ncounts)")
 
-  if (!is.null(LLR.thres))
-    pairs <- pairs[pairs$LLR>=LLR.thres,]
-  else
-    if (!is.null(pval.thres))
-      pairs <- pairs[pairs$pval<=pval.thres,]
+  if (!is.null(pval.thres))
+    pairs <- pairs[pairs$pval<=pval.thres,]
   else
     pairs <- pairs[pairs$qval<=qval.thres,]
   
@@ -178,7 +166,7 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 
 #' Internal function to generate a ligand-receptor-downstream signaling network
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @param pw              A table defining the reference pathways.
 #' @param id.col          Column index or name in \code{pw} for the pathway IDs.
 #' @param gene.col        Column index or name in \code{pw} for the gene symbols.
@@ -241,8 +229,7 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 #' Generate a ligand-receptor network from a ligand-receptor table and add the shortest paths from the receptor to correlated
 #' target genes following Reactome and KEGG pathways.
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
-#' @param LLR.thres     Log-likelihood threshold.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
 #' @param min.cor       Minimum correlation required for the target genes.
@@ -274,28 +261,23 @@ getMultipleLRNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL
 #' plot(gLRintra)
 #' write.graph(gLRintra,file="SDC-LR-intracellular-network.graphml",format="graphml")
 #' }
-getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
+getLRIntracellNetwork <- function(pairs,pval.thres=NULL,qval.thres=NULL,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
   
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P/Q-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
-    stop("P/Q-values or LLR must be available in LR table")
-  if (is.null(LLR.thres)+is.null(pval.thres)+is.null(qval.thres) != 2)
-    stop("One selection criterion out of P-value, Q-value, or LLR only")
+    stop("P/Q-values must be available in LR table")
+  if (is.null(pval.thres)+is.null(qval.thres) != 1)
+    stop("One selection criterion out of P-value or Q-value only")
   red.mode.R <- (sum(regexpr("^{",pairs$R,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$R,perl=TRUE)==nchar(pairs$R))==nrow(pairs))
   red.mode.L <- (sum(regexpr("^{",pairs$L,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$L,perl=TRUE)==nchar(pairs$L))==nrow(pairs))
   if (red.mode.L || red.mode.R)
     stop("Does not work with ligand-receptor pairs already reduced to the ligands or the receptors")
   
-  if (!is.null(LLR.thres))
-    pairs <- pairs[pairs$LLR>=LLR.thres,]
-  else
-    if (!is.null(pval.thres))
-      pairs <- pairs[pairs$pval<=pval.thres,]
+  if (!is.null(pval.thres))
+    pairs <- pairs[pairs$pval<=pval.thres,]
   else
     pairs <- pairs[pairs$qval<=qval.thres,]
-
+  
   pool <- unique(c(pairs$L,pairs$R))
   all.edges <- NULL
 
@@ -366,10 +348,9 @@ getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thre
 #' target genes following Reactome and KEGG pathways.
 #'
 #' @param ds         A BulkSignalR data set.
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @param n.clusters    The number of clusters.
 #' @param min.score     The minimum required average z-score of a gene signature in a cluster.
-#' @param LLR.thres     Log-likelihood threshold in \code{pairs}.
 #' @param pval.thres    P-value threshold in \code{pairs}.
 #' @param qval.thres    Q-value threshold in \code{pairs}.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
@@ -403,18 +384,16 @@ getLRIntracellNetwork <- function(pairs,LLR.thres=NULL,pval.thres=NULL,qval.thre
 #' plot(mult.intra.net$networks[[1]],layout=lay)
 #' }
 #' @importFrom foreach %do% %dopar%
-getMultipleLRIntracellNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.thres=NULL,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
+getMultipleLRIntracellNetworks <- function(ds,pairs,n.clusters,min.score=0,pval.thres=NULL,qval.thres=NULL,cut.p=0.01,min.cor=0.3,signed=FALSE,restrict.pw=NULL,node.size=5){
   
   # local binding
   i <- NULL
   
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P/Q-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
-    stop("P/Q-values or LLR must be available in LR table")
-  if (is.null(LLR.thres)+is.null(pval.thres)+is.null(qval.thres) != 2)
-    stop("One selection criterion out of P-value, Q-value, or LLR only")
+    stop("P/Q-values must be available in LR table")
+  if (is.null(pval.thres)+is.null(qval.thres) != 1)
+    stop("One selection criterion out of P-value or Q-value only")
   red.mode.R <- (sum(regexpr("^{",pairs$R,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$R,perl=TRUE)==nchar(pairs$R))==nrow(pairs))
   red.mode.L <- (sum(regexpr("^{",pairs$L,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$L,perl=TRUE)==nchar(pairs$L))==nrow(pairs))
   if (red.mode.L || red.mode.R)
@@ -422,11 +401,8 @@ getMultipleLRIntracellNetworks <- function(ds,pairs,n.clusters,min.score=0,LLR.t
   if (n.clusters<1 || n.clusters>ncol(ds$ncounts))
     stop("n.clusters must be > 1 and <= ncol(ds$ncounts)")
   
-  if (!is.null(LLR.thres))
-    pairs <- pairs[pairs$LLR>=LLR.thres,]
-  else
-    if (!is.null(pval.thres))
-      pairs <- pairs[pairs$pval<=pval.thres,]
+  if (!is.null(pval.thres))
+    pairs <- pairs[pairs$pval<=pval.thres,]
   else
     pairs <- pairs[pairs$qval<=qval.thres,]
   

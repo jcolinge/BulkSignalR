@@ -31,4 +31,4 @@ Suggests:
     grid,
     limma (>= 3.0.0),
     edgeR (>= 3.0.0)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

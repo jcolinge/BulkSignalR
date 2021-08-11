@@ -2,7 +2,7 @@
 % Please edit documentation in R/modelTraining.R
 \name{.getEmpiricalNull}
 \alias{.getEmpiricalNull}
-\title{Internal function sampling of the (empirical) null distribution downstream the receptors}
+\title{Internal function sampling the (empirical) null distribution downstream the receptors}
 \usage{
 .getEmpiricalNull(
   ncounts,
@@ -33,7 +33,7 @@
 A list of \code{n.rand} tables such as output by \code{checkReceptorSignaling}. Each table is computed from
 a randomized expression matrix (randomized \code{ncounts}).
 
-A large number of correlations (lingand-receptor and receptor-downstream target genes) is reported in each table. Therefore,
+A large number of correlations (ligand-receptor and receptor-downstream target genes) is reported in each table. Therefore,
 \code{n.rand} should be given a modest value to avoid unnecessarily long computations.
 
 See \code{\link{checkReceptorSignaling}} for more details about the parameters.

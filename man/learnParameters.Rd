@@ -6,8 +6,6 @@
 \usage{
 learnParameters(
   ds,
-  normal = NULL,
-  induced = NULL,
   plot.folder = NULL,
   verbose = FALSE,
   n.rand.LR = 5,
@@ -16,16 +14,11 @@ learnParameters(
   max.pw.size = 200,
   min.pw.size = 5,
   min.positive = 4,
-  quick = FALSE,
-  force.altern = FALSE
+  quick = TRUE
 )
 }
 \arguments{
 \item{ds}{A BulkSignalR data set, i.e., a list with the normalized read counts and sample types.}
-
-\item{normal}{A character vector defining the sample types that correspond to the "normal" condition in case alternative distributions are learnt.}
-
-\item{induced}{A character vector defining the sample types that correspond to the "induced" condition in case alternative distributions are learnt.}
 
 \item{plot.folder}{A folder name for generating control plots.}
 
@@ -44,8 +37,6 @@ learnParameters(
 \item{min.positive}{Minimum number of target genes to be found in a given pathway.}
 
 \item{quick}{A logical indicating whether approximate parameters for the receptor-target correlations should be used.}
-
-\item{force.altern}{A logical to force computations when learning the alternative distributions on a limited number of data.}
 }
 \value{
 The BulkSignalR data set \code{ds} extended with a slot \code{ds$param} that contains all the null model parameters
@@ -63,24 +54,6 @@ to use different parameters that could nonetheless introduce biases, but for sav
 
 The maximum pathway size is used to limit the redundancy inherent to GOBP and Reactome. The minimum pathway size is
 used to avoid overspecific, noninformative results.
-
-If alternative distributions are learnt, then the \code{induced} and \code{normal} conditions
-define the samples involved in the comparison "normal" versus "induced". To train alternative ditribution parameters is necessary
-in case one wants to use log-likelihood ratios (LLR) to score ligand-receptor pairs (\code{\link{naiveBayesLR}}) instead of simpler P-value estimations
-(\code{\link{pValuesLR}}) based on the sole null distributions. Such a training relies on differential pathways
-found in the "normal" versus "induced" differential gene analysis (uning edgeR).
-
-Note that to be coherent, in case alternative distributions are learnt, then the null model is learnt on the samples
-in the induced condition only (all the samples otherwise). This logic is motivated by a classical
-scenario where one wants to find ligand-receptor pairs in diseased samples and one has access to expression data for
-both normal and diseased samples. The comparison normal versus disease is obviously used to find deregulated pathways,
-and the condition of interest to score the ligand-receptor pairs is diseased.
-
-If the alternative distributions are not learnt, then \code{normal} and \code{induced} should not be used.
-
-The parameter \code{force.altern} should not be used in general.
-It forces the estimation of the alternative model parameters even in cases where very limited numbers of differential pathways are available. There
-is a risk of error executing \code{learnParameters} with this parameter set to \code{TRUE}. Use for data exploration only.
 }
 \description{
 Unique entry point for training the parameters behind BulkSignalR statistical models.

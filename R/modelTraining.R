@@ -17,7 +17,7 @@
 #' Internal function to shuffle permutation indices
 #'
 #' @param pind      Permutation indices such as returned by \code{.buildPermutationIndices}.
-#' @return A list with same structure as \code{pind} but shulled indices within each bin.
+#' @return A list with same structure as \code{pind} but shuffled indices within each bin.
 .shufflePermutationIndices <- function(pind){
   lapply(pind,function(x) sample(x,length(x)))
 }
@@ -40,7 +40,7 @@
 } # .buildPermutatedMatrix
 
 
-#' Internal function sampling of the (empirical) null distribution downstream the receptors
+#' Internal function sampling the (empirical) null distribution downstream the receptors
 #'
 #' Perform receptor downstream analysis with \code{checkReceptorSignaling} based on randomized expression data
 #' and ligand-receptor pairs selected from the same randomized data.
@@ -55,7 +55,7 @@
 #' @return A list of \code{n.rand} tables such as output by \code{checkReceptorSignaling}. Each table is computed from
 #' a randomized expression matrix (randomized \code{ncounts}).
 #'
-#' A large number of correlations (lingand-receptor and receptor-downstream target genes) is reported in each table. Therefore,
+#' A large number of correlations (ligand-receptor and receptor-downstream target genes) is reported in each table. Therefore,
 #' \code{n.rand} should be given a modest value to avoid unnecessarily long computations.
 #'
 #' See \code{\link{checkReceptorSignaling}} for more details about the parameters.
@@ -305,8 +305,6 @@
 #' Unique entry point for training the parameters behind BulkSignalR statistical models.
 #'
 #' @param ds        A BulkSignalR data set, i.e., a list with the normalized read counts and sample types.
-#' @param induced   A character vector defining the sample types that correspond to the "induced" condition in case alternative distributions are learnt.
-#' @param normal   A character vector defining the sample types that correspond to the "normal" condition in case alternative distributions are learnt.
 #' @param plot.folder   A folder name for generating control plots.
 #' @param verbose       A logical activating progress messages for the user.
 #' @param n.rand.LR     The number of random expression matrices to use for learning the ligand-receptor correlation distribution.
@@ -316,7 +314,6 @@
 #' @param min.pw.size     Minimum pathway size to consider from the pathway reference.
 #' @param min.positive    Minimum number of target genes to be found in a given pathway.
 #' @param quick           A logical indicating whether approximate parameters for the receptor-target correlations should be used.
-#' @param force.altern    A logical to force computations when learning the alternative distributions on a limited number of data.
 #' @return The BulkSignalR data set \code{ds} extended with a slot \code{ds$param} that contains all the null model parameters
 #' as well as parameters that were used to specify how they were learnt. Provided \code{induced} and \code{normal} are set, the
 #' alternative model parameters are also added into \code{ds$param}. \code{ds$param} is a multi-level named list.
@@ -333,23 +330,6 @@
 #' The maximum pathway size is used to limit the redundancy inherent to GOBP and Reactome. The minimum pathway size is
 #' used to avoid overspecific, noninformative results.
 #'
-#' If alternative distributions are learnt, then the \code{induced} and \code{normal} conditions
-#' define the samples involved in the comparison "normal" versus "induced". To train alternative ditribution parameters is necessary
-#' in case one wants to use log-likelihood ratios (LLR) to score ligand-receptor pairs (\code{\link{naiveBayesLR}}) instead of simpler P-value estimations
-#' (\code{\link{pValuesLR}}) based on the sole null distributions. Such a training relies on differential pathways
-#' found in the "normal" versus "induced" differential gene analysis (uning edgeR).
-#'
-#' Note that to be coherent, in case alternative distributions are learnt, then the null model is learnt on the samples
-#' in the induced condition only (all the samples otherwise). This logic is motivated by a classical
-#' scenario where one wants to find ligand-receptor pairs in diseased samples and one has access to expression data for
-#' both normal and diseased samples. The comparison normal versus disease is obviously used to find deregulated pathways,
-#' and the condition of interest to score the ligand-receptor pairs is diseased.
-#'
-#' If the alternative distributions are not learnt, then \code{normal} and \code{induced} should not be used.
-#'
-#' The parameter \code{force.altern} should not be used in general.
-#' It forces the estimation of the alternative model parameters even in cases where very limited numbers of differential pathways are available. There
-#' is a risk of error executing \code{learnParameters} with this parameter set to \code{TRUE}. Use for data exploration only.
 #' @export
 #' @examples
 #' \dontrun{
@@ -362,8 +342,8 @@
 #' # since model training takes time and it can be reused, it is advisable to save the model
 #' save(ds,file="...",compress="bzip2")
 #' }
-learnParameters <- function(ds,normal=NULL,induced=NULL,plot.folder=NULL,verbose=FALSE,n.rand.LR=5,n.rand.RT=2,
-                            with.complex=TRUE,max.pw.size=200,min.pw.size=5,min.positive=4,quick=FALSE,force.altern=FALSE){
+learnParameters <- function(ds,plot.folder=NULL,verbose=FALSE,n.rand.LR=5,n.rand.RT=2,
+                            with.complex=TRUE,max.pw.size=200,min.pw.size=5,min.positive=4,quick=TRUE){
 
   n.rand.LR <- trunc(n.rand.LR)
   if (n.rand.LR < 1)
@@ -371,32 +351,18 @@ learnParameters <- function(ds,normal=NULL,induced=NULL,plot.folder=NULL,verbose
   n.rand.RT <- trunc(n.rand.RT)
   if (n.rand.RT < 1)
     stop("Parameter n.rand.RT muste be an integer > 0")
-  if (is.null(induced)+is.null(normal) == 1)
-    stop("To train alternative distributions it is required to define both the normal and induced conditions")
 
   param <- list()
   param$plot.folder <- plot.folder
-  param$induced <- induced
-  param$normal <- normal
   param$with.complex <- with.complex
-  param$learn.altern <- is.null(induced)+is.null(normal) == 0
   param$max.pw.size <- max.pw.size
   param$min.pw.size <- min.pw.size
   param$min.positive <- min.positive
   param$quick <- quick
-  param$force.altern <- force.altern
-  if (param$force.altern && !param$learn.altern)
-    stop("force.altern can only be set to TRUE in case of alternative distribution training")
-  if (verbose & force.altern)
-    cat("Warning: you forced the alternative model training\n")
 
   # LR correlation null ----------------
 
-  if (is.null(induced))
-    induced.samples <- 1:ncol(ds$ncounts)
-  else
-    induced.samples <- ds$types %in% induced
-
+  induced.samples <- 1:ncol(ds$ncounts)
   if (verbose)
     cat("Learning ligand-receptor correlation null distribution...\n")
   ds.LR.null <- .getEmpiricalNullCorrLR(ds$ncounts[,induced.samples],n.rand=n.rand.LR)
@@ -472,138 +438,6 @@ learnParameters <- function(ds,normal=NULL,induced=NULL,plot.folder=NULL,verbose
     gap <- .getGammaParam(r.corrs,"RT correlation (null)",file.name)
     param$RT.0$gamma$k <- gap$k
     param$RT.0$gamma$theta <- gap$theta
-  }
-
-  # Alternative distributions for naive Bayes ------------------------------
-
-  if (param$learn.altern){
-
-    # Get likely (de)regulated pathways to train the alternative models
-    if (verbose)
-      cat("Inferring likely deregulated pathways between normal and induced conditions...\n")
-    ds.pw <- .getDifferentialPathways(ds$ncounts,ds$types,normal,induced)
-    good.pw <- ds.pw[ds.pw$n.pw>=4 & ds.pw$cov>=0.66,"term"]
-    n.pw <- length(good.pw)
-    param$n.altern.pw <- n.pw
-    if ((n.pw < 30) & !force.altern){
-      if (verbose)
-        cat("The number of exploitable pathways is too low (",n.pw,"), alternative ditribution learning stopped\n")
-      param$learn.altern.status <- "stopped"
-    }
-    else{
-      if (n.pw < 30){
-        param$learn.altern.status <- "forced"
-        if (verbose)
-          cat("Warning: The number of exploitable pathways is rather limited (",n.pw,")\n")
-      }
-      else
-        param$learn.altern.status <- "normal"
-
-      # Alternative LR correlation distribution ---------------------
-
-      if (verbose)
-        cat("Learning alternative LR correlation distribution...\n")
-      ds.induced <- prepareDataset(ds$ncounts[,induced.samples],ds$types[induced.samples],normalize=FALSE)
-      ds.LR.altern <- getCorrelatedLR(ds.induced,min.cor=-1,restrict.genes=reactome[reactome$`Reactome ID`%in%good.pw,"Gene name"])
-      c <- ds.LR.altern$putative.pairs$corr
-      if ((length(c) < 30) && verbose)
-        cat("Warning: The number of available alternative LR correlations is rather limited (",length(c),")\n")
-      param$LR.1$n <- length(c)
-      
-      # Gaussian model
-      if (!is.null(plot.folder))
-        file.name <- paste0(plot.folder,"LR-altern-hist-gaussian.pdf")
-      else
-        file.name <- NULL
-      gp <- .getGaussianParam(c,"LR correlation (alternative)",file.name)
-      param$LR.1$norm$mu <- gp$mu
-      param$LR.1$norm$sigma <- gp$sigma
-      
-      # Gamma model (and comparison with Gaussian)
-      if (!is.null(plot.folder))
-        file.name <- paste0(plot.folder,"LR-altern-hist-gamma.pdf")
-      else
-        file.name <- NULL
-      gap <- .getGammaParam(c,"LR correlation (alternative)",file.name)
-      param$LR.1$gamma$k <- gap$k
-      param$LR.1$gamma$theta <- gap$theta
-        
-      # Alternative RT correlation distribution ------------------------------
-        
-      if (verbose)
-        cat("Learning receptor-target correlation alternative distribution...\n")
-      ds.LR.altern <- checkReceptorSignaling(ds.induced,ds.LR.altern,restrict.pw=good.pw,method="reactome",with.complex=with.complex,max.pw.size=max.pw.size,min.pw.size=min.pw.size,min.positive=min.positive)
-      t <- ds.LR.altern$merged.pairs
-      above <- unlist(strsplit(t$all.corr,split="\\|"))
-      r.corrs <- NULL
-      for (i in 1:length(above)){
-        corr <- as.numeric(strsplit(above[i],split=";")[[1]])
-        r.corrs <- c(r.corrs,corr)
-      }
-      param$RT.1$n <- length(r.corrs)
-      
-      # Gaussian model
-      if (!is.null(plot.folder))
-        file.name <- paste0(plot.folder,"RT-altern-hist-gaussian.pdf")
-      else
-        file.name <- NULL
-      gp <- .getGaussianParam(r.corrs,"RT correlation (alternative)",file.name)
-      param$RT.1$norm$mu <- gp$mu
-      param$RT.1$norm$sigma <- gp$sigma
-      
-      # Gamma model
-      if (!is.null(plot.folder))
-        file.name <- paste0(plot.folder,"RT-altern-hist-gamma.pdf")
-      else
-        file.name <- NULL
-      gap <- .getGammaParam(r.corrs,"RT correlation (alternative)",file.name)
-      param$RT.1$gamma$k <- gap$k
-      param$RT.1$gamma$theta <- gap$theta
-      
-      # Alternative RT correlation distribution WITH minimum LR correlation ------------------------------
-      
-      if ((param$LR.1$n < 30) & !force.altern){
-        if (verbose)
-          cat("Cannot learn the model conditioned on LR > 95th percentile random LR\n")
-        param$learn.altern.status <- "stopped.3"
-      }
-      else{
-        if (param$LR.1$n < 30)
-          param$learn.altern.status <- "forced.3"
-        if (verbose)
-          cat("Learning alternative distributions conditioned on LR > 95th percentile random LR...\n")
-        thres.LR <- stats::qnorm(0.95,param$LR.0$norm$mu,param$LR.0$norm$sigma)
-        param$RT.thres.LR <- thres.LR
-        ds.LR.altern.3 <- getCorrelatedLR(ds.induced,min.cor=thres.LR,restrict.genes=reactome[reactome$`Reactome ID`%in%good.pw,"Gene name"])
-        ds.LR.altern.3 <- checkReceptorSignaling(ds.induced,ds.LR.altern.3,restrict.pw=good.pw,max.pw.size=max.pw.size,min.pw.size=min.pw.size,min.positive=min.positive)
-        t <- ds.LR.altern.3$merged.pairs
-        above <- unlist(strsplit(t$all.corr,split="\\|"))
-        r.corrs.3 <- NULL
-        for (i in 1:length(above)){
-          corr <- as.numeric(strsplit(above[i],split=";")[[1]])
-          r.corrs.3 <- c(r.corrs.3,corr)
-        }
-        param$RT.3$n <- length(r.corrs.3)
-        
-        # Gaussian model
-        if (!is.null(plot.folder))
-          file.name <- paste0(plot.folder,"RT-altern-thres-hist-gaussian.pdf")
-        else
-          file.name <- NULL
-        gp <- .getGaussianParam(r.corrs.3,"RT correlation (alternative after LR threshold)",file.name)
-        param$RT.3$norm$mu <- gp$mu
-        param$RT.3$norm$sigma <- gp$sigma
-        
-        # Gamma model
-        if (!is.null(plot.folder))
-          file.name <- paste0(plot.folder,"RT-altern-thres-hist-gamma.pdf")
-        else
-          file.name <- NULL
-        gap <- .getGammaParam(r.corrs.3,"RT correlation (alternative after LR threshold)",file.name)
-        param$RT.3$gamma$k <- gap$k
-        param$RT.3$gamma$theta <- gap$theta
-      }
-    }
   }
 
   # Results ----------------------------------

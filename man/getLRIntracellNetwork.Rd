@@ -6,7 +6,6 @@
 \usage{
 getLRIntracellNetwork(
   pairs,
-  LLR.thres = NULL,
   pval.thres = NULL,
   qval.thres = NULL,
   min.cor = 0.3,
@@ -16,9 +15,7 @@ getLRIntracellNetwork(
 )
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
-
-\item{LLR.thres}{Log-likelihood threshold.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{pval.thres}{P-value threshold.}
 

@@ -1,11 +1,11 @@
 #' Keep one pathway per ligand-receptor pair
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @return A table with the same structure as \code{pairs} but reduced to only report one pathway by ligand-receptor pair.
-#' Depending on how the pairs were scored, \code{pValuesLR} or \code{naiveBayesLR}, the pathway with
-#' smallest P-value or largest log-likelihood ratio is selected.
+#' Depending on how the pairs were scored, the pathway with
+#' smallest P-value is selected.
 #'
-#' During the execution of \code{pValuesLR} or \code{naiveBayesLR}, ligand-receptor pairs are evaluated
+#' During the execution of \code{pValuesLR}, ligand-receptor pairs are evaluated
 #' in relation with pathways that allow checking receptor downstream correlations. It is thus possible
 #' that several pathways are reported for a same pair.
 #' @export
@@ -28,16 +28,11 @@
 #' @importFrom rlang .data
 reduceToBestPathway <- function(pairs){
 
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P-values and LLR present in the ligand-receptor table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
-    stop("P-values or LLR must be available in the ligand-receptor table")
+    stop("P-values be available in the ligand-receptor table")
 
-  if ("pval" %in% names(pairs))
-    pairs %>% dplyr::group_by(.data$L,.data$R) %>% dplyr::filter(.data$pval==min(.data$pval))
-  else
-    pairs %>% dplyr::group_by(.data$L,.data$R) %>% dplyr::filter(.data$LLR==max(.data$LLR))
+  pairs %>% dplyr::group_by(.data$L,.data$R) %>% dplyr::filter(.data$pval==min(.data$pval))
 
 } # reduceToBestPathway
 
@@ -51,8 +46,8 @@ reduceToBestPathway <- function(pairs){
 #' @param param         A list containing the statistical model parameters.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last considered target genes.
 #' @param signed        A logical indicating whether correlations should be considered with their signs.
-#' @param fdr.proc      The procedure for adjusting P-values accoring to \code{\link[multtest]{mt.rawp2adjp}}.
-#' @param use.gamma     A logical indicating whther the Gamma distribution should be used instead of the Gaussian.
+#' @param fdr.proc      The procedure for adjusting P-values according to \code{\link[multtest]{mt.rawp2adjp}}.
+#' @param use.gamma     A logical indicating whether the Gamma distribution should be used instead of the Gaussian.
 #' @param best.pw.only  A logical indicating that only the pathway with best P-value should be reported for each ligand-receptor pair.
 #' @return A table reporting every ligand-receptor pair with P-values and Q-values (adjusted P-values).
 #' @export
@@ -129,114 +124,15 @@ pValuesLR <- function(lr,param,rank.p=0.75,signed=TRUE,fdr.proc=c("BH","Bonferro
 } # pValuesLR
 
 
-#' Ligand-receptor pair LLR estimation
-#'
-#' Estimate the log-likelihood ratio of every ligand-receptor pair in the \code{merged.pairs} slot of the
-#' ligand-receptor analysis \code{lr}.
-#'
-#' @param lr         A ligand-receptor analysis such as output by \code{checkReceptorSignaling}.
-#' @param param         A list containing the statistical model parameters.
-#' @param rank.p        A number between 0 and 1 defining the rank of the last considered target genes.
-#' @param signed        A logical indicating whether correlations should be considered with their signs.
-#' @param use.gamma     A logical indicating whther the Gamma distribution should be used instead of the Gaussian.
-#' @param best.pw.only  A logical indicating that only the pathway with best P-value should be reported for each ligand-receptor pair.
-#' @return A table reporting every ligand-receptor pair with P-values and Q-values (adjusted P-values).
-#' @export
-#' @examples
-#' \dontrun{
-#' data(sdc,package="BulkSignalR")
-#' sample.types <- rep("tumor",ncol(sdc))
-#' sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
-#' ds <- prepareDataset(sdc,sample.types)
-#' ds <- learnParameters(ds)
-#'
-#' # since model training takes time and it can be reused, it is advisable to save the model
-#' save(ds,file="...",compress="bzip2")
-#'
-#' ds.LR <- getCorrelatedLR(ds)
-#' ds.LR <- checkReceptorSignaling(ds,ds.LR)
-#' pairs.llr <- naiveBayesLR(ds.LR,ds$param)
-#' }
-naiveBayesLR <- function(lr,param,rank.p=0.75,signed=TRUE,use.gamma=FALSE,best.pw.only=FALSE){
-
-  if (use.gamma && !signed)
-    stop("A gamma model with squared correlations is not available")
-  if (!is.null(param$learn.altern) && !param$learn.altern)
-    stop("No alternative distribution was learnt")
-  pairs <- lr$merged.pairs
-
-  eps.m <- sqrt(.Machine$double.eps)
-  res <- NULL
-  for (i in 1:nrow(pairs)) {
-    pwid <- unlist(strsplit(pairs$pwid[i],split="\\|"))
-    pwname <- unlist(strsplit(pairs$pwname[i],split="\\|"))
-    tg <- unlist(strsplit(pairs$target.genes[i],split="\\|"))
-    spear <- unlist(strsplit(pairs$all.corr[i],split="\\|"))
-    len <- as.numeric(unlist(strsplit(pairs$len[i],split="\\|")))
-
-    if (use.gamma)
-      lr.score <- stats::dgamma(1+pairs$corr[i],shape=param$LR.1$gamma$k,scale=param$LR.1$gamma$theta,log=TRUE)-stats::dgamma(1+pairs$corr[i],shape=param$LR.0$gamma$k,scale=param$LR.0$gamma$theta,log=TRUE)
-    else
-      lr.score <- stats::dnorm(pairs$corr[i],param$LR.1$norm$mu,param$LR.1$norm$sigma,log=TRUE)-stats::dnorm(pairs$corr[i],param$LR.0$norm$mu,param$LR.0$norm$sigma,log=TRUE)
-
-    for (k in 1:length(len)){
-      spears <- as.numeric(strsplit(spear[k],split=";")[[1]])
-      r <- min(max(1,trunc(rank.p*len[k])),len[k])
-      if (signed){
-        rank.corr <- spears[r]
-        if (use.gamma){
-          p.0 <- stats::pgamma(1+rank.corr,shape=param$RT.0$gamma$k,scale=param$RT.0$gamma$theta)
-          p.1 <- stats::pgamma(1+rank.corr,shape=param$RT.1$gamma$k,scale=param$RT.1$gamma$theta)
-        }
-        else{
-          p.0 <- stats::pnorm(rank.corr,param$RT.0$norm$mu,param$RT.0$norm$sigma)
-          p.1 <- stats::pnorm(rank.corr,param$RT.1$norm$mu,param$RT.1$norm$sigma)
-        }
-      }
-      else{
-        z.rt <- (spears-param$RT.0$norm$mu)/param$RT.0$norm$sigma
-        z.rt.sq <- z.rt**2
-        o <- order(z.rt.sq)
-        rank.corr <- spears[o][r]
-        p.0 <- stats::pchisq(z.rt.sq[o][r],df=1)
-
-        z.1 <- (spears-param$RT.1$norm$mu)/param$RT.1$norm$sigma
-        z.1.sq <- z.1**2
-        p.1 <- stats::pchisq(z.1.sq[o][r],df=1)
-      }
-      if (p.0+eps.m<=1)
-        d.0 <- (stats::pbinom(r-1,len[k],p.0+eps.m)-stats::pbinom(r-1,len[k],p.0))/eps.m
-      else
-        d.0 <- -(stats::pbinom(r-1,len[k],p.0-eps.m)-stats::pbinom(r-1,len[k],p.0))/eps.m
-      if (p.1+eps.m<=1)
-        d.1 <- (stats::pbinom(r-1,len[k],p.1+eps.m)-stats::pbinom(r-1,len[k],p.1))/eps.m
-      else
-        d.1 <- -(stats::pbinom(r-1,len[k],p.1-eps.m)-stats::pbinom(r-1,len[k],p.1))/eps.m
-      rt.score <- log(d.1/d.0)
-      res <- rbind(res,data.frame(pairs[i,c("L","R")],pw.id=pwid[k],pw.name=pwname[k],LLR=(lr.score+rt.score)/log(10),LR.corr=pairs$corr[i],LR.LLR=lr.score,
-                                  rank=r,len=len[k],rank.corr=rank.corr,RT.LLR=rt.score,target.genes=tg[k],all.corr=spear[k],
-                                  stringsAsFactors=FALSE))
-    }
-  }
-
-  if (best.pw.only)
-    reduceToBestPathway(res)
-  else
-    res
-
-} # naiveBayesLR
-
-
 #' Aggregate the ligands of a same receptor
 #'
 #' Simplifies a ligand-receptor table to focus on the receptors.
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @return A table with the same structure as \code{pairs} but reduced to only report one row per receptor
-#' within each pathway. All the ligands are combined in a semi-colon-separated list surounded by curly braces.
+#' within each pathway. All the ligands are combined in a semi-colon-separated list surrounded by curly braces.
 #'
-#' The reported P-value or LLR, and target genes are those from the line with the smallest P-value, respectively the
-#' largest log-likelihood ratio.
+#' The reported P-value and target genes are those from the line with the smallest P-value.
 #' @export
 #' @examples
 #' \dontrun{
@@ -257,21 +153,16 @@ naiveBayesLR <- function(lr,param,rank.p=0.75,signed=TRUE,use.gamma=FALSE,best.p
 #' @importFrom rlang .data
 reduceToReceptor <- function(pairs){
 
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
-    stop("P-values or LLR must be available in LR table")
+    stop("P-values must be available in LR table")
 
   red.mode.L <- (sum(regexpr("^{",pairs$L,perl=TRUE)==1)==nrow(pairs) && sum(regexpr("}$",pairs$L,perl=TRUE)==nchar(pairs$L))==nrow(pairs))
   if (red.mode.L)
     stop("Already reduced to receptor")
 
-  # best LLR or pval per receptor/pathway
-  if ("pval" %in% names(pairs))
-    best <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
-  else
-    best <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::filter(.data$LLR==max(.data$LLR))
+  # best pval per receptor/pathway
+  best <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
 
   # list of ligands for each receptor/pathway combination
   ligands <- pairs %>% dplyr::group_by(.data$R,.data$pw.id) %>% dplyr::summarize(Ls=paste0('{',paste(.data$L,collapse=';'),'}'))
@@ -290,12 +181,11 @@ reduceToReceptor <- function(pairs){
 #'
 #' Simplifies a ligand-receptor table to focus on the ligands.
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @return A table with the same structure as \code{pairs} but reduced to only report one row per ligand.
-#' within each pathway. All the receptors are combined in a semi-colon-separated list surounded by curly braces.
+#' within each pathway. All the receptors are combined in a semi-colon-separated list surrounded by curly braces.
 #'
-#' The reported P-value or LLR, and target genes are those from the line with the smallest P-value, respectively the
-#' largest log-likelihood ratio.
+#' The reported P-value and target genes are those from the line with the smallest P-value.
 #' @export
 #' @examples
 #' \dontrun{
@@ -316,9 +206,7 @@ reduceToReceptor <- function(pairs){
 #' @importFrom rlang .data
 reduceToLigand <- function(pairs){
 
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
     stop("P-values or LLR must be available in LR table")
 
@@ -326,11 +214,8 @@ reduceToLigand <- function(pairs){
   if (red.mode.R)
     stop("Already reduced to ligand")
 
-  # best LLR or pval per receptor/pathway
-  if ("pval" %in% names(pairs))
-    best <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
-  else
-    best <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::filter(.data$LLR==max(.data$LLR))
+  # best pval per receptor/pathway
+  best <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
 
   # list of receptors for each ligand/pathway combination
   receptors <- pairs %>% dplyr::group_by(.data$L,.data$pw.id) %>% dplyr::summarize(Rs=paste0('{',paste(.data$R,collapse=';'),'}'))
@@ -349,15 +234,15 @@ reduceToLigand <- function(pairs){
 #'
 #' Simplifies a ligand-receptor table to focus on the pathways.
 #'
-#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.
+#' @param pairs         A ligand-receptor table such as output by \code{pValuesLR}.
 #' @return A table with the same structure as \code{pairs} but reduced to only report one row per pathway.
 #' All the ligands and all the receptors forming pairs related to a certain pathway, are combined in two semi-colon-separated
-#' lists surounded by curly braces. The information of which ligand interacted with which receptor is lost.
-#' For a given pathway, the reported P-values/LLR and target genes are those of the best ligand-receptor pair that
+#' lists surrounded by curly braces. The information of which ligand interacted with which receptor is lost.
+#' For a given pathway, the reported P-values and target genes are those of the best ligand-receptor pair that
 #' was in this pathway.
 #'
-#' There is no pathway selection, i.e. potentially redundant pathways with different P-values or log-likelihood ratios (LLRs)
-#' are all kept in the output. \code{reduceToBestPathway()} can be used to select the one with best P-value or LLR.
+#' There is no pathway selection, i.e. potentially redundant pathways with different P-values
+#' are all kept in the output. \code{reduceToBestPathway()} can be used to select the one with best P-value.
 #' @export
 #' @examples
 #' \dontrun{
@@ -379,17 +264,12 @@ reduceToLigand <- function(pairs){
 #' @importFrom rlang .data
 reduceToPathway <- function(pairs){
 
-  t <- sum(c("pval","LLR") %in% names(pairs))
-  if (t ==2)
-    stop("Both P-values and LLR present in LR table")
+  t <- sum("pval" %in% names(pairs))
   if (t == 0)
     stop("P-values or LLR must be available in LR table")
 
-  # best LLR or pval per pathway
-  if ("pval" %in% names(pairs))
-    best <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
-  else
-    best <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::filter(.data$LLR==max(.data$LLR))
+  # best pval per pathway
+  best <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::filter(.data$pval==min(.data$pval))
 
   # list of ligands and receptors for each pathway
   lire <- pairs %>% dplyr::group_by(.data$pw.id) %>% dplyr::summarize(Ls=paste0('{',paste(unique(unlist(strsplit(gsub("}$","",gsub("^{","",.data$L,perl=TRUE)),split=";"))),collapse=';'),'}'),

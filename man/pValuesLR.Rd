@@ -24,9 +24,9 @@ pValuesLR(
 
 \item{signed}{A logical indicating whether correlations should be considered with their signs.}
 
-\item{fdr.proc}{The procedure for adjusting P-values accoring to \code{\link[multtest]{mt.rawp2adjp}}.}
+\item{fdr.proc}{The procedure for adjusting P-values according to \code{\link[multtest]{mt.rawp2adjp}}.}
 
-\item{use.gamma}{A logical indicating whther the Gamma distribution should be used instead of the Gaussian.}
+\item{use.gamma}{A logical indicating whether the Gamma distribution should be used instead of the Gaussian.}
 
 \item{best.pw.only}{A logical indicating that only the pathway with best P-value should be reported for each ligand-receptor pair.}
 }

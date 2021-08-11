@@ -4,18 +4,10 @@
 \alias{getLRNetwork}
 \title{Generate a ligand-receptor network}
 \usage{
-getLRNetwork(
-  pairs,
-  LLR.thres = NULL,
-  pval.thres = NULL,
-  qval.thres = NULL,
-  node.size = 5
-)
+getLRNetwork(pairs, pval.thres = NULL, qval.thres = NULL, node.size = 5)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
-
-\item{LLR.thres}{Log-likelihood threshold.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{pval.thres}{P-value threshold.}
 

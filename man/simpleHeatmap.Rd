@@ -59,7 +59,7 @@ to avoid color scales shrunk by a few outliers.
 
 This is a convenience function that relies on the \code{ComplexHeatmap} package to propose a simple way
 of representing signature scores. If more advanced features are needed or more graphic parameters
-should be controled, users should implement their own function, e.g., strarting from the code
+should be controlled, users should implement their own function, e.g., starting from the code
 of \code{simpleHeatmap()}.
 }
 \description{

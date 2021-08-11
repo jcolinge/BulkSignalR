@@ -13,15 +13,13 @@ getLRGeneSignatures(
 )
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
-
-\item{LLR.thres}{Log-likelihood threshold.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{pval.thres}{P-value threshold.}
 
 \item{qval.thres}{Q-value threshold.}
 
-\item{signed}{A logical indicating whether correlations were be considered with their signs upon P-value or LLR estimations.}
+\item{signed}{A logical indicating whether correlations were be considered with their signs upon P-value estimations.}
 }
 \value{
 A table with a gene signature for each triple ligand-receptor pair. A reduction to the best pathway

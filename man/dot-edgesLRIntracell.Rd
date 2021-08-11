@@ -7,7 +7,7 @@
 .edgesLRIntracell(pairs, pw, id.col, gene.col, min.cor = 0.3, signed = FALSE)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 
 \item{pw}{A table defining the reference pathways.}
 

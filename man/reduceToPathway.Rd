@@ -7,15 +7,17 @@
 reduceToPathway(pairs)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 }
 \value{
 A table with the same structure as \code{pairs} but reduced to only report one row per pathway.
 All the ligands and all the receptors forming pairs related to a certain pathway, are combined in two semi-colon-separated
-lists surounded by curly braces. The information of which ligand interacted with which receptor is lost.
+lists surrounded by curly braces. The information of which ligand interacted with which receptor is lost.
+For a given pathway, the reported P-values and target genes are those of the best ligand-receptor pair that
+was in this pathway.
 
-There is no pathway selection, i.e. potentially redundant pathways with different P-values or log-likelihood ratios (LLRs)
-are all kept in the output. \code{reduceToBestPathway()} can be used to select the one with best P-value or LLR.
+There is no pathway selection, i.e. potentially redundant pathways with different P-values
+are all kept in the output. \code{reduceToBestPathway()} can be used to select the one with best P-value.
 }
 \description{
 Simplifies a ligand-receptor table to focus on the pathways.

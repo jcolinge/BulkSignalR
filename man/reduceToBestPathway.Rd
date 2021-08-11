@@ -7,14 +7,14 @@
 reduceToBestPathway(pairs)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 }
 \value{
 A table with the same structure as \code{pairs} but reduced to only report one pathway by ligand-receptor pair.
-Depending on how the pairs were scored, \code{pValuesLR} or \code{naiveBayesLR}, the pathway with
-smallest P-value or largest log-likelihood ratio is selected.
+Depending on how the pairs were scored, the pathway with
+smallest P-value is selected.
 
-During the execution of \code{pValuesLR} or \code{naiveBayesLR}, ligand-receptor pairs are evaluated
+During the execution of \code{pValuesLR}, ligand-receptor pairs are evaluated
 in relation with pathways that allow checking receptor downstream correlations. It is thus possible
 that several pathways are reported for a same pair.
 }

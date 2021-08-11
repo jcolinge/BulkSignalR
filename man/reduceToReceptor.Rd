@@ -7,15 +7,13 @@
 reduceToReceptor(pairs)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR} and \code{naiveBayesLR}.}
+\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
 }
 \value{
-A table with the same structure as \code{pairs} but reduced to only report one row per receptor.
-All the ligands are combined in a semi-colon-separated list surounded by curly braces.
+A table with the same structure as \code{pairs} but reduced to only report one row per receptor
+within each pathway. All the ligands are combined in a semi-colon-separated list surrounded by curly braces.
 
-To limit the output table to a single line per receptor, this function also selects the pathway
-with the smallest P-value, respectively the largest log-likelihood ratio. The reported list of target genes
-and their respective correlations are those of this single selected pathway.
+The reported P-value and target genes are those from the line with the smallest P-value.
 }
 \description{
 Simplifies a ligand-receptor table to focus on the receptors.
