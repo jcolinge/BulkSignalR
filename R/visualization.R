@@ -209,9 +209,9 @@ scoreLRGeneSignatures <- function(ds,sig,sample.types=NULL,LR.weight=0.5,robust=
   if (is.null(sample.types))
     sample.types <- unique(ds$types)
   if (ds$log.transformed)
-    ncounts <- data.matrix(ds$ncounts[pool,ds$types%in%sample.types])
+    ncounts <- 2**data.matrix(ds$ncounts[pool,ds$types%in%sample.types])
   else
-    ncounts <- data.matrix(log10(1+ds$ncounts[pool,ds$types%in%sample.types]))
+    ncounts <- data.matrix(ds$ncounts[pool,ds$types%in%sample.types])
   if (robust)
     z <- (ncounts-apply(ncounts,1,stats::median))/apply(ncounts,1,stats::mad)
   else
