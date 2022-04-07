@@ -11,9 +11,10 @@ A data frame with 19764 rows and 26 variables.
 \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE138581}
 }
 \usage{
-sdc
+data(sdc)
 }
 \description{
-A dataset containing the read counts of salivary duct carcinomas and adjacent normal tissues.
+A dataset containing the read counts of salivary duct carcinomas
+  and adjacent normal tissues.
 }
 \keyword{datasets}

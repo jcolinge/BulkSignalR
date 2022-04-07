@@ -2,7 +2,8 @@
 % Please edit documentation in R/modelTraining.R
 \name{.getEmpiricalNullCorrLR}
 \alias{.getEmpiricalNullCorrLR}
-\title{Internal function sampling of the (empirical) null distribution of ligand-receptor correlations}
+\title{Internal function sampling of the (empirical) null distribution of
+ligand-receptor correlations}
 \usage{
 .getEmpiricalNullCorrLR(ncounts, n.rand = 5, min.cor = -1)
 }
@@ -14,26 +15,19 @@
 \item{min.cor}{The minimum ligand-receptor correlation required.}
 }
 \value{
-A list of \code{n.rand} tables such as output by \code{getCorrelatedLR}. Each table is computed from
-a randomized expression matrix (randomized \code{ncounts}).
-
-A large number of correlations is reported in each table. Therefore,
-\code{n.rand} should be given a modest value to avoid unnecessarily long computations.
-
-See \code{\link{getCorrelatedLR}} for more details about the parameters.
-
-This function is made visible to allow advanced users to develop their own statistical models or to
-estimate their own statistical significance.
+A list of \code{n.rand} tables such as output by
+  \code{\link{.getCorrelatedLR}}. Each table is computed from a randomized
+  expression matrix (randomized \code{ncounts}).
 }
 \description{
-Perform a ligand-receptor correlation analysis based on randomized expression data.
+Perform a ligand-receptor Spearman correlation analysis based
+on randomized expression data.
 }
-\examples{
-\dontrun{
-data(sdc,package="BulkSignalR")
-sample.types <- rep("tumor",ncol(sdc))
-sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
-ds <- prepareDataset(sdc,sample.types)
-ds.LR.null <- .getEmpiricalNullCorrLR(ds$ncounts,sample.set="normal vs. tumor")
-}
+\details{
+A large number of correlations is reported in each randomized
+  matrix. Therefore,
+  \code{n.rand} should be given a modest value to avoid unnecessarily long
+  computations.
+
+  See \code{\link{.getCorrelatedLR}} for more details about the parameters.
 }

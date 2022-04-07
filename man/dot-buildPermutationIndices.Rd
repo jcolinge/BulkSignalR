@@ -7,13 +7,14 @@
 .buildPermutationIndices(ncounts, n.bins = 20)
 }
 \arguments{
-\item{ncounts}{A matrix or table of normalized read counts.}
+\item{ncounts}{A matrix of normalized read counts.}
 
 \item{n.bins}{Number of bins.}
 }
 \value{
-A list containing a vectors of row indices. The vector at index \code{i} in the list
-contains the row indices of rows with mean normalized read count in bin \code{i}.
+A list containing a vectors of row indices. The vector at index
+  \code{i} in the list contains the row indices of rows with mean normalized
+  read count in bin \code{i}.
 }
 \description{
 Internal function to generate expression matrix permutation indices

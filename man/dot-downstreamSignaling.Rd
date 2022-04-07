@@ -17,30 +17,35 @@
 )
 }
 \arguments{
-\item{lr}{A ligand-receptor analysis such as returned by \code{getCorrelatedLR()}.}
+\item{lr}{A data frame as returned by
+\code{.getCorrelatedLR()}.}
 
 \item{pw}{A table defining the reference pathways.}
 
-\item{pw.size}{A named vector with pathway sizes (names are pathway IDs).}
+\item{pw.size}{A named vector with pathway sizes (names are pathway
+IDs).}
 
-\item{rncounts}{A matrix or table of normalized read counts with at least all the ligands, receptors, and genes in the reference pathways.}
+\item{rncounts}{A matrix of normalized read counts with at
+least all the ligands, receptors, and genes in the reference pathways.}
 
 \item{id.col}{Column index or name in \code{pw} for the pathway IDs.}
 
-\item{gene.col}{Column index or name in \code{pw} for the gene symbols.}
+\item{gene.col}{Column index or name in \code{pw} for the gene
+symbols.}
 
-\item{pw.col}{Column index or name in \code{pw} for the pathway names.}
+\item{pw.col}{Column index or name in \code{pw} for the pathway
+names.}
 
-\item{min.positive}{Minimum number of target genes to be found in a given pathway.}
+\item{min.positive}{Minimum number of target genes to be found in a given
+pathway.}
 
-\item{with.complex}{A logical indicating whether receptor co-complex members should be included in the target genes.}
+\item{with.complex}{A logical indicating whether receptor co-complex
+members should be included in the target genes.}
 }
 \value{
 A table reporting all the ligand-receptor pairs provided in \code{lr}
-along with the pathways found and data about target gene correlations with the receptor.
-
-This BulkSignalR internal function is made visible for advanced users who might want to use it to implement
-alternative analyses.
+  along with the pathways found and data about target gene correlations with
+  the receptor.
 }
 \description{
 Internal function to check receptor signaling downstream

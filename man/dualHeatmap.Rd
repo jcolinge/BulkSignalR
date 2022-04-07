@@ -71,23 +71,5 @@ while the bottom heatmap represents the second, user-chosen data set to feature 
 }
 \examples{
 \dontrun{
-data(sdc,package="BulkSignalR")
-sample.types <- rep("tumor",ncol(sdc))
-sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
-ds <- prepareDataset(sdc,sample.types)
-ds <- learnParameters(ds)
-
-# since model training takes time and it can be reused, it is advisable to save the model
-save(ds,file="...",compress="bzip2")
-
-ds.LR <- getCorrelatedLR(ds)
-ds.LR <- checkReceptorSignaling(ds,ds.LR)
-pairs.p <- pValuesLR(ds.LR,ds$param)
-p.red.P <- reduceToPathway(pairs.p)
-signatures <- getPathwayStats(p.red.P,qval.thres=0.01)
-scores <- scoreLRGeneSignatures(ds,signatures,rename.by.pathway=TRUE)
-data(tme.signatures,package="BulkSignalR")
-tme.scores <- scoreSignatures(ds,tme.signatures)
-dualHeatmap(mat.c,mat.e,"example-with-TME.pdf",width=9,height=7,pointsize=4)
 }
 }

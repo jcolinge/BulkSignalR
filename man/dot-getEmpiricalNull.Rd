@@ -2,7 +2,8 @@
 % Please edit documentation in R/modelTraining.R
 \name{.getEmpiricalNull}
 \alias{.getEmpiricalNull}
-\title{Internal function sampling the (empirical) null distribution downstream the receptors}
+\title{Internal function sampling the (empirical) null distribution
+  downstream the receptors}
 \usage{
 .getEmpiricalNull(
   ncounts,
@@ -19,38 +20,37 @@
 
 \item{n.rand}{The number of repetitions.}
 
-\item{min.cor}{The minimum ligand-receptor correlation required.}
+\item{min.cor}{The minimum ligand-receptor Spearman correlation
+required.}
 
-\item{with.complex}{A logical indicating whether receptor co-complex members should be included in the target genes.}
+\item{with.complex}{A logical indicating whether receptor co-complex
+members should be included in the target genes.}
 
-\item{max.pw.size}{Maximum pathway size to consider from the pathway reference.}
+\item{max.pw.size}{Maximum pathway size to consider from the pathway
+reference.}
 
-\item{min.pw.size}{Minimum pathway size to consider from the pathway reference.}
+\item{min.pw.size}{Minimum pathway size to consider from the pathway
+reference.}
 
-\item{min.positive}{Minimum number of target genes to be found in a given pathway.}
+\item{min.positive}{Minimum number of target genes to be found in a given
+pathway.}
 }
 \value{
-A list of \code{n.rand} tables such as output by \code{checkReceptorSignaling}. Each table is computed from
-a randomized expression matrix (randomized \code{ncounts}).
-
-A large number of correlations (ligand-receptor and receptor-downstream target genes) is reported in each table. Therefore,
-\code{n.rand} should be given a modest value to avoid unnecessarily long computations.
-
-See \code{\link{checkReceptorSignaling}} for more details about the parameters.
-
-This function is made visible to allow advanced users to develop their own statistical models or to
-estimate their own statistical significance.
+A list of \code{n.rand} tables such as output by
+  \code{.checkReceptorSignaling}. Each table is computed from a randomized
+  expression matrix (randomized \code{ncounts}).
 }
 \description{
-Perform receptor downstream analysis with \code{checkReceptorSignaling} based on randomized expression data
-and ligand-receptor pairs selected from the same randomized data.
+Perform receptor downstream analysis with
+  \code{.checkReceptorSignaling} based on randomized expression data and
+  ligand-receptor pairs selected from the same randomized data.
 }
-\examples{
-\dontrun{
-data(sdc,package="BulkSignalR")
-sample.types <- rep("tumor",ncol(sdc))
-sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
-ds <- prepareDataset(sdc,sample.types)
-ds.RT.null <- .getEmpiricalNull(ds$ncounts)
-}
+\details{
+A large number of correlations (ligand-receptor and receptor-downstream
+  target genes) is reported in each randomized matrix. Therefore,
+  \code{n.rand} should be
+  given a modest value to avoid unnecessarily long computations.
+
+  See \code{\link{.checkReceptorSignaling}} for more details about the
+  parameters.
 }

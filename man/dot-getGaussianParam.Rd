@@ -14,10 +14,12 @@
 \item{file.name}{The file name of a PDF file.}
 }
 \value{
-A list with the mean (\code{mu}) and standard deviation (\code{sigma}) estimates.
+A list with the mean (\code{mu}) and standard deviation
+  (\code{sigma}) estimates.
 
-If \code{file.name} is provided, a control plot is generated in a PDF with a data histogram and
-the fitted Gaussian. \code{title} is used to give this plot a main title.
+  If \code{file.name} is provided, a control plot is generated in a PDF with
+  a data histogram and the fitted Gaussian. \code{title} is used to give this
+  plot a main title.
 }
 \description{
 Maximum-likelihood estimators are used.

@@ -2,66 +2,83 @@
 % Please edit documentation in R/dataPrepare.R
 \name{prepareDataset}
 \alias{prepareDataset}
-\title{Prepare a BulkSignalR data set}
+\title{Prepare a BSRDataModel object from expression data}
 \usage{
 prepareDataset(
   counts,
-  types,
   normalize = TRUE,
   symbol.col = NULL,
   min.count = 10,
   prop = 0.1,
   method = c("UQ", "TC"),
-  log.transformed = FALSE
+  log.transformed = FALSE,
+  min.LR.found = 80
 )
 }
 \arguments{
 \item{counts}{A table or matrix of read counts.}
 
-\item{types}{A vector of characters defining sample types.}
+\item{normalize}{A logical indicating whether \code{counts} should be
+normalized according to \code{method} or if it was normalized beforehand.}
 
-\item{normalize}{A logical indicating whether \code{counts} should be normalized according to \code{method} or it was normalized beforehand.}
+\item{symbol.col}{The index of the column containing the gene symbols in case
+those are not the row names of \code{counts} already.}
 
-\item{symbol.col}{The index of the column containing the gene symbols in case those are not the rownames of \code{counts} already.}
+\item{min.count}{The minimum read count of a gene to be considered expressed
+in a sample.}
 
-\item{min.count}{The minimum read count of a gene to be considered expressed in a sample.}
+\item{prop}{The minimum proportion of samples where a gene must be
+expressed higher than \code{min.count} to keep that gene.}
 
-\item{prop}{The minimum proportion of samples where a must be expressed to keep that gene.}
+\item{method}{The normalization method ('UQ' for upper quartile or 'TC'
+for total count).}
 
-\item{method}{The normalization method ("UQ" for upper quartile or "TC" for total count).}
+\item{log.transformed}{A logical indicating whether expression data were
+already log2-transformed, e.g., some microarray data.}
 
-\item{log.transformed}{A logical indicating whether expression data were already log-transformed, e.g., some microarray data.}
+\item{min.LR.found}{The minimum number of ligands or receptors found in
+\code{count} row names after eliminating the rows containing too many
+zeros according to \code{min.count} and \code{prop}.}
 }
 \value{
-A list containing the read counts and the sample types for further use in BulkSignalR.
-
-The \code{counts} matrix or table should be provided with expression levels of protein coding genes in each samples (column)
-and \code{rownames(counts)} set to the gene symbols. For commodity, it is also possible to provide
-the expression matrix or table \code{counts} with the gene symbols stored in one of the columns.
-This column must be specified with \code{symbol.col}. In such a case, \code{prepareDataset} will extract
-this column and use it to set the row names. Because row names must be unique, \code{prepareDataset}
-will eliminate rows with duplicated gene symbols by keeping the rows with maximum average expression.
-Gene symbol duplication typically occurs in protein coding genes after genome alignment due to
-errors in genome feature annotation files (GTF/GFF), where a handful of deprecated gene annotations may remain
-along with the current ones, or some genes are not given their fully specific symbols. If your
-read count extraction pipeline does not take care of this phenomenon, the maximum mean expression
-selection strategy implemented here should solve this difficulty for the sake of inferring ligand-receptor
-interactions.
-
-If \code{normalize} is \code{TRUE} then normalization is performed according to \code{method}.
-If those two simple methods are not satisfying, then it is possible to provide a pre-normalized
-matrix, e.g., using edgeR TMM algorithm.
-
-In case proteomic data are provided,
-\code{min.count} must be understood as its equivalent with respect to those data (spectral counts, iBAQ, etc.).
+A BSRModelData object with empty model parameters.
 }
 \description{
-Take a matrix or data frame containing read counts along with sample types and combine them
-into a list for subsequent use with BulkSignalR. Expression proteomics data could be used as well.
+Take a matrix or data frame containing RNA sequencing,
+  microarray, or expression proteomics data and returns a BSRDataModel
+  object ready for subsequent training. Normally, BSRDataModel objects
+  are not instantiated directly, but through this function.
+}
+\details{
+The \code{counts} matrix or table should be provided with expression
+  levels of protein coding genes in each samples (column) and
+  \code{rownames(counts)} set to HUGO offcial gene symbols. For commodity, it
+  is also possible to provide \code{counts} with the
+  gene symbols stored in one of its columns. This column must be specified
+  with \code{symbol.col}. In such a case, \code{prepareDataset} will extract
+  this column and use it to set the row names. Because row names must be
+  unique, \code{prepareDataset} will eliminate rows with duplicated gene
+  symbols by keeping the rows with maximum average expression. Gene symbol
+  duplication may occur in protein coding genes after genome alignment
+  due to errors in genome feature annotation files (GTF/GFF), where a handful
+  of deprecated gene annotations might remain, or
+  some genes are not given their fully specific symbols. If your read count
+  extraction pipeline does not take care of this phenomenon, the maximum mean
+  expression selection strategy implemented here should solve this difficulty
+  for the sake of inferring ligand-receptor interactions.
+
+  If \code{normalize} is \code{TRUE} then normalization is performed
+  according to \code{method}. If those two simple methods are not satisfying,
+  then it is possible to provide a pre-normalized matrix setting
+  \code{normalize} to \code{FALSE}.
+
+  In case proteomic or microarray data are provided, \code{min.count} must be
+  understood as its equivalent with respect to those data.
 }
 \examples{
-data(sdc,package="BulkSignalR")
-sample.types <- rep("tumor",ncol(sdc))
-sample.types[grep("^N",names(sdc),perl=TRUE)] <- "normal"
-ds <- prepareDataset(sdc,sample.types)
+print('prepareDataset')
+data(sdc,package='BulkSignalR')
+normal <- grep("^N", names(sdc))
+bsrdm <- prepareDataset(sdc[,-normal])
+
 }

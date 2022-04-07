@@ -7,12 +7,14 @@
 .buildPermutatedCountMatrix(ncounts, pind)
 }
 \arguments{
-\item{ncounts}{A matrix or table of normalized read counts.}
+\item{ncounts}{A matrix of normalized read counts.}
 
-\item{pind}{Permutation indices such as returned by \code{.buildPermutationIndices}.}
+\item{pind}{Permutation indices such as returned by
+\code{\link{.buildPermutationIndices}}.}
 }
 \value{
-\code{ncount} with shuffled row names (gene symbols). Shuffling is performed within rows with comparable average expression.
+\code{ncount} with shuffled row names (gene symbols). Shuffling is
+  performed within rows of comparable average expression.
 }
 \description{
 Internal function to generate a randomized expression matrix

@@ -1,34 +1,40 @@
 Package: BulkSignalR
 Type: Package
 Title: Infer Ligand-Receptor Interactions from Bulk Transcriptomic or Proteomic Data
-Version: 0.0.0.9000
+Version: 0.0.9
 Authors@R: c(
-    person("Jacques","Colinge",email="jacques.colinge@inserm.fr",role="aut"),
-    person("Simon","Cabello-Aguilar",email="simon.cabello-aguilar@inserm.fr",role="cre"))
+    person("Jacques","Colinge",email="jacques.colinge@inserm.fr",role="aut",comment = c(ORCID = "0000-0003-2466-4824")),
+    person("Jean-Philippe","Villemin",email="jpvillemin@gmail.com",role="cre",comment = c(ORCID = "0000-0002-1838-5880")))
 Description: Inference of ligand-receptor (LR) interactions from bulk
-    (transcirptomic or proteomic) data. BulkSignalR bases its inferences
+    (transcriptomic or proteomic) data. BulkSignalR bases its inferences
     on the LRdb database included in our other package, SingleCellSignalR
     available from Bioconductor. It relies on a statistical model that
     is specific to bulk data sets. Different visualization and data
     summary functions are proposed to help navigating prediction results.
-URL: https://github.com/jcolinge/BulkSignalR
-BugReports: https://github.com/jcolinge/BulkSignalR/issues
-License: GPL-3
+URL: https://github.com/zhefrench/BulkSignalR
+BugReports: https://github.com/zhefrench/BulkSignalR/issues
+License: CeCILL | file LICENSE
 Encoding: UTF-8
-LazyData: true
-Depends: R (>= 3.6.1.0)
+LazyData: FALSE
+Depends: R (>= 4.0)
+biocViews: Network, RNASeq, Software, Proteomics, Transcriptomics, NetworkInference
 Imports:
     rlang,
+    methods,
     doParallel,
     foreach,
     multtest,
     igraph,
     SingleCellSignalR,
-    dplyr,
-    import
-Suggests:
+    stringr,
     ComplexHeatmap (>= 2.0.0),
+    stats
+Suggests: 
     grid,
     limma (>= 3.0.0),
-    edgeR (>= 3.0.0)
+    edgeR (>= 3.0.0),
+    knitr,
+    markdown,
+    rmarkdown
 RoxygenNote: 7.1.1
+VignetteBuilder: knitr

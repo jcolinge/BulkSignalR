@@ -11,4 +11,4 @@
 #' @name BulkSignalR
 NULL
 
-globalVariables(c("%v%","%>%","%do%","%dopar","ComplexHeatmap"))
+globalVariables(c("reactome","gobp","%v%","%>%","%do%","%dopar","ComplexHeatmap"))

@@ -10,28 +10,60 @@ registerDoParallel(cl)
 
 # prepare data and train the statistical model
 data(sdc,package="BulkSignalR")
-sample.types <- rep("tumor",ncol(sdc)-2)
-ds <- prepareDataset(sdc[,-grep("^N",names(sdc))],sample.types)
-ds <- learnParameters(ds,verbose=TRUE,quick=TRUE)
-#save(ds,file="ds.rda",compress="bzip2")
-#load("ds.rda")
+normal <- grep("^N", names(sdc))
+bsrdm <- prepareDataset(sdc[, -normal])
+bsrdm <- learnParameters(bsrdm)
+bsrdm
 
 # score ligand-receptor interactions
-ds.LR <- getCorrelatedLR(ds,min.cor=0.25)
-ds.LR <- checkReceptorSignaling(ds,ds.LR)
-#save(ds.LR,file="ds-LR.rda",compress="bzip2")
-#load("ds-LR.rda")
-pp <- pValuesLR(ds.LR,ds$param)
-pp <- pp[order(pp$qval),]
-pp[1:20,c("L","R","pval","qval","pw.id","pw.name")] # top 20 interaction with pathway redundancy
+bsrinf <- initialInference(bsrdm)
+bsrinf
 
-# extract gene signatures to report ligand-receptor-downstream pathway scores
-pp.red <- reduceToBestPathway(pp)
-pp.red[1:20,c("L","R","pval","qval","pw.id","pw.name")] # top 20 interactions without pathway redundancy
-sum(pp.red$qval<0.01) # number of significant interactions
-p.red.P <- reduceToPathway(pp.red)
-signatures <- getLRGeneSignatures(p.red.P,qval.thres=1e-4)
-scores <- scoreLRGeneSignatures(ds,signatures,rename.by.pathway=T)
+# save(bsrdm,file="bsrdm.rda")
+# save(bsrinf,file="bsrinf.rda")
+load("bsrdm.rda")
+load("bsrinf.rda")
+
+# basic pathway statistics
+pwstat <- getPathwayStats(bsrinf, qval.thres=0.01)
+head(pwstat)
+
+# examples of reducing the LR analysis --------------------------
+
+# best pathway per LR pair
+head(LRinter(bsrinf),n=10)
+bsrinf.red <- reduceToBestPathway(bsrinf)
+head(LRinter(bsrinf.red))
+
+# reduction to the ligand
+bsrinf.redL <- reduceToLigand(bsrinf)
+head(LRinter(bsrinf.redL))
+
+# reduction to the receptor
+bsrinf.redR <- reduceToReceptor(bsrinf)
+head(LRinter(bsrinf.redR))
+
+# reduction to pathway
+bsrinf.redP <- reduceToPathway(bsrinf)
+head(LRinter(bsrinf.redP))
+
+# reduction to pathway followed by reduction to best pathway
+# to avoid redundancy
+bsrinf.redPP <- reduceToBestPathway(bsrinf.redP)
+head(LRinter(bsrinf.redPP))
+
+# extract gene signatures to report combined ligand-receptor and
+# receptor downstream pathway scores
+sum(LRinter(bsrinf.redPP)$qval<0.01) # number of significant interactions
+sum(LRinter(bsrinf.redPP)$qval<1e-4)
+bsrsig.redPP <- getLRGeneSignatures(bsrinf.redPP,qval.thres=1e-4)
+
+ligands(bsrsig.redPP)[1:5]
+receptors(bsrsig.redPP)[1:5]
+pathways(bsrsig.redPP)
+tGenes(bsrsig.redPP)[1:5]
+
+scores <- scoreLRGeneSignatures(bsrdm,bsrsig.redPP,rename.by.pathway=F)
 simpleHeatmap(scores,pointsize=8)
 simpleHeatmap(scores,"SDC-LR-heatmap.pdf",width=6,height=4,pointsize=4)
 
