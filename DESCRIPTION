@@ -11,8 +11,8 @@ Description: Inference of ligand-receptor (LR) interactions from bulk
     available from Bioconductor. It relies on a statistical model that
     is specific to bulk data sets. Different visualization and data
     summary functions are proposed to help navigating prediction results.
-URL: https://github.com/zhefrench/BulkSignalR
-BugReports: https://github.com/zhefrench/BulkSignalR/issues
+URL: https://github.com/jcolinge/BulkSignalR
+BugReports: https://github.com/jcolinge/BulkSignalR/issues
 License: CeCILL | file LICENSE
 Encoding: UTF-8
 LazyData: FALSE
@@ -27,6 +27,7 @@ Imports:
     igraph,
     SingleCellSignalR,
     stringr,
+    circlize,
     ComplexHeatmap (>= 2.0.0),
     stats
 Suggests: 

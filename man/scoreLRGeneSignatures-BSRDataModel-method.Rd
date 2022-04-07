@@ -11,7 +11,7 @@ Compute ligand-receptor gene signature scores over a BSRDataModel.}
   sig,
   LR.weight = 0.5,
   robust = FALSE,
-  rename.by.pathway = FALSE,
+  name.by.pathway = FALSE,
   abs.z.score = FALSE
 )
 }
@@ -24,9 +24,9 @@ of the ligand and the receptor in the signature.}
 \item{robust}{A logical indicating that z-scores should be computed
 with median and MAD instead of mean and standard deviation.}
 
-\item{rename.by.pathway}{A logical indicating whether row names of the
-resulting score matrix should be pathway names instead of ligand-receptor
-gene symbols.}
+\item{name.by.pathway}{A logical indicating whether row names of the
+resulting score matrix should be complemented with (illustrative) pathway
+names.}
 
 \item{abs.z.score}{A logical to use absolute z-scores (useful if the
 activity of a paythway is reported by a mixture of up- and down-genes

@@ -19,3 +19,16 @@
 #' @source Becht et al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
 #' @usage data(tme.signatures)
 "tme.signatures"
+
+
+#' Immune cell gene signatures
+#'
+#' A dataset containing gene signatures for general immune cell populations.
+#'
+#' @format A data frame with 1541 rows and 2 variables:
+#' \describe{
+#'   \item{gene}{HUGO gene symbol}
+#'   \item{signature}{cell population name}
+#' }
+#' @source PanglaoDB (Franzén et al., Database, 2019).
+"immune.signatures"

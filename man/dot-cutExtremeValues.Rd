@@ -12,7 +12,8 @@
 \item{p}{Proportion of top and bottom values for thresholding.}
 }
 \value{
-A matrix with values beyond top and bottom thresholds repaced by the latter thresholds.
+A matrix with values beyond top and bottom thresholds repaced by
+the latter thresholds.
 }
 \description{
 Internal function to cut extreme values from a matrix

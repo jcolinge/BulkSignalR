@@ -2,16 +2,19 @@
 % Please edit documentation in R/visualization.R
 \name{simpleHeatmap}
 \alias{simpleHeatmap}
-\title{Heatmap function for LR scores}
+\title{Heatmap function for LR scores
+
+Generate a PDF file with a heatmap representing ligand-receptor gene
+signature scores.}
 \usage{
 simpleHeatmap(
   mat.c,
+  width,
+  height,
   file.name = NULL,
   dend.row = NULL,
   dend.spl = NULL,
   cols = NULL,
-  width,
-  height,
   pointsize = 4,
   bottom.annotation = NULL,
   n.col.clust = 0,
@@ -22,7 +25,12 @@ simpleHeatmap(
 )
 }
 \arguments{
-\item{mat.c}{A matrix with the signature scores such as output by \code{scoreLRGeneSignatures()}.}
+\item{mat.c}{A matrix with the signature scores such as output by
+\code{scoreLRGeneSignatures()}.}
+
+\item{width}{PDF width.}
+
+\item{height}{PDF height.}
 
 \item{file.name}{A PDF file name.}
 
@@ -31,10 +39,6 @@ simpleHeatmap(
 \item{dend.spl}{A precompute sample (column) dendrogram.}
 
 \item{cols}{A vector of colors to use for the heatmap.}
-
-\item{width}{PDF width.}
-
-\item{height}{PDF height.}
 
 \item{pointsize}{PDF pointsize.}
 
@@ -48,22 +52,29 @@ simpleHeatmap(
 
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
 
-\item{row.names}{A logical to turn on/off the display of row (gene) names.}
+\item{row.names}{A logical to turn on/off the display of row (gene)
+names.}
 }
 \value{
-A heatmap. Since heatmap plotting tend to be slow on the screen, it is advisable to provide a
+A heatmap. Since heatmap plotting tend to be slow on the screen,
+it is advisable to provide a
 PDF file name and plot in a file (much faster).
 
-Extreme values (top and bottom) can be replaced by global quantiles at \code{cut.p} and \code{1-cut.p}
+Extreme values (top and bottom) can be replaced by global quantiles at
+\code{cut.p} and \code{1-cut.p}
 to avoid color scales shrunk by a few outliers.
 
-This is a convenience function that relies on the \code{ComplexHeatmap} package to propose a simple way
-of representing signature scores. If more advanced features are needed or more graphic parameters
-should be controlled, users should implement their own function, e.g., starting from the code
-of \code{simpleHeatmap()}.
+This is a convenience function that relies on the \code{ComplexHeatmap}
+package to propose a simple way
+of representing signature scores. If more advanced features are needed or
+more graphic parameters
+should be controlled, users should implement their own function.
 }
 \description{
-Generate a PDF file with a heatmap representing ligand-receptor gene signature scores.
+Heatmap function for LR scores
+
+Generate a PDF file with a heatmap representing ligand-receptor gene
+signature scores.
 }
 \examples{
 \dontrun{

@@ -54,23 +54,18 @@ head(LRinter(bsrinf.redPP))
 
 # extract gene signatures to report combined ligand-receptor and
 # receptor downstream pathway scores
-sum(LRinter(bsrinf.redPP)$qval<0.01) # number of significant interactions
-sum(LRinter(bsrinf.redPP)$qval<1e-4)
-bsrsig.redPP <- getLRGeneSignatures(bsrinf.redPP,qval.thres=1e-4)
+sum(LRinter(bsrinf.redPP)$qval < 0.01) # number of significant interactions
+sum(LRinter(bsrinf.red)$qval < 1e-8)
+bsrsig.red <- getLRGeneSignatures(bsrinf.red, qval.thres=1e-8)
+scores.red <- scoreLRGeneSignatures(bsrdm, bsrsig.red, name.by.pathway=TRUE)
+simpleHeatmap(scores.red, file="SDC-LR-heatmap.pdf", width=6,
+              height=8, pointsize=4)
 
-ligands(bsrsig.redPP)[1:5]
-receptors(bsrsig.redPP)[1:5]
-pathways(bsrsig.redPP)
-tGenes(bsrsig.redPP)[1:5]
-
-scores <- scoreLRGeneSignatures(bsrdm,bsrsig.redPP,rename.by.pathway=F)
-simpleHeatmap(scores,pointsize=8)
-simpleHeatmap(scores,"SDC-LR-heatmap.pdf",width=6,height=4,pointsize=4)
-
-# correlate with the microenvironment
-data(tme.signatures,package="BulkSignalR")
-tme.scores <- scoreSignatures(ds,tme.signatures)
-dualHeatmap(scores,tme.scores,pointsize=8,vert.p=0.82)
+# correlate with the immune microenvironment
+data(immune.signatures, package="BulkSignalR")
+imm.scores <- scoreSignatures(bsrdm, immune.signatures)
+dualHeatmap(scores.red, imm.scores, width=6, height=9,
+            file="SDC-LR-dualheatmap.pdf", pointsize=4, vert.p=0.85)
 
 # generate a ligand-receptor network and export it in .graphML for Cytoscape or similar tools
 gLR <- getLRNetwork(pp,qval.thres=0.01)

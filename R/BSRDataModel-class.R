@@ -440,9 +440,9 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' of the ligand and the receptor in the signature.
 #' @param robust       A logical indicating that z-scores should be computed
 #' with median and MAD instead of mean and standard deviation.
-#' @param rename.by.pathway     A logical indicating whether row names of the
-#' resulting score matrix should be pathway names instead of ligand-receptor
-#' gene symbols.
+#' @param name.by.pathway     A logical indicating whether row names of the
+#' resulting score matrix should be complemented with (illustrative) pathway
+#' names.
 #' @param abs.z.score  A logical to use absolute z-scores (useful if the
 #' activity of a paythway is reported by a mixture of up- and down-genes
 #' whose z-score averages might hide actual activity).
@@ -457,7 +457,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' @importFrom foreach %do% %dopar%
 setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
                   sig, LR.weight=0.5, robust=FALSE,
-                  rename.by.pathway=FALSE, abs.z.score=FALSE){
+                  name.by.pathway=FALSE, abs.z.score=FALSE){
 
     if (!is(sig, "BSRSignature"))
         stop("sig must be a BSRSignature object")
@@ -486,15 +486,13 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
         z <- abs(z)
 
     # compute the LR gene signatures
-    if (rename.by.pathway)
-        pwn <- pathways
-    else{
-        i <- NULL
-        pwn <- foreach::foreach(i=seq_len(length(pathways)), .combine=c) %do% {
-            paste0("{", paste(ligands[[i]], collapse=";") ,"} / {",
-                        paste(receptors[[i]], collapse=";"), "}")
-        }
+    i <- NULL
+    pwn <- foreach::foreach(i=seq_len(length(pathways)), .combine=c) %do% {
+        paste0("{", paste(ligands[[i]], collapse=";") ,"} / {",
+                    paste(receptors[[i]], collapse=";"), "}")
     }
+    if (name.by.pathway)
+        pwn <- paste(pwn, pathways, sep="  ")
     res <- matrix(0,nrow=length(pathways),ncol=ncol(ncounts),dimnames=list(pwn,colnames(ncounts)))
     for (i in seq_len(length(pathways))){
 
