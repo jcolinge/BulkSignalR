@@ -117,6 +117,7 @@
         # loop over the pathways containing the receptor r
         pa <- intersect(pw[pw[[gene.col]]==r,id.col],names(pw.size))
         if (length(pa)>0){
+            receptor.ligands <- unique(lr$L[lr$R==r])
             best.2nd <- foreach::foreach(p=pa,.combine=rbind) %do% {
                 # best.2nd <- NULL
                 # for (p in pa){
@@ -136,14 +137,21 @@
 
                 # extract the target genes of receptor r
                 if (r %in% d.int$a.gn || r %in% d.int$b.gn){
+                    # putative targets in the pathway
                     target.genes <- setdiff(c(
                         int[int$type %in% correlated.int & int$a.gn==r, "b.gn"],
                         int[int$type %in% correlated.int & int$b.gn==r, "a.gn"],
                         int[int$type %in% directed.int, "b.gn"]),
                         r
                     )
+
+                    # reduce putative to reachable from the receptor
                     sp <- igraph::shortest.paths(g, r, target.genes)
                     target.genes <- colnames(sp)[!is.infinite(sp[r,])]
+
+                    # eliminate ligands of the receptor if present
+                    target.genes <- setdiff(target.genes, receptor.ligands)
+
                     if (length(target.genes) >= min.positive){
                         # if all conditions are met, list all target genes with
                         # their correlations to the receptor in a data frame

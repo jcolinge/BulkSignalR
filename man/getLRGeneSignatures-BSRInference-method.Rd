@@ -9,18 +9,15 @@ downstream activity to
 score ligand-receptor pairs across samples subsequently with
 \code{\link{scoreLRGeneSignatures}}.}
 \usage{
-\S4method{getLRGeneSignatures}{BSRInference}(obj, pval.thres = NULL, qval.thres = NULL, signed = TRUE)
+\S4method{getLRGeneSignatures}{BSRInference}(obj, pval.thres = NULL, qval.thres = NULL)
 }
 \arguments{
 \item{pval.thres}{P-value threshold.}
 
 \item{qval.thres}{Q-value threshold.}
-
-\item{signed}{A logical indicating whether correlations were be
-considered with their signs upon P-value estimations.}
 }
 \value{
-A BSRSignature object contaning a gene signature for each triple
+A BSRSignature object containing a gene signature for each triple
 ligand-receptor pair. A reduction to the best pathway
 for each pair is automatically performed and the gene signature is
 comprised of the ligand, the receptor,

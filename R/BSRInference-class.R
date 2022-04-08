@@ -588,9 +588,7 @@ if (!isGeneric("getLRGeneSignatures")) {
 #'
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
-#' @param signed        A logical indicating whether correlations were be
-#' considered with their signs upon P-value estimations.
-#' @return A BSRSignature object contaning a gene signature for each triple
+#' @return A BSRSignature object containing a gene signature for each triple
 #' ligand-receptor pair. A reduction to the best pathway
 #' for each pair is automatically performed and the gene signature is
 #' comprised of the ligand, the receptor,
@@ -603,7 +601,7 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' }
 #' @importFrom foreach %do% %dopar%
 setMethod("getLRGeneSignatures", "BSRInference", function(obj,
-        pval.thres=NULL, qval.thres=NULL, signed=TRUE){
+        pval.thres=NULL, qval.thres=NULL){
 
     if (is.null(pval.thres) && is.null(qval.thres))
         stop("Either a P- or a Q-value threshold must be provided")
@@ -623,6 +621,7 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
     pathways <- paste(pairs$pw.id, pairs$pw.name)
     t.genes <- tGenes(obj)[selected]
     tg.corr <- tgCorr(obj)[selected]
+    signed <- infParam(obj)$signed
     for (i in seq_len(nrow(pairs))){
         tg <- t.genes[[i]]
         if (signed)

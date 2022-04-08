@@ -4,12 +4,28 @@
 \alias{.edgesLRIntracell}
 \title{Internal function to generate a ligand-receptor-downstream signaling network}
 \usage{
-.edgesLRIntracell(pairs, pw, id.col, gene.col, min.cor = 0.3, signed = FALSE)
+.edgesLRIntracell(
+  pairs,
+  pw,
+  t.genes,
+  tg.corr,
+  id.col,
+  gene.col,
+  min.cor = 0.3,
+  signed = FALSE
+)
 }
 \arguments{
-\item{pairs}{A ligand-receptor table such as output by \code{pValuesLR}.}
+\item{pairs}{A ligand-receptor table such as output by
+\code{LRinter(BSRInference)}.}
 
 \item{pw}{A table defining the reference pathways.}
+
+\item{t.genes}{Target gene list such as output by
+\code{tGenes(BSRInference)}.}
+
+\item{tg.corr}{Target gene correlation list (with the receptor) such as
+output by \code{tgCorr(BSRInference)}.}
 
 \item{id.col}{Column index or name in \code{pw} for the pathway IDs.}
 
@@ -17,10 +33,12 @@
 
 \item{min.cor}{Minimum correlation required for the target genes.}
 
-\item{signed}{A logical indicating whether \code{min.cor} is imposed to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).}
+\item{signed}{A logical indicating whether \code{min.cor} is imposed
+to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).}
 }
 \value{
-An \code{igraph} object featuring the ligand-receptor-downstream signaling network. Default colors and node sizes are assigned.
+An \code{igraph} object featuring the ligand-receptor-downstream
+signaling network. Default colors and node sizes are assigned.
 }
 \description{
 Internal function to generate a ligand-receptor-downstream signaling network
