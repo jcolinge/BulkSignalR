@@ -1,8 +1,8 @@
-#' @title Get correlated ligand-receptor pairs.
+#' Get correlated ligand-receptor pairs.
 #'
-#' @description Internal function to compute the Spearman correlations
-#'   of all the ligand-receptor
-#'   pairs in LRdb and return those above a minimum value.
+#' Internal function to compute the Spearman correlations
+#' of all the ligand-receptor
+#' pairs in LRdb and return those above a minimum value.
 #'
 #' @param ds              A BSRDataModel object.
 #' @param min.cor         The minimum correlation required.
@@ -59,7 +59,7 @@
 }  # .getCorrelatedLR
 
 
-#' @title Internal function to check receptor signaling downstream
+#' Internal function to check receptor signaling downstream
 #'
 #' @param lr              A data frame as returned by
 #'   \code{.getCorrelatedLR()}.
@@ -211,9 +211,9 @@
 }  # .downstreamSignaling
 
 
-#' @title Internal function to check receptor signaling downstream
+#' Internal function to check receptor signaling downstream
 #'
-#' @description  Assess the existence of correlations between a receptor,
+#' Assess the existence of correlations between a receptor,
 #' part of a ligand-receptor pair, and
 #' genes coding for proteins forming a complex with the receptor or genes
 #' regulated by the receptor downstream signaling.
@@ -323,9 +323,9 @@
 } # .checkReceptorSignaling
 
 
-#' @title Internal function to assign P-values to LR interactions
+#' Internal function to assign P-values to LR interactions
 #'
-#' @description Estimate the P-value of each ligand-receptor pair based
+#' Estimate the P-value of each ligand-receptor pair based
 #' on the data frame output by \code{\link{.checkReceptorSignaling}}.
 #'
 #' @param pairs         A data frame output by \code{checkReceptorSignaling}.
@@ -400,5 +400,3 @@
     res
 
 }  # .pValuesLR
-
-

@@ -1,6 +1,6 @@
-#' @title Salivary duct carcinoma transcriptomes
+#' Salivary duct carcinoma transcriptomes
 #'
-#' @description A dataset containing the read counts of salivary duct carcinomas
+#' A dataset containing the read counts of salivary duct carcinomas
 #'   and adjacent normal tissues.
 #'
 #' @format A data frame with 19764 rows and 26 variables.
@@ -9,9 +9,9 @@
 "sdc"
 
 
-#' @title Tumor microenvironment gene signatures
+#' Tumor microenvironment gene signatures
 #'
-#' @description A dataset containing gene signatures for some immune and stromal
+#' A dataset containing gene signatures for some immune and stromal
 #'   cell populations that are present in the microenvironment of a tumor.
 #'
 #' @format A data frame with 209 rows and 2 variables: \describe{

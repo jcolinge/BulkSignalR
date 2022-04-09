@@ -2,9 +2,7 @@
 % Please edit documentation in R/BSRInference-class.R
 \name{reduceToReceptor,BSRInference-method}
 \alias{reduceToReceptor,BSRInference-method}
-\title{Aggregate the ligands of a same receptor
-
-Simplifies a ligand-receptor table to focus on the receptors.}
+\title{Aggregate the ligands of a same receptor}
 \usage{
 \S4method{reduceToReceptor}{BSRInference}(obj)
 }
@@ -18,8 +16,6 @@ The reported P-value and target genes are those from the line with the
 pathway featuring the smallest P-value.
 }
 \description{
-Aggregate the ligands of a same receptor
-
 Simplifies a ligand-receptor table to focus on the receptors.
 }
 \examples{

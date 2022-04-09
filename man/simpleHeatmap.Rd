@@ -2,10 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{simpleHeatmap}
 \alias{simpleHeatmap}
-\title{Heatmap function for LR scores
-
-Generate a PDF file with a heatmap representing ligand-receptor gene
-signature scores.}
+\title{Heatmap function for LR scores}
 \usage{
 simpleHeatmap(
   mat.c,
@@ -71,8 +68,6 @@ more graphic parameters
 should be controlled, users should implement their own function.
 }
 \description{
-Heatmap function for LR scores
-
 Generate a PDF file with a heatmap representing ligand-receptor gene
 signature scores.
 }

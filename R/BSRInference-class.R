@@ -1,7 +1,8 @@
 library(methods)
 
-#' @title BulkSignalR Inference Object
-#' @description An S4 class to represent inferred ligand-receptor interactions.
+#' BulkSignalR Inference Object
+#'
+#' An S4 class to represent inferred ligand-receptor interactions.
 #'
 #' @slot LRinter  A data frame describing the (ligand,receptor,pathway) triples
 #' with P- and Q-values.
@@ -81,7 +82,7 @@ if (!isGeneric("LRinter")) {
         fun <- function(x) standardGeneric("LRinter")
     setGeneric("LRinter", fun)
 }
-#' @title LRinter accessor
+#' LRinter accessor
 #' @export
 setMethod("LRinter", "BSRInference", function(x) x@LRinter)
 
@@ -92,7 +93,7 @@ if (!isGeneric("LRinter<-")) {
         fun <- function(x,value) standardGeneric("LRinter<-")
     setGeneric("LRinter<-", fun)
 }
-#' @title LRinter setter (internal use only)
+#' LRinter setter (internal use only)
 setMethod("LRinter<-", "BSRInference", function(x, value){
     x@LRinter <- value
     methods::validObject(x)
@@ -106,7 +107,7 @@ if (!isGeneric("ligands")) {
         fun <- function(x) standardGeneric("ligands")
     setGeneric("ligands", fun)
 }
-#' @title ligands accessor
+#' ligands accessor
 #' @export
 setMethod("ligands", "BSRInference", function(x) x@ligands)
 
@@ -117,7 +118,7 @@ if (!isGeneric("ligands<-")) {
         fun <- function(x,value) standardGeneric("ligands<-")
     setGeneric("ligands<-", fun)
 }
-#' @title ligands setter (internal use only)
+#' ligands setter (internal use only)
 setMethod("ligands<-", "BSRInference", function(x, value){
     x@ligands <- value
     methods::validObject(x)
@@ -131,7 +132,7 @@ if (!isGeneric("receptors")) {
         fun <- function(x) standardGeneric("receptors")
     setGeneric("receptors", fun)
 }
-#' @title receptors accessor
+#' receptors accessor
 #' @export
 setMethod("receptors", "BSRInference", function(x) x@receptors)
 
@@ -142,7 +143,7 @@ if (!isGeneric("receptors<-")) {
         fun <- function(x, value) standardGeneric("receptors<-")
     setGeneric("receptors<-", fun)
 }
-#' @title receptors setter (internal use only)
+#' receptors setter (internal use only)
 setMethod("receptors<-", "BSRInference", function(x, value){
     x@receptors <- value
     methods::validObject(x)
@@ -156,7 +157,7 @@ if (!isGeneric("tGenes")) {
         fun <- function(x) standardGeneric("tGenes")
     setGeneric("tGenes", fun)
 }
-#' @title Target genes accessor
+#' Target genes accessor
 #' @export
 setMethod("tGenes", "BSRInference", function(x) x@t.genes)
 
@@ -167,7 +168,7 @@ if (!isGeneric("tGenes<-")) {
         fun <- function(x,value) standardGeneric("tGenes<-")
     setGeneric("tGenes<-", fun)
 }
-#' @title Target genes setter (internal use only)
+#' Target genes setter (internal use only)
 setMethod("tGenes<-", "BSRInference", function(x, value){
     x@t.genes <- value
     methods::validObject(x)
@@ -181,7 +182,7 @@ if (!isGeneric("tgCorr")) {
         fun <- function(x) standardGeneric("tgCorr")
     setGeneric("tgCorr", fun)
 }
-#' @title Target gene correlations accessor
+#' Target gene correlations accessor
 #' @export
 setMethod("tgCorr", "BSRInference", function(x) x@tg.corr)
 
@@ -192,7 +193,7 @@ if (!isGeneric("tgCorr<-")) {
         fun <- function(x,value) standardGeneric("tgCorr<-")
     setGeneric("tgCorr<-", fun)
 }
-#' @title Target gene correlations setter (internal use only)
+#' Target gene correlations setter (internal use only)
 setMethod("tgCorr<-", "BSRInference", function(x, value){
     x@tg.corr <- value
     methods::validObject(x)
@@ -206,9 +207,120 @@ if (!isGeneric("infParam")) {
         fun <- function(x) standardGeneric("infParam")
     setGeneric("infParam", fun)
 }
-#' @title Inference parameters accessor
+#' Inference parameters accessor
 #' @export
 setMethod("infParam", "BSRInference", function(x) x@inf.param)
+if (!isGeneric("infParam<-")) {
+    if (is.function("infParam<-"))
+        fun <- `infParam<-`
+    else
+        fun <- function(x,value) standardGeneric("infParam<-")
+    setGeneric("infParam<-", fun)
+}
+#' Inference parameters setter (internal use only)
+setMethod("infParam<-", "BSRInference", function(x, value){
+    x@inf.param <- value
+    methods::validObject(x)
+    x
+})
+
+
+# Rescoring ====================================================================
+
+if (!isGeneric("rescoreInference")) {
+    if (is.function("rescoreInference"))
+        fun <- rescoreInference
+    else
+        fun <- function(obj, ...) standardGeneric("rescoreInference")
+    setGeneric("rescoreInference", fun)
+}
+#' Inference re-scoring
+#'
+#' A method to re-score an existing BSRInference object
+#' (P- and Q-value estimations).
+#'
+#' @param rank.p        A number between 0 and 1 defining the rank of the last
+#'   considered target genes.
+#' @param signed        A logical indicating whether correlations should be
+#'   considered with their signs.
+#' @param fdr.proc      The procedure for adjusting P-values according to
+#'   \code{\link[multtest]{mt.rawp2adjp}}.
+#'
+#' @details A BSRInference object should be created by calling
+#' \code{\link{initialInference}}. Parameters controlling the estimation
+#' of the statistical significance of the ligand/receptor/pathway triples
+#' are provided at the time of calling the latter method.
+#'
+#' Nonetheless, it
+#' might be useful to change the initially-provided parameters, in
+#' which case this method should be called.
+#'
+#' @return A BSRInference object.
+#'
+#' @export
+#'
+setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.75,
+                    signed=TRUE, fdr.proc=c("BH", "Bonferroni", "Holm",
+                    "Hochberg", "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
+
+    if (rank.p < 0 || rank.p > 1)
+        stop("rank.p must lie in [0;1]")
+    fdr.proc <- match.arg(fdr.proc)
+
+    # extract the necessary data from the BSRInference object
+    pairs <- LRinter(obj)
+    t.genes <- tGenes(obj)
+    tg.corr <- tgCorr(obj)
+
+    # recompute the P-values
+    muLR <- param$LR.0$norm$mu
+    sigmaLR <- param$LR.0$norm$sigma
+    muRT <- param$RT.0$norm$mu
+    sigmaRT <- param$RT.0$norm$sigma
+    for (i in 1:nrow(pairs)){
+        tg <- t.genes[[i]]
+        spears <- tg.corr[[i]]
+
+        # estimate the LR correlation P-value
+        p.lr <- 1-stats::pnorm(pairs$LR.corr[i], muLR, sigmaLR)
+
+        # estimate the target gene correlation P-value based on rank statistics
+        # for the individual correlation Gaussian model
+        len <- pairs$len[i]
+        r <- min(max(1, trunc(rank.p*len)), len)
+        if (signed){
+            rank.corr <- spears[r]
+            p.rt <- stats::pbinom(r-1, len,
+                                  stats::pnorm(rank.corr, muRT, sigmaRT)
+            )
+        }
+        else{
+            z.rt <- (spears-muRT)/sigmaRT
+            z.rt.sq <- z.rt**2
+            o <- order(z.rt.sq)
+            rank.corr <- spears[o][r]
+            p.rt <- stats::pbinom(r-1, len,
+                                  stats::pchisq(z.rt.sq[o][r], df=1))
+        }
+        pairs$pval[i] <- p.lr*p.rt
+    }
+
+    # recompute the Q-values
+    rawp <- pairs$pval
+    adj <- multtest::mt.rawp2adjp(rawp,fdr.proc)
+    pairs$qval <- adj$adjp[order(adj$index),fdr.proc]
+
+    # update the BSRInference object
+    inf.param <- infParam(obj)
+    inf.param$fdr.proc <- fdr.proc
+    inf.param$rank.p <- rank.p
+    inf.param$signed <- signed
+    infParam(obj) <- inf.param
+    LRinter(obj) <- pairs
+
+    obj
+
+}) # rescoreInference
 
 
 # Reduction and pathway stat methods ===========================================
@@ -221,7 +333,7 @@ if (!isGeneric("getPathwayStats")) {
         fun <- function(obj, ...) standardGeneric("getPathwayStats")
     setGeneric("getPathwayStats", fun)
 }
-#' @title Basic statistics about hit pathways
+#' Basic statistics about hit pathways
 #'
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
@@ -308,7 +420,7 @@ if (!isGeneric("reduceToBestPathway")) {
         fun <- function(obj, ...) standardGeneric("reduceToBestPathway")
     setGeneric("reduceToBestPathway", fun)
 }
-#' @title Keep one pathway per ligand-receptor pair
+#' Keep one pathway per ligand-receptor pair
 #'
 #' @return A BSRInference object reduced to only report one pathway per
 #' ligand-receptor pair. The pathway with the
@@ -371,7 +483,7 @@ if (!isGeneric("reduceToReceptor")) {
         fun <- function(obj, ...) standardGeneric("reduceToReceptor")
     setGeneric("reduceToReceptor", fun)
 }
-#' @title Aggregate the ligands of a same receptor
+#' Aggregate the ligands of a same receptor
 #'
 #' Simplifies a ligand-receptor table to focus on the receptors.
 #'
@@ -437,7 +549,7 @@ if (!isGeneric("reduceToLigand")) {
         fun <- function(obj, ...) standardGeneric("reduceToLigand")
     setGeneric("reduceToLigand", fun)
 }
-#' @title Aggregate the receptors of a same ligand
+#' Aggregate the receptors of a same ligand
 #'
 #' Simplifies a ligand-receptor table to focus on the ligands.
 #'
@@ -503,9 +615,10 @@ if (!isGeneric("reduceToPathway")) {
         fun <- function(obj, ...) standardGeneric("reduceToPathway")
     setGeneric("reduceToPathway", fun)
 }
-#' @title Aggregate ligands and receptors at the pathway level
+#' Aggregate ligands and receptors at the pathway level
 #'
-#' Simplifies a ligand-receptor inference object to focus on the pathways.
+#' Simplifies a ligand-receptor inference object to focus on
+#' the pathways.
 #'
 #' @return A BSRInference object reduced to only report one row per pathway.
 #' The information of which ligand interacted with which receptor is lost as
@@ -579,10 +692,10 @@ if (!isGeneric("getLRGeneSignatures")) {
         fun <- function(obj, ...) standardGeneric("getLRGeneSignatures")
     setGeneric("getLRGeneSignatures", fun)
 }
-#' @title Extract gene signatures of LR pair activity
+#' Extract gene signatures of LR pair activity
 #'
-#' Obtains gene signatures reflecting ligand-receptor as well as receptor
-#' downstream activity to
+#' Obtains gene signatures reflecting ligand-receptor as well as
+#' receptor downstream activity to
 #' score ligand-receptor pairs across samples subsequently with
 #' \code{\link{scoreLRGeneSignatures}}.
 #'

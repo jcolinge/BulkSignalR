@@ -1,4 +1,4 @@
-#' @title Internal function to generate expression matrix permutation indices
+#' Internal function to generate expression matrix permutation indices
 #'
 #' @param ncounts         A matrix of normalized read counts.
 #' @param n.bins          Number of bins.
@@ -22,7 +22,7 @@
 }  # .buildPermutationIndices
 
 
-#' @title Internal function to shuffle permutation indices
+#' Internal function to shuffle permutation indices
 #'
 #' @param pind      Permutation indices such as returned by
 #'   \code{\link{.buildPermutationIndices}}.
@@ -40,7 +40,7 @@
 } # .shufflePermutationIndices
 
 
-#' @title Internal function to generate a randomized expression matrix
+#' Internal function to generate a randomized expression matrix
 #'
 #' @param ncounts    A matrix of normalized read counts.
 #' @param pind      Permutation indices such as returned by
@@ -63,7 +63,7 @@
 }  # .buildPermutatedMatrix
 
 
-#' @title Internal function to fit a Gaussian distribution
+#' Internal function to fit a Gaussian distribution
 #'
 #' @description Maximum-likelihood estimators are used.
 #'
@@ -100,12 +100,11 @@
 }  # .getGaussianParam
 
 
-#' @title Internal function sampling the (empirical) null distribution
-#'   downstream the receptors
+#' Sampling of correlations downstream the receptors null distribution
 #'
-#' @description Perform receptor downstream analysis with
-#'   \code{.checkReceptorSignaling} based on randomized expression data and
-#'   ligand-receptor pairs selected from the same randomized data.
+#' Perform receptor downstream analysis with
+#' \code{.checkReceptorSignaling} based on randomized expression data and
+#' ligand-receptor pairs selected from the same randomized data.
 #'
 #' @param ncounts         A matrix or table of normalized read counts.
 #' @param n.rand          The number of repetitions.
@@ -162,10 +161,9 @@
 }  # .getEmpiricalNull
 
 
-#' @title Internal function sampling of the (empirical) null distribution of
-#' ligand-receptor correlations
+#' Sampling of ligand-receptor correlation null distribution
 #'
-#' @description Perform a ligand-receptor Spearman correlation analysis based
+#' Perform a ligand-receptor Spearman correlation analysis based
 #' on randomized expression data.
 #'
 #' @param ncounts         A matrix or table of normalized read counts.

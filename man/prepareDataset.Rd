@@ -45,9 +45,9 @@ A BSRModelData object with empty model parameters.
 }
 \description{
 Take a matrix or data frame containing RNA sequencing,
-  microarray, or expression proteomics data and returns a BSRDataModel
-  object ready for subsequent training. Normally, BSRDataModel objects
-  are not instantiated directly, but through this function.
+microarray, or expression proteomics data and returns a BSRDataModel
+object ready for subsequent training. Normally, BSRDataModel objects
+are not instantiated directly, but through this function.
 }
 \details{
 The \code{counts} matrix or table should be provided with expression

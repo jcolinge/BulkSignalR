@@ -2,12 +2,7 @@
 % Please edit documentation in R/BSRInference-class.R
 \name{getLRGeneSignatures,BSRInference-method}
 \alias{getLRGeneSignatures,BSRInference-method}
-\title{Extract gene signatures of LR pair activity
-
-Obtains gene signatures reflecting ligand-receptor as well as receptor
-downstream activity to
-score ligand-receptor pairs across samples subsequently with
-\code{\link{scoreLRGeneSignatures}}.}
+\title{Extract gene signatures of LR pair activity}
 \usage{
 \S4method{getLRGeneSignatures}{BSRInference}(obj, pval.thres = NULL, qval.thres = NULL)
 }
@@ -26,10 +21,8 @@ In case \code{signed==TRUE},
 the rank is defined for correlation absolute values.
 }
 \description{
-Extract gene signatures of LR pair activity
-
-Obtains gene signatures reflecting ligand-receptor as well as receptor
-downstream activity to
+Obtains gene signatures reflecting ligand-receptor as well as
+receptor downstream activity to
 score ligand-receptor pairs across samples subsequently with
 \code{\link{scoreLRGeneSignatures}}.
 }

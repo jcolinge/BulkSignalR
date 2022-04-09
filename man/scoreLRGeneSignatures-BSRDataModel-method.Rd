@@ -2,9 +2,7 @@
 % Please edit documentation in R/BSRDataModel-class.R
 \name{scoreLRGeneSignatures,BSRDataModel-method}
 \alias{scoreLRGeneSignatures,BSRDataModel-method}
-\title{Score ligand-receptor gene signatures
-
-Compute ligand-receptor gene signature scores over a BSRDataModel.}
+\title{Score ligand-receptor gene signatures}
 \usage{
 \S4method{scoreLRGeneSignatures}{BSRDataModel}(
   obj,
@@ -37,8 +35,6 @@ A matrix containing the scores of each ligand-receptor gene
 signature in each sample.
 }
 \description{
-Score ligand-receptor gene signatures
-
 Compute ligand-receptor gene signature scores over a BSRDataModel.
 }
 \examples{

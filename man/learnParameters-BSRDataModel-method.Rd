@@ -48,7 +48,7 @@ A BSRDataModel with trained model parameters
 }
 \description{
 Unique entry point for training the parameters behind
-  BulkSignalR statistical models.
+BulkSignalR statistical models.
 }
 \details{
 Estimates the model parameters that are stored in the

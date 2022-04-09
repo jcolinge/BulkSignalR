@@ -1,7 +1,8 @@
 library(methods)
 
-#' @title BulkSignalR ligand-receptor signature Object
-#' @description An S4 class to represent gene signatures
+#' BulkSignalR ligand-receptor signature Object
+#'
+#' S4 class to represent gene signatures
 #' of inferred ligand-receptor interactions, including
 #' their reduced versions.
 #'
@@ -42,13 +43,13 @@ setValidity("BSRSignature",
 )
 
 setMethod("show", "BSRSignature", function(object) {
-    head(
+    print(head(
         data.frame(L=sapply(object@ligands, function(x) paste(x,collapse=";")),
                    R=sapply(object@receptors, function(x) paste(x,collapse=";")),
-                   pathway=object@pathways,
+                   pathways=object@pathways,
                    tGenes=sapply(object@t.genes, function(x) paste(x,collapse=";"))
         )
-    )
+    ))
 })
 
 
@@ -61,7 +62,7 @@ if (!isGeneric("pathways")) {
         fun <- function(x) standardGeneric("pathways")
     setGeneric("pathways", fun)
 }
-#' @title pathways accessor
+#' pathways accessor
 #' @export
 setMethod("pathways", "BSRSignature", function(x) x@pathways)
 
@@ -72,7 +73,7 @@ if (!isGeneric("ligands")) {
         fun <- function(x) standardGeneric("ligands")
     setGeneric("ligands", fun)
 }
-#' @title ligands accessor
+#' ligands accessor
 #' @export
 setMethod("ligands", "BSRSignature", function(x) x@ligands)
 
@@ -83,7 +84,7 @@ if (!isGeneric("receptors")) {
         fun <- function(x) standardGeneric("receptors")
     setGeneric("receptors", fun)
 }
-#' @title receptors accessor
+#' receptors accessor
 #' @export
 setMethod("receptors", "BSRSignature", function(x) x@receptors)
 
@@ -94,7 +95,7 @@ if (!isGeneric("tGenes")) {
         fun <- function(x) standardGeneric("tGenes")
     setGeneric("tGenes", fun)
 }
-#' @title Target genes accessor
+#' Target genes accessor
 #' @export
 setMethod("tGenes", "BSRSignature", function(x) x@t.genes)
 

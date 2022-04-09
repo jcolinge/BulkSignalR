@@ -2,9 +2,7 @@
 % Please edit documentation in R/BSRInference-class.R
 \name{reduceToPathway,BSRInference-method}
 \alias{reduceToPathway,BSRInference-method}
-\title{Aggregate ligands and receptors at the pathway level
-
-Simplifies a ligand-receptor inference object to focus on the pathways.}
+\title{Aggregate ligands and receptors at the pathway level}
 \usage{
 \S4method{reduceToPathway}{BSRInference}(obj)
 }
@@ -22,9 +20,8 @@ while the list representation slots (\code{ligands} and
 \code{receptors}) are update accordingly.
 }
 \description{
-Aggregate ligands and receptors at the pathway level
-
-Simplifies a ligand-receptor inference object to focus on the pathways.
+Simplifies a ligand-receptor inference object to focus on
+the pathways.
 }
 \examples{
 \dontrun{

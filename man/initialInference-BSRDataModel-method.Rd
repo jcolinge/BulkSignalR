@@ -2,11 +2,7 @@
 % Please edit documentation in R/BSRDataModel-class.R
 \name{initialInference,BSRDataModel-method}
 \alias{initialInference,BSRDataModel-method}
-\title{Inference of ligand-receptor interactions
-
-Computes putative LR interactions along with their statistical confidence.
-In this initial inference, all the relevant pathways are reported,
-see reduction functions to reduce this list.}
+\title{Inference of ligand-receptor interactions}
 \usage{
 \S4method{initialInference}{BSRDataModel}(
   obj,
@@ -67,8 +63,6 @@ method.}
 A BSRInference object with initial inferences set.
 }
 \description{
-Inference of ligand-receptor interactions
-
 Computes putative LR interactions along with their statistical confidence.
 In this initial inference, all the relevant pathways are reported,
 see reduction functions to reduce this list.

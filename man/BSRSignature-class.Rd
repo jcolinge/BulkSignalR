@@ -5,7 +5,7 @@
 \alias{BSRSignature-class}
 \title{BulkSignalR ligand-receptor signature Object}
 \description{
-An S4 class to represent gene signatures
+S4 class to represent gene signatures
 of inferred ligand-receptor interactions, including
 their reduced versions.
 }

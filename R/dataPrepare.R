@@ -1,9 +1,9 @@
-#' @title Prepare a BSRDataModel object from expression data
+#' Prepare a BSRDataModel object from expression data
 #'
-#' @description Take a matrix or data frame containing RNA sequencing,
-#'   microarray, or expression proteomics data and returns a BSRDataModel
-#'   object ready for subsequent training. Normally, BSRDataModel objects
-#'   are not instantiated directly, but through this function.
+#' Take a matrix or data frame containing RNA sequencing,
+#' microarray, or expression proteomics data and returns a BSRDataModel
+#' object ready for subsequent training. Normally, BSRDataModel objects
+#' are not instantiated directly, but through this function.
 #'
 #' @param counts     A table or matrix of read counts.
 #' @param normalize  A logical indicating whether \code{counts} should be

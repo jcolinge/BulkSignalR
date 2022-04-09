@@ -1,6 +1,6 @@
 # Pure display functions (for convenience) =====================================
 
-#' @title Internal function to cut extreme values from a matrix
+#' Internal function to cut extreme values from a matrix
 #'
 #' @param m         A matrix.
 #' @param p          Proportion of top and bottom values for thresholding.
@@ -15,7 +15,7 @@
 }
 
 
-#' @title Heatmap function for LR scores
+#' Heatmap function for LR scores
 #'
 #' Generate a PDF file with a heatmap representing ligand-receptor gene
 #' signature scores.
@@ -130,7 +130,7 @@ simpleHeatmap <- function(mat.c, width, height, file.name=NULL, dend.row=NULL,
 } # simpleHeatmap
 
 
-#' @title Heatmap function for LR scores and additional data
+#' Heatmap function for LR scores and additional data
 #'
 #' Generate a stack of heatmaps. The top heatmap represents ligand-receptor
 #' gene signature scores,
@@ -249,7 +249,7 @@ dualHeatmap <- function(mat.c, mat.e, width, height, file.name=NULL,
 } # dualHeatmap
 
 
-#' @title Gene signature scoring
+#' Generic gene signature scoring
 #'
 #' Scores generic gene signatures over the samples of a BSRDataModel object.
 #'

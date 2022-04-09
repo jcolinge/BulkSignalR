@@ -1,4 +1,4 @@
-#' @title Generate a ligand-receptor network
+#' Generate a ligand-receptor network
 #'
 #' Generate a ligand-receptor network from a ligand-receptor table.
 #'
@@ -164,7 +164,7 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 } # .edgesLRIntracell
 
 
-#' @title Generate a ligand-receptor-downstream signaling network
+#' Generate a ligand-receptor-downstream signaling network
 #'
 #' Generate a ligand-receptor network from a BSRInference object and add
 #' the shortest paths from the receptors to correlated

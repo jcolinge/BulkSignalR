@@ -2,9 +2,7 @@
 % Please edit documentation in R/networks.R
 \name{getLRNetwork}
 \alias{getLRNetwork}
-\title{Generate a ligand-receptor network
-
-Generate a ligand-receptor network from a ligand-receptor table.}
+\title{Generate a ligand-receptor network}
 \usage{
 getLRNetwork(
   bsrinf,
@@ -32,8 +30,6 @@ Default colors and node sizes are assigned,
 which can be changed afterwards if necessary.
 }
 \description{
-Generate a ligand-receptor network
-
 Generate a ligand-receptor network from a ligand-receptor table.
 }
 \examples{

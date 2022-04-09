@@ -52,6 +52,8 @@ head(LRinter(bsrinf.redP))
 bsrinf.redPP <- reduceToBestPathway(bsrinf.redP)
 head(LRinter(bsrinf.redPP))
 
+# gene signatures --------------------------------------------
+
 # extract gene signatures to report combined ligand-receptor and
 # receptor downstream pathway scores
 sum(LRinter(bsrinf.redPP)$qval < 0.01) # number of significant interactions
@@ -66,6 +68,8 @@ data(immune.signatures, package="BulkSignalR")
 imm.scores <- scoreSignatures(bsrdm, immune.signatures)
 dualHeatmap(scores.red, imm.scores, width=6, height=9,
             file="SDC-LR-dualheatmap.pdf", pointsize=4, vert.p=0.85)
+
+# networks ----------------------------------------------------------
 
 # generate a ligand-receptor network and export it in .graphML
 # for Cytoscape or similar tools
@@ -95,7 +99,6 @@ plot(cb,u.gLR,
      vertex.label.cex=0.75,
      edge.color="black")
 
-
 # generate a ligand-receptor network complemented with intra-cellular,
 # receptor downstream pathways [computations are a bit longer here]
 gLRintra <- getLRIntracellNetwork(bsrinf.red, qval.thres=1e-8)
@@ -122,6 +125,19 @@ plot(gLRintra.res,
      vertex.label.color="black",
      vertex.label.family="Helvetica",
      vertex.label.cex=0.75)
+
+# re-scoring ---------------------------------------------------------
+
+# obtain inference significance considering the absolute values
+# of Spearman correlations to rank them
+
+bsrinf.abs <- rescoreInference(bsrinf, param=param(bsrdm), signed=FALSE)
+head(LRinter(bsrinf), n=10)
+head(LRinter(bsrinf.abs), n=10)
+plot(x=LRinter(bsrinf)$qval, y=LRinter(bsrinf.abs)$qval, log="xy", pch=20)
+abline(a=0, b=1, col="red")
+
+# end ---------------------------------------------------------------
 
 # stop cluster if parallel computation was used [optional]
 stopCluster(cl)

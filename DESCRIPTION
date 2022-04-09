@@ -32,8 +32,6 @@ Imports:
     stats
 Suggests: 
     grid,
-    limma (>= 3.0.0),
-    edgeR (>= 3.0.0),
     knitr,
     markdown,
     rmarkdown

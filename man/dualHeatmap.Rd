@@ -2,12 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{dualHeatmap}
 \alias{dualHeatmap}
-\title{Heatmap function for LR scores and additional data
-
-Generate a stack of heatmaps. The top heatmap represents ligand-receptor
-gene signature scores,
-while the bottom heatmap represents the second, user-chosen data set to
-feature along with gene signatures.}
+\title{Heatmap function for LR scores and additional data}
 \usage{
 dualHeatmap(
   mat.c,
@@ -79,8 +74,6 @@ more graphic parameters
 should be controlled, users should implement their own function.
 }
 \description{
-Heatmap function for LR scores and additional data
-
 Generate a stack of heatmaps. The top heatmap represents ligand-receptor
 gene signature scores,
 while the bottom heatmap represents the second, user-chosen data set to

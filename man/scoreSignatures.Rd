@@ -2,9 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{scoreSignatures}
 \alias{scoreSignatures}
-\title{Gene signature scoring
-
-Scores generic gene signatures over the samples of a BSRDataModel object.}
+\title{Generic gene signature scoring}
 \usage{
 scoreSignatures(ds, ref.signatures, robust = FALSE)
 }
@@ -23,8 +21,6 @@ signature scores should be computed with \code{\link{scoreLRGeneSignatures}}
 instead.
 }
 \description{
-Gene signature scoring
-
 Scores generic gene signatures over the samples of a BSRDataModel object.
 }
 \details{

@@ -1,7 +1,8 @@
 library(methods)
 
-#' @title BulkSignalR Data Model Object
-#' @description An S4 class to represent expression data used for inferring
+#' BulkSignalR Data Model Object
+#'
+#' An S4 class to represent expression data used for inferring
 #' ligand-receptor interactions.
 #'
 #' @slot ncounts   Normalized read count matrix. Row names must be set to HUGO
@@ -53,7 +54,7 @@ setMethod("show", "BSRDataModel",
         print(object@param)
         cat("Expression data:\n")
         if (ncol(object@ncounts) > 10)
-        print(head(object@ncounts[,1:10]))
+            print(head(object@ncounts[,1:10]))
     }
 )
 
@@ -67,7 +68,7 @@ if (!isGeneric("ncounts")) {
         fun <- function(x) standardGeneric("ncounts")
     setGeneric("ncounts", fun)
 }
-#' @title Normalized count matrix accessor
+#' Normalized count matrix accessor
 #' @export
 setMethod("ncounts", "BSRDataModel", function(x) x@ncounts)
 
@@ -78,7 +79,7 @@ if (!isGeneric("ncounts<-")) {
         fun <- function(x, value) standardGeneric("ncounts<-")
     setGeneric("ncounts<-", fun)
 }
-#' @title Normalized count matrix setter (internal use only)
+#' Normalized count matrix setter (internal use only)
 setMethod("ncounts<-", "BSRDataModel", function(x,value){
     x@ncounts <- value
     methods::validObject(x)
@@ -92,7 +93,7 @@ if (!isGeneric("param")) {
         fun <- function(x) standardGeneric("param")
     setGeneric("param", fun)
 }
-#' @title Model parameter accessor
+#' Model parameter accessor
 #' @export
 setMethod("param", "BSRDataModel", function(x) x@param)
 
@@ -103,7 +104,7 @@ if (!isGeneric("logTransformed")) {
         fun <- function(x) standardGeneric("logTransformed")
     setGeneric("logTransformed", fun)
 }
-#' @title log.transformed accessor
+#' log.transformed accessor
 #' @export
 setMethod("logTransformed", "BSRDataModel", function(x) x@log.transformed)
 
@@ -114,7 +115,7 @@ if (!isGeneric("normalization")) {
         fun <- function(x) standardGeneric("normalization")
     setGeneric("normalization", fun)
 }
-#' @title Normalization accessor
+#' Normalization accessor
 #' @export
 setMethod("normalization", "BSRDataModel", function(x) x@normalization)
 
@@ -129,10 +130,10 @@ if (!isGeneric("learnParameters")) {
         fun <- function(obj, ...) standardGeneric("learnParameters")
     setGeneric("learnParameters", fun)
 }
-#' @title Training of BulkSignalR model parameters
+#' Training of BulkSignalR model parameters
 #'
-#' @description Unique entry point for training the parameters behind
-#'   BulkSignalR statistical models.
+#' Unique entry point for training the parameters behind
+#' BulkSignalR statistical models.
 #'
 #' @param plot.folder   A folder name for generating control plots.
 #' @param verbose       A logical activating progress messages for the user.
@@ -295,7 +296,7 @@ if (!isGeneric("initialInference")) {
         fun <- function(obj, ...) standardGeneric("initialInference")
     setGeneric("initialInference", fun)
 }
-#' @title Inference of ligand-receptor interactions
+#' Inference of ligand-receptor interactions
 #'
 #' Computes putative LR interactions along with their statistical confidence.
 #' In this initial inference, all the relevant pathways are reported,
@@ -431,7 +432,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
     fun <- function(obj, ...) standardGeneric("scoreLRGeneSignatures")
   setGeneric("scoreLRGeneSignatures", fun)
 }
-#' @title Score ligand-receptor gene signatures
+#' Score ligand-receptor gene signatures
 #'
 #' Compute ligand-receptor gene signature scores over a BSRDataModel.
 #'

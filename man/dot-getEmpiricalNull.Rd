@@ -2,8 +2,7 @@
 % Please edit documentation in R/modelTraining.R
 \name{.getEmpiricalNull}
 \alias{.getEmpiricalNull}
-\title{Internal function sampling the (empirical) null distribution
-  downstream the receptors}
+\title{Sampling of correlations downstream the receptors null distribution}
 \usage{
 .getEmpiricalNull(
   ncounts,
@@ -42,8 +41,8 @@ A list of \code{n.rand} tables such as output by
 }
 \description{
 Perform receptor downstream analysis with
-  \code{.checkReceptorSignaling} based on randomized expression data and
-  ligand-receptor pairs selected from the same randomized data.
+\code{.checkReceptorSignaling} based on randomized expression data and
+ligand-receptor pairs selected from the same randomized data.
 }
 \details{
 A large number of correlations (ligand-receptor and receptor-downstream

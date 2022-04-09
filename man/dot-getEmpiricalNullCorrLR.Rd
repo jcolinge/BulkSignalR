@@ -2,8 +2,7 @@
 % Please edit documentation in R/modelTraining.R
 \name{.getEmpiricalNullCorrLR}
 \alias{.getEmpiricalNullCorrLR}
-\title{Internal function sampling of the (empirical) null distribution of
-ligand-receptor correlations}
+\title{Sampling of ligand-receptor correlation null distribution}
 \usage{
 .getEmpiricalNullCorrLR(ncounts, n.rand = 5, min.cor = -1)
 }

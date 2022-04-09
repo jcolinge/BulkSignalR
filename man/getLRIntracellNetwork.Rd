@@ -2,11 +2,7 @@
 % Please edit documentation in R/networks.R
 \name{getLRIntracellNetwork}
 \alias{getLRIntracellNetwork}
-\title{Generate a ligand-receptor-downstream signaling network
-
-Generate a ligand-receptor network from a BSRInference object and add
-the shortest paths from the receptors to correlated
-target genes following Reactome and KEGG pathways.}
+\title{Generate a ligand-receptor-downstream signaling network}
 \usage{
 getLRIntracellNetwork(
   bsrinf,
@@ -44,8 +40,6 @@ targets adds other genes, which were either some targets with too low
 correlation or genes along the shortest paths to reach the selected targets.
 }
 \description{
-Generate a ligand-receptor-downstream signaling network
-
 Generate a ligand-receptor network from a BSRInference object and add
 the shortest paths from the receptors to correlated
 target genes following Reactome and KEGG pathways.

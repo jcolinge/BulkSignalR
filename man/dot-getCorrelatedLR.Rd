@@ -21,8 +21,8 @@ A data frame containing putative ligand-receptor pairs along
 }
 \description{
 Internal function to compute the Spearman correlations
-  of all the ligand-receptor
-  pairs in LRdb and return those above a minimum value.
+of all the ligand-receptor
+pairs in LRdb and return those above a minimum value.
 }
 \details{
 The \code{restrict.genes} parameter is used for special cases where
