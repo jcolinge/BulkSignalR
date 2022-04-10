@@ -262,7 +262,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
         t <- ds.RT.null[[1]]
         if (length(ds.RT.null) > 1)
             for (i in 2:length(ds.RT.null)) t <- rbind(t, ds.RT.null[[i]])
-        above <- unlist(strsplit(t$all.corr, split = "\\|"))
+        above <- unlist(strsplit(t$target.corr, split = "\\|"))
         r.corrs <- NULL
         for (i in seq_len(length(above))) {
             corr <- as.numeric(strsplit(above[i], split = ";")[[1]])
