@@ -252,7 +252,8 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
         # RT correlations are actually learnt
         if (verbose)
             cat("Learning receptor-target correlation null distribution...\n")
-        ds.RT.null <- .getEmpiricalNull(obj@ncounts, n.rand = obj@n.rand.RT,
+        ds.RT.null <- .getEmpiricalNull(obj@ncounts,
+                                        n.rand = obj@param$n.rand.RT,
                                         with.complex = obj@param$with.complex,
                                         max.pw.size = obj@param$max.pw.size,
                                         min.pw.size = obj@param$min.pw.size,
