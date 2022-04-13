@@ -87,8 +87,14 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
         }
 
         # remove duplicates and the gene symbol column
-        counts <- counts[-bad, -symbol.col]
-        rownames(counts) <- symbols[-bad]
+        if (!is.null(bad)){
+            counts <- counts[-bad, -symbol.col]
+            rownames(counts) <- symbols[-bad]
+        }
+        else{
+            counts <- counts[,-symbol.col]
+            rownames(counts) <- symbols
+        }
     }
 
     if (is.null(rownames(counts)) || typeof(rownames(counts)) != "character")
