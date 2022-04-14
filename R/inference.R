@@ -380,9 +380,9 @@
                 z.rt <- (spears-muRT)/sigmaRT
                 z.rt.sq <- z.rt**2
                 o <- order(z.rt.sq)
-                rank.corr <- spears[o][r]
+                rank.corr.sq <- z.rt.sq[o][r]
                 p.rt <- stats::pbinom(r-1, len[k],
-                                      stats::pchisq(z.rt.sq[o][r], df=1))
+                                      stats::pchisq(rank.corr.sq, df=1))
             }
             res <- rbind(res,data.frame(pairs[i,c("L","R")],
                         LR.corr=pairs[i,"corr"], pw.id=pwid[k],
