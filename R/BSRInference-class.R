@@ -259,7 +259,7 @@ if (!isGeneric("rescoreInference")) {
 #'
 #' @export
 #'
-setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.75,
+setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.65,
                     signed=TRUE, fdr.proc=c("BH", "Bonferroni", "Holm",
                     "Hochberg", "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
 

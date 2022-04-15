@@ -365,7 +365,7 @@ if (!isGeneric("initialInference")) {
 #' bsrinf <- initialInference(bsrdm)
 #' bsrinf
 #'
-setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.75,
+setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.65,
         signed=TRUE, min.cor = 0.25,
         restrict.genes = NULL, reference=c("REACTOME-GOBP","REACTOME","GOBP"),
         max.pw.size=NULL, min.pw.size=NULL, min.positive=NULL, restrict.pw=NULL,
