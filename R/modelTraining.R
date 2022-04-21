@@ -63,12 +63,13 @@
 }  # .buildPermutatedMatrix
 
 
-#' Internal function to fit a Gaussian distribution
+#' Internal function to fit a censored Gaussian distribution
 #'
 #' @description Maximum-likelihood estimators are used.
 #'
 #' @param d   A vector of values to fit.
 #' @param title     A plot title.
+#' @param verbose   Provide details on computations.
 #' @param file.name   The file name of a PDF file.
 #'
 #' @return A list with the mean (\code{mu}) and standard deviation
@@ -77,27 +78,252 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
-.getGaussianParam <- function(d, title, file.name = NULL) {
+.getGaussianParam <- function(d, title, verbose = FALSE, file.name = NULL) {
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
                        pointsize = 10, useDingbats = FALSE)
-        graphics::hist(d, freq = FALSE, main = title,
+        graphics::hist(d, freq=FALSE, main=paste0(title, " / censored normal"),
                        xlab = "Spearman correlation")
     }
 
+    # initial fit with a Gaussian over ]-infty;+infty[]
     mu <- mean(d)
     sigma <- stats::sd(d)
+    if (verbose){
+        cat("Initial estimate of the mean: ", mu, "\n", sep="")
+        cat("Initial estimate of the standard deviation: ", sigma, "\n", sep="")
+    }
+
+    # ML fit of a censored Gaussian on [-1;1]
+    GaussianLL <- function(par){
+        q <- stats::pnorm(1, par[1], par[2]) - stats::pnorm(-1, par[1], par[2])
+        -sum(stats::dnorm(d, par[1], par[2], log=TRUE)) + length(d)*log(q)
+    }
+    par.0 <- c(mu, sigma)
+    res <- stats::optim(par.0, GaussianLL)
+    if (res$convergence != 0)
+        stop("optim() could not fit the normal distribution parameters")
+    mu <- res$par[1]
+    sigma <- res$par[2]
+    if (verbose){
+        cat("Censored normal mean: ", mu, "\n", sep="")
+        cat("Censored normal standard deviation: ", sigma, "\n", sep="")
+    }
+    q <- stats::pnorm(1, mu, sigma) - stats::pnorm(-1, mu, sigma)
+
+    # control plot
     if (!is.null(file.name)) {
-        x <- seq(-1, 1, by = 0.01)
-        graphics::lines(x = x, y = stats::dnorm(x, mu,
-                                                sigma), col = "blue", type = "l")
-        graphics::legend(x = "topright", lty = 1, legend = "Normal",
+        x <- seq(-1, 1, by = 0.002)
+        graphics::lines(x = x, y = stats::dnorm(x, mu, sigma)/q,
+                        col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
+                         col = "blue", bty = "n", pt.cex = 0.5)
+        grDevices::dev.off()
+        # fn <- gsub("pdf$", "txt", file.name)
+        # write.table(d, file=fn, row.names = FALSE)
+    }
+    list(mu = mu, sigma = sigma, factor = q,
+         start = stats::pnorm(-1, mu, sigma), distrib = "censored_normal")
+
+}  # .getGaussianParam
+
+
+#' Internal function to compute a censored Gaussian CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the censored Gaussian model parameters.
+#'
+#' @return A vector of probabilities P(X<x|par).
+.cdfGaussian <- function(x, par){
+
+    (stats::pnorm(x, par$mu, par$sigma) - par$start) / par$factor
+
+} # .cdfGaussian
+
+
+#' Internal function to fit a censored mixed-Gaussian distribution
+#'
+#' @description Maximum-likelihood estimators are used.
+#'
+#' @param d   A vector of values to fit.
+#' @param title     A plot title.
+#' @param verbose   Provide details on computations.
+#' @param file.name   The file name of a PDF file.
+#'
+#' @return A list with the mean (\code{mu}) and standard deviation
+#'   (\code{sigma}) estimates of each distribution along with the
+#'   weight alpha applied to the first distribution.
+#'
+#'   If \code{file.name} is provided, a control plot is generated in a PDF with
+#'   a data histogram and the fitted Gaussian. \code{title} is used to give this
+#'   plot a main title.
+.getMixedGaussianParam <- function(d, title, verbose = FALSE, file.name = NULL) {
+    if (!is.null(file.name)) {
+        grDevices::pdf(file = file.name, width = 4, height = 4,
+                       pointsize = 10, useDingbats = FALSE)
+        graphics::hist(d, freq=FALSE,
+                       main=paste0(title, " / censored mixed normal"),
+                       xlab = "Spearman correlation")
+    }
+
+    # ML fit of a censored mixed-Gaussian on [-1;1]
+    mixedGaussianLL <- function(par){
+        alpha <- par[1]
+        mu1 <- par[2]
+        sigma1 <- par[3]
+        mu2 <- par[4]
+        sigma2 <- par[5]
+        q <- alpha*stats::pnorm(1, mu1, sigma1) +
+            (1-alpha)*stats::pnorm(1, mu2, sigma2) -
+            (alpha*stats::pnorm(-1, mu1, sigma1) +
+                 (1-alpha)*stats::pnorm(-1, mu2, sigma2)
+            )
+        -sum(log(alpha*stats::dnorm(d, mu1, sigma1) +
+                     (1-alpha)*stats::dnorm(d, mu2, sigma2))
+        ) + length(d)*log(q)
+    }
+    mu <- mean(d)
+    sigma <- sd(d)
+    par.0 <- c(0.7, mu-0.1, 0.75*sigma, mu+0.1, 3*sigma)
+    res <- stats::optim(par.0, mixedGaussianLL,
+                        control=list(reltol=1e-5, maxit=2000))
+    if (res$convergence != 0)
+        stop("optim() could not fit the mixed normal distribution parameters")
+    if (verbose)
+        cat("Censored mixed normal parameters (alpha, mean1, sd1, mean2, sd2): ",
+            paste(res$par, collapse=", "), "\n", sep="")
+    alpha <- res$par[1]
+    mu1 <- res$par[2]
+    sigma1 <- res$par[3]
+    mu2 <- res$par[4]
+    sigma2 <- res$par[5]
+    q <- alpha*stats::pnorm(1, mu1, sigma1) +
+        (1-alpha)*stats::pnorm(1, mu2, sigma2) -
+        (alpha*stats::pnorm(-1, mu1, sigma1) +
+             (1-alpha)*stats::pnorm(-1, mu2, sigma2)
+        )
+    start <- alpha*stats::pnorm(-1, mu1, sigma1) +
+        (1-alpha)*stats::pnorm(-1, mu2, sigma2)
+
+    # control plot
+    if (!is.null(file.name)) {
+        x <- seq(-1, 1, by = 0.002)
+        graphics::lines(x = x, y = alpha*stats::dnorm(x, mu1, sigma1) +
+                            (1-alpha)*stats::dnorm(x, mu2, sigma2)/q,
+                        col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
                          col = "blue", bty = "n", pt.cex = 0.5)
         grDevices::dev.off()
     }
-    list(mu = mu, sigma = sigma)
+    list(alpha=alpha, mu1=mu1, sigma1=sigma1, mu2=mu2, sigma2=sigma2, factor=q,
+         start=start, distrib="censored_mixed_normal")
 
-}  # .getGaussianParam
+}  # .getMixedGaussianParam
+
+
+#' Internal function to compute a censored mixed-Gaussian CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the censored mixed-Gaussian model parameters.
+#'
+#' @return A vector of probabilities P(X<x|par).
+.cdfMixedGaussian <- function(x, par){
+
+    (par$alpha*stats::pnorm(x, par$mu1, par$sigma1) +
+         (1-par$alpha)*stats::pnorm(x, par$mu2, par$sigma2) -
+         par$start
+    ) / par$factor
+
+} # .cdfMixedGaussian
+
+
+#' Internal function to fit a censored (alpha-) stable distribution
+#'
+#' @description Maximum-likelihood estimators are used.
+#'
+#' @param d   A vector of values to fit.
+#' @param title     A plot title.
+#' @param verbose   Provide details on computations.
+#' @param file.name   The file name of a PDF file.
+#'
+#' @return A list with the four stable distribution parameters (S0
+#'   representation).
+#'
+#'   If \code{file.name} is provided, a control plot is generated in a PDF with
+#'   a data histogram and the fitted Gaussian. \code{title} is used to give this
+#'   plot a main title.
+#' @importFrom stabledist pstable dstable
+.getAlphaStableParam <- function(d, title, verbose = FALSE, file.name = NULL) {
+    if (!is.null(file.name)) {
+        grDevices::pdf(file = file.name, width = 4, height = 4,
+                       pointsize = 10, useDingbats = FALSE)
+        graphics::hist(d, freq=FALSE,
+                       main=paste0(title, " / censored stable"),
+                       xlab = "Spearman correlation")
+    }
+
+    # ML fit of a censored stable on [-1;1]
+    stableLL <- function(par){
+        q <- stabledist::pstable(1, alpha=par[1], beta=par[2],
+                     gamma=(par[3])**2,delta=par[4]) -
+            stabledist::pstable(-1, alpha=par[1], beta=par[2],
+                    gamma=(par[3])**2, delta=par[4])
+        -sum(stabledist::dstable(d, alpha=par[1], beta=par[2],
+                                 gamma=(par[3])**2, delta=par[4], log=TRUE)
+             ) + length(d)*log(q)
+    }
+    par.0 <- c(1.5, 0.2, 0.2, mean(d))
+    if (verbose)
+        cat(paste0("Starting stable distribution parameter estimation. ",
+                   "This can take minutes...\n"))
+    res <- stats::optim(par.0, stableLL,
+                        control=list(reltol=1e-5, maxit=800,
+                                     trace=ifelse(verbose,1,0)))
+    if (res$convergence != 0)
+        stop("optim() could not fit the censored stable distribution")
+    if (verbose)
+        cat("Censored stable parameters (alpha, beta, gamma, delta): ",
+            paste(res$par, collapse=", "), "\n", sep="")
+    alpha <- res$par[1]
+    beta <- res$par[2]
+    gamma <- (res$par[3])**2
+    delta <- res$par[4]
+    q <- stabledist::pstable(1, alpha=alpha, beta=beta,
+                             gamma=gamma, delta=delta) -
+        stabledist::pstable(-1, alpha=alpha, beta=beta,
+                            gamma=gamma, delta=delta)
+    start <- stabledist::pstable(-1, alpha=alpha, beta=beta,
+                                 gamma=gamma, delta=delta)
+
+    # control plot
+    if (!is.null(file.name)) {
+        x <- seq(-1, 1, by = 0.002)
+        graphics::lines(x = x, y = stabledist::dstable(x, alpha=alpha,
+                            beta=beta, gamma=gamma, delta=delta)/q,
+                        col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
+                         col = "blue", bty = "n", pt.cex = 0.5)
+        grDevices::dev.off()
+    }
+    list(alpha=alpha, beta=beta, gamma=gamma, delta=delta, factor=q,
+         start=start, distrib="censored_stable")
+
+}  # .getAlphaStableParam
+
+
+#' Internal function to compute a censored alpha-) stable CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the censored stable model parameters.
+#'
+#' @return A vector of probabilities P(X<x|par).
+#' @importFrom stabledist pstable dstable
+.cdfAlphaStable <- function(x, par){
+
+    (stabledist::pstable(x, alpha=par$alpha, beta=par$beta, gamma=par$gamma,
+                         delta=par$delta) - par$start) / par$factor
+
+} # .cdfAlphaStable
 
 
 #' Sampling of correlations downstream the receptors null distribution

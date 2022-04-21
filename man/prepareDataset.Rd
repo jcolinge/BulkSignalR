@@ -12,7 +12,8 @@ prepareDataset(
   prop = 0.1,
   method = c("UQ", "TC"),
   log.transformed = FALSE,
-  min.LR.found = 80
+  min.LR.found = 80,
+  UQ.pc = 0.75
 )
 }
 \arguments{
@@ -39,6 +40,10 @@ already log2-transformed, e.g., some microarray data.}
 \item{min.LR.found}{The minimum number of ligands or receptors found in
 \code{count} row names after eliminating the rows containing too many
 zeros according to \code{min.count} and \code{prop}.}
+
+\item{UQ.pc}{Percentile for upper-quartile normalization, number
+between 0 and 1 (in case the default 0.75 - hence the name - is not
+appropriate).}
 }
 \value{
 A BSRModelData object with empty model parameters.

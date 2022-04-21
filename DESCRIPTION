@@ -27,6 +27,7 @@ Imports:
     igraph,
     SingleCellSignalR,
     stringr,
+    stabledist,
     circlize,
     ComplexHeatmap (>= 2.0.0),
     stats

@@ -1,10 +1,9 @@
-library(data.table)
 library(BulkSignalR)
 library(igraph)
 
 # activate parallel computing for faster model training [optional]
 library(doParallel)
-n.proc <- 2
+n.proc <- 5
 cl <- makeCluster(n.proc)
 registerDoParallel(cl)
 
@@ -12,7 +11,7 @@ registerDoParallel(cl)
 data(sdc,package="BulkSignalR")
 normal <- grep("^N", names(sdc))
 bsrdm <- prepareDataset(sdc[, -normal])
-bsrdm <- learnParameters(bsrdm)
+bsrdm <- learnParameters(bsrdm, quick=FALSE, plot.folder=".", verbose=TRUE)
 bsrdm
 
 # score ligand-receptor interactions

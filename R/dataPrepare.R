@@ -16,6 +16,9 @@
 #'   expressed higher than \code{min.count} to keep that gene.
 #' @param method     The normalization method ('UQ' for upper quartile or 'TC'
 #'   for total count).
+#' @param UQ.pc      Percentile for upper-quartile normalization, number
+#' between 0 and 1 (in case the default 0.75 - hence the name - is not
+#' appropriate).
 #' @param log.transformed  A logical indicating whether expression data were
 #'   already log2-transformed, e.g., some microarray data.
 #' @param min.LR.found  The minimum number of ligands or receptors found in
@@ -56,7 +59,8 @@
 #' bsrdm <- prepareDataset(sdc[,-normal])
 #'
 prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.count = 10,
-    prop = 0.1, method = c("UQ", "TC"), log.transformed = FALSE, min.LR.found = 80) {
+    prop = 0.1, method = c("UQ", "TC"), log.transformed = FALSE, min.LR.found = 80,
+    UQ.pc = 0.75) {
 
     if (prop < 0 || prop > 1)
         stop("prop must lie in [0;1]")
@@ -110,8 +114,14 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     if (normalize) {
         good.c <- rowSums(counts >= min.count) >= prop * ncol(counts)
         counts <- counts[good.c, ]
-        if (method == "UQ")
-            tot <- apply(counts, 2, function(x) stats::quantile(x[x > 0], prob = 0.75))
+        if (method == "UQ"){
+            tot <- apply(counts, 2, function(x) stats::quantile(x[x > 0],
+                                                                prob=UQ.pc))
+            if (sum(tot == 0) > 0)
+                stop(paste0("Cannot perform UQ normalization (percentile=",
+                            UQ.pc," ), not enough signal in sample(s) ",
+                            paste(colnames(counts)[tot==0], collapse=", ")))
+        }
         else
             tot <- colSums(counts)
         ncounts <- sweep(counts, 2, tot/stats::median(tot), "/")
