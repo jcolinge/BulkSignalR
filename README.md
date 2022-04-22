@@ -1,5 +1,5 @@
 
-# BulkSignalR <img src="man/figures/logo.jpg" align="right" />
+# BulkSignalR <img src="man/figures/logo.png" align="right" />
 
 <!-- badges: start -->
 [![Actions Status](https://github.com/ZheFrench/BulkSignalR/workflows/R-CMD-check/badge.svg)](https://github.com/ZheFrench/BulkSignalR/actions)
