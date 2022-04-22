@@ -730,17 +730,21 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
     #pathways  <- paste(pairs$pw.id, pairs$pw.name)
     t.genes   <- tGenes(obj)[selected]
     tg.corr   <- tgCorr(obj)[selected]
-    signed    <- infParam(obj)$signed
+    #should still be optional ? 
+    #signed    <- infParam(obj)$signed
+
 
     for (i in seq_len(nrow(pairs))){
         tg <- t.genes[[i]]
-        if (signed)
+        #print(pairs$rank[i])
+        #print(length(tg))
+        #if (signed)
             t.genes[[i]] <- tg[pairs$rank[i]:length(tg)]
-        else{
-            corr <- tg.corr[[i]]
-            o <- order(corr**2)
-            t.genes[[i]] <- tg[o][pairs$rank[i]:length(tg)]
-        }
+        #else{
+        #    corr <- tg.corr[[i]]
+        ##    o <- order(corr**2)
+        #    t.genes[[i]] <- tg[o][pairs$rank[i]:length(tg)]
+        #}
     }
 
     new("BSRSignature", pathways=pathways, ligands=ligands,
