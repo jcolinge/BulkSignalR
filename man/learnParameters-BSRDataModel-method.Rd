@@ -14,7 +14,9 @@
   max.pw.size = 200,
   min.pw.size = 5,
   min.positive = 4,
-  quick = TRUE
+  quick = TRUE,
+  null.model = c("normal", "mixedNormal", "stable"),
+  FUN = NULL
 )
 }
 \arguments{
@@ -42,6 +44,9 @@ pathway.}
 
 \item{quick}{A logical indicating whether approximate parameters
 for the receptor-target correlations should be used.}
+
+\item{null.model}{The null model to use for Spearman correlation
+null distributions.}
 }
 \value{
 A BSRDataModel with trained model parameters

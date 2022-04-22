@@ -7,8 +7,7 @@
 \S4method{rescoreInference}{BSRInference}(
   obj,
   param,
-  rank.p = 0.75,
-  signed = TRUE,
+  rank.p = 0.65,
   fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY",
     "ABH", "TSBH")
 )
@@ -16,9 +15,6 @@
 \arguments{
 \item{rank.p}{A number between 0 and 1 defining the rank of the last
 considered target genes.}
-
-\item{signed}{A logical indicating whether correlations should be
-considered with their signs.}
 
 \item{fdr.proc}{The procedure for adjusting P-values according to
 \code{\link[multtest]{mt.rawp2adjp}}.}
@@ -34,7 +30,9 @@ A method to re-score an existing BSRInference object
 A BSRInference object should be created by calling
 \code{\link{initialInference}}. Parameters controlling the estimation
 of the statistical significance of the ligand/receptor/pathway triples
-are provided at the time of calling the latter method. Nonetheless, it
+are provided at the time of calling the latter method.
+
+Nonetheless, it
 might be useful to change the initially-provided parameters, in
 which case this method should be called.
 }

@@ -6,8 +6,7 @@
 \usage{
 \S4method{initialInference}{BSRDataModel}(
   obj,
-  rank.p = 0.75,
-  signed = TRUE,
+  rank.p = 0.65,
   min.cor = 0.25,
   restrict.genes = NULL,
   reference = c("REACTOME-GOBP", "REACTOME", "GOBP"),
@@ -23,9 +22,6 @@
 \arguments{
 \item{rank.p}{A number between 0 and 1 defining the rank of the last
 considered target genes.}
-
-\item{signed}{A logical indicating whether correlations should be
-considered with their signs.}
 
 \item{min.cor}{The minimum Spearman correlation required between
 the ligand and the receptor.}

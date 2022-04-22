@@ -8,7 +8,6 @@
   pairs,
   param,
   rank.p = 0.75,
-  signed = TRUE,
   fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY",
     "ABH", "TSBH")
 )
@@ -20,9 +19,6 @@
 
 \item{rank.p}{A number between 0 and 1 defining the rank of the last
 considered target genes.}
-
-\item{signed}{A logical indicating whether correlations should be
-considered with their signs.}
 
 \item{fdr.proc}{The procedure for adjusting P-values according to
 \code{\link[multtest]{mt.rawp2adjp}}.}

@@ -182,6 +182,8 @@ if (!isGeneric("learnParameters")) {
 #'   pathway.
 #' @param quick           A logical indicating whether approximate parameters
 #'   for the receptor-target correlations should be used.
+#' @param null.model      The null model to use for Spearman correlation
+#'   null distributions.
 #'
 #' @details Estimates the model parameters that are stored in the
 #'   slot \code{param}.
@@ -223,8 +225,9 @@ if (!isGeneric("learnParameters")) {
 #'ortholog.dict = data.frame(Gene.name="A",row.names = "B"),
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
-      max.pw.size = 200, min.pw.size = 5, min.positive = 4, 
-       quick = TRUE) {
+      max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = TRUE,
+      null.model = c("normal","mixedNormal","stable"),
+      FUN = NULL) {
 
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
     if (obj@param$n.rand.LR < 1)
@@ -247,6 +250,16 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
         stop("Parameter min.positive must be an integer > 0")
     obj@param$quick <- quick
 
+    null.model <- match.arg(null.model)
+    if (null.model == "normal")
+        trainModel <- .getGaussianParam
+    else if (null.model == "mixedNormal")
+        trainModel <- .getMixedGaussianParam
+    else if (null.model == "stable")
+        trainModel <- .getAlphaStableParam
+    else
+        stop("No valid null model specified")
+
     # LR correlation null ----------------
 
     if (verbose)
@@ -262,12 +275,12 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
 
     # Gaussian model
     if (!is.null(plot.folder))
-        file.name <- paste0(plot.folder, "LR-null-hist-gaussian.pdf")
+        file.name <- paste0(plot.folder, "/LR-null.pdf")
     else
         file.name <- NULL
-    gp <- .getGaussianParam(rc, "LR correlation (null)", file.name)
-    obj@param$LR.0$norm$mu <- gp$mu
-    obj@param$LR.0$norm$sigma <- gp$sigma
+    gp <- trainModel(rc, "LR correlation (null)", verbose = verbose,
+                            file.name = file.name)
+    obj@param$LR.0$model <- gp
 
     # RT correlation null ------------------------------------
 
@@ -277,8 +290,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
             cat(paste0("Quick learning, receptor-target correlation null ","
                    distribution assumed to be equal to ligand-receptor...\n"))
         obj@param$RT.0$n <- obj@param$LR.0$n
-        obj@param$RT.0$norm$mu <- obj@param$LR.0$norm$mu
-        obj@param$RT.0$norm$sigma <- obj@param$LR.0$norm$sigma
+        obj@param$RT.0$model <- obj@param$LR.0$model
     }
     else {
         # RT correlations are actually learnt
@@ -304,12 +316,12 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
 
         # Gaussian model
         if (!is.null(plot.folder))
-            file.name <- paste0(plot.folder, "RT-null-hist-gaussian.pdf")
+            file.name <- paste0(plot.folder, "/RT-null.pdf")
         else
             file.name <- NULL
-        gp <- .getGaussianParam(r.corrs, "RT correlation (null)", file.name)
-        obj@param$RT.0$norm$mu <- gp$mu
-        obj@param$RT.0$norm$sigma <- gp$sigma
+        gp <- trainModel(r.corrs, "RT correlation (null)",
+                                verbose = verbose, file.name = file.name)
+        obj@param$RT.0$model <- gp
     }
 
     if (verbose)
@@ -340,8 +352,6 @@ if (!isGeneric("initialInference")) {
 #' method.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #' considered target genes.
-#' @param signed        A logical indicating whether correlations should be
-#' considered with their signs.
 #' @param min.cor         The minimum Spearman correlation required between
 #' the ligand and the receptor.
 #' @param fdr.proc      The procedure for adjusting P-values according to
@@ -397,8 +407,8 @@ if (!isGeneric("initialInference")) {
 #' bsrinf <- initialInference(bsrdm)
 #' bsrinf
 #'
-setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.75,
-        signed=TRUE, min.cor = 0.25,
+setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.65,
+        min.cor = 0.25,
         restrict.genes = NULL, reference=c("REACTOME-GOBP","REACTOME","GOBP"),
         max.pw.size=NULL, min.pw.size=NULL, min.positive=NULL, restrict.pw=NULL,
         with.complex=NULL, fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
@@ -435,9 +445,7 @@ setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.75,
 
     inf.param$fdr.proc <- fdr.proc
     inf.param$rank.p <- rank.p
-    inf.param$signed <- signed
-    inter <- .pValuesLR(pairs, param(obj), rank.p=rank.p, signed=signed,
-                        fdr.proc=fdr.proc)
+    inter <- .pValuesLR(pairs, param(obj), rank.p=rank.p, fdr.proc=fdr.proc)
 
     ligands <- strsplit(inter$L, ";")
     receptors <- strsplit(inter$R, ";")

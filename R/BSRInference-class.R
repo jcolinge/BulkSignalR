@@ -241,8 +241,6 @@ if (!isGeneric("rescoreInference")) {
 #'
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #'   considered target genes.
-#' @param signed        A logical indicating whether correlations should be
-#'   considered with their signs.
 #' @param fdr.proc      The procedure for adjusting P-values according to
 #'   \code{\link[multtest]{mt.rawp2adjp}}.
 #'
@@ -259,8 +257,8 @@ if (!isGeneric("rescoreInference")) {
 #'
 #' @export
 #'
-setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.75,
-                    signed=TRUE, fdr.proc=c("BH", "Bonferroni", "Holm",
+setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.65,
+                    fdr.proc=c("BH", "Bonferroni", "Holm",
                     "Hochberg", "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
 
     if (rank.p < 0 || rank.p > 1)
@@ -272,36 +270,34 @@ setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.75,
     t.genes <- tGenes(obj)
     tg.corr <- tgCorr(obj)
 
-    # recompute the P-values
-    muLR <- param$LR.0$norm$mu
-    sigmaLR <- param$LR.0$norm$sigma
-    muRT <- param$RT.0$norm$mu
-    sigmaRT <- param$RT.0$norm$sigma
+    # prepare the chosen model CDF
+    LR.par <- param$LR.0$model
+    RT.par <- param$RT.0$model
+    if (LR.par$distrib != RT.par$distrib)
+        stop("Distinct statistical models for LR and RT nulls are not allowed")
+    if (LR.par$distrib == 'censored_normal')
+        cdf <- .cdfGaussian
+    else if (LR.par$distrib == 'censored_mixed_normal')
+        cdf <- .cdfMixedGaussian
+    else if (LR.par$distrib == 'censored_stable')
+        cdf <- .cdfAlphaStable
+    else
+        stop(paste0("Unknown statistical model: ", LR.par$LR.0$model$distrib))
+
+    # recompute P-values
     for (i in 1:nrow(pairs)){
         tg <- t.genes[[i]]
         spears <- tg.corr[[i]]
 
         # estimate the LR correlation P-value
-        p.lr <- 1-stats::pnorm(pairs$LR.corr[i], muLR, sigmaLR)
+        p.lr <- 1 - cdf(pairs$LR.corr[i], LR.par)
 
         # estimate the target gene correlation P-value based on rank statistics
         # for the individual correlation Gaussian model
         len <- pairs$len[i]
         r <- min(max(1, trunc(rank.p*len)), len)
-        if (signed){
-            rank.corr <- spears[r]
-            p.rt <- stats::pbinom(r-1, len,
-                                  stats::pnorm(rank.corr, muRT, sigmaRT)
-            )
-        }
-        else{
-            z.rt <- (spears-muRT)/sigmaRT
-            z.rt.sq <- z.rt**2
-            o <- order(z.rt.sq)
-            rank.corr <- spears[o][r]
-            p.rt <- stats::pbinom(r-1, len,
-                                  stats::pchisq(z.rt.sq[o][r], df=1))
-        }
+        rank.corr <- spears[r]
+        p.rt <- stats::pbinom(r-1, len, cdf(rank.corr, RT.par))
         pairs$pval[i] <- p.lr*p.rt
     }
 
@@ -314,7 +310,6 @@ setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.75,
     inf.param <- infParam(obj)
     inf.param$fdr.proc <- fdr.proc
     inf.param$rank.p <- rank.p
-    inf.param$signed <- signed
     infParam(obj) <- inf.param
     LRinter(obj) <- pairs
 

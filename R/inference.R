@@ -332,14 +332,12 @@
 #' @param param         A list containing the statistical model parameters.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #'   considered target genes.
-#' @param signed        A logical indicating whether correlations should be
-#'   considered with their signs.
 #' @param fdr.proc      The procedure for adjusting P-values according to
 #'   \code{\link[multtest]{mt.rawp2adjp}}.
 #'
 #' @return A BSRInference object.
 #'
-.pValuesLR <- function(pairs, param, rank.p = 0.75, signed = TRUE,
+.pValuesLR <- function(pairs, param, rank.p = 0.75,
                       fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg",
                                    "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
 
@@ -347,11 +345,22 @@
         stop("rank.p must lie in [0;1]")
     fdr.proc <- match.arg(fdr.proc)
 
+    # prepare the chosen model CDF
+    LR.par <- param$LR.0$model
+    RT.par <- param$RT.0$model
+    if (LR.par$distrib != RT.par$distrib)
+        stop("Distinct statistical models for LR and RT nulls are not allowed")
+    if (LR.par$distrib == 'censored_normal')
+        cdf <- .cdfGaussian
+    else if (LR.par$distrib == 'censored_mixed_normal')
+        cdf <- .cdfMixedGaussian
+    else if (LR.par$distrib == 'censored_stable')
+        cdf <- .cdfAlphaStable
+    else
+        stop(paste0("Unknown statistical model: ", LR.par$LR.0$model$distrib))
+
+    # estimate P-values
     res <- NULL
-    muLR <- param$LR.0$norm$mu
-    sigmaLR <- param$LR.0$norm$sigma
-    muRT <- param$RT.0$norm$mu
-    sigmaRT <- param$RT.0$norm$sigma
     for (i in 1:nrow(pairs)){
         # all the data related to each pathway containing a given
         # receptor were collapsed separated by |
@@ -363,27 +372,15 @@
         len <- as.numeric(unlist(strsplit(pairs$len[i],split="\\|")))
 
         # estimate the LR correlation P-value
-        p.lr <- 1-stats::pnorm(pairs$corr[i], muLR, sigmaLR)
+        p.lr <- 1 - cdf(pairs$corr[i], LR.par)
 
         # estimate the target gene correlation P-value based on rank statistics
         # for the individual correlation Gaussian model
         for (k in 1:length(len)){
             spears <- as.numeric(strsplit(spear[k],split=";")[[1]])
             r <- min(max(1,trunc(rank.p*len[k])),len[k])
-            if (signed){
-                rank.corr <- spears[r]
-                p.rt <- stats::pbinom(r-1, len[k],
-                                  stats::pnorm(rank.corr, muRT, sigmaRT)
-                )
-            }
-            else{
-                z.rt <- (spears-muRT)/sigmaRT
-                z.rt.sq <- z.rt**2
-                o <- order(z.rt.sq)
-                rank.corr <- spears[o][r]
-                p.rt <- stats::pbinom(r-1, len[k],
-                                      stats::pchisq(z.rt.sq[o][r], df=1))
-            }
+            rank.corr <- spears[r]
+            p.rt <- stats::pbinom(r-1, len[k], cdf(rank.corr, RT.par))
             res <- rbind(res,data.frame(pairs[i,c("L","R")],
                         LR.corr=pairs[i,"corr"], pw.id=pwid[k],
                         pw.name=pwname[k], rank=r, len=len[k],
