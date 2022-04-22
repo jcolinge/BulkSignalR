@@ -9,6 +9,7 @@
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/BulkSignalR)](https://cran.r-project.org/package=BulkSignalR)
 <!-- badges: end -->
 
+## Overview
 
 Inference of ligand-receptor (LR) interactions from `bulk`
 (transcriptomic or proteomic) data. **BulkSignalR** bases its inferences
@@ -16,6 +17,19 @@ on the LRdb database included in our other package, **BulkSignalR**
 available from Bioconductor. It relies on a statistical model that
 is specific to bulk data sets. Different visualization and data
 summary functions are proposed to help navigating prediction results.
+
+## Installation
+
+``` R
+
+# The easiest way to get BulkSignalR is to install :
+install.packages("BulkSignalR")
+
+# Or the development version from GitHub:
+# install.packages("devtools")
+devtools::install_github("BulkSignalR")
+
+```
 
 ## HowTo
 
