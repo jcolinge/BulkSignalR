@@ -498,13 +498,14 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
     if (LR.weight<=0 || LR.weight>=1)
         stop("LRweight must reside in (0;1)")
   
+
     if( initialOrganism(obj)!="hsapiens" )
         all.genes <- unlist(initialOrthologs(obj))
-    else all.genes <- rownames(ncounts)
+
+    else all.genes <- rownames(ncounts(obj))
+    
     # intersect signature gene names with RNA-seq data
     ncounts <- ncounts(obj)
-
-    
     ligands <- sapply(ligands(sig), function(x) intersect(x, all.genes))
     receptors <- sapply(receptors(sig), function(x) intersect(x, all.genes))
     t.genes <- sapply(tGenes(sig), function(x) intersect(x, all.genes))

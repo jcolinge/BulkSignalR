@@ -114,7 +114,7 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     }
     else
         ncounts <- counts
-    
+
     homolog.genes <- list()
     if (species!="hsapiens"){
           ncounts <- as.data.frame(ncounts) 
@@ -244,46 +244,4 @@ convertToHuman <- function(counts,dictionnary=data.frame(Gene.name="A",row.names
  } 
 
 
-#' @title Convert gene symbol to another organism 
-#'
-#' @description Convert gene symbol to another organism 
-#' based on a dictionnary with human and ortholog species.
-#'
-#' @param genes genes you want to convert
-#' @param ortholog.dict Dataframe containing
-#' gene names for source species and Homo Sapiens.
-#'
-#' @return Depend type of input genes 
-#' LRinter return a vector of genes 
-#' tGenes receptors ligands : return list of list of genes
-#'
-.geneNameConversion <- function(genes,ortholog.dict){
 
-    #print(".geneNameConversion")
-    if(typeof(genes) == "character"){
-        genes.df <- data.frame(human.gene.name = genes)
-        genes.converted <- merge(genes.df,ortholog.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
-        genes.converted$human.gene.name <- NULL
-        as.vector(unlist(genes.converted))
-    }
-    else if (typeof(genes) == "list") {
-        list <- list()
-
-        for (i in seq_len(length(genes))){
-            genes.df <- data.frame(human.gene.name = genes[[i]])
-            genes.converted <- merge(genes.df,ortholog.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
-            genes.converted$human.gene.name <- NULL
-            list[[i]] <-  as.vector(unlist(genes.converted))    
-            rm(genes.df)
-            rm(genes.converted)
-        }
-
-        list
-    }
-    else {
-        stop("Something went wrong during gene conversion.", call. = FALSE)
-    }
-
-    
-}
-#.geneNameConversion
