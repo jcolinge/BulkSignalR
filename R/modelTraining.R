@@ -49,6 +49,7 @@
 #' @return \code{ncount} with shuffled row names (gene symbols). Shuffling is
 #'   performed within rows of comparable average expression.
 #'
+#'
 .buildPermutatedCountMatrix <- function(ncounts, pind) {
 
     symbols <- rownames(ncounts)
@@ -60,7 +61,7 @@
 
     ncounts
 
-}  # .buildPermutatedMatrix
+}  # .buildPermutatedCountMatrix
 
 
 #' Internal function to fit a Gaussian distribution
@@ -182,14 +183,15 @@
 #'   See \code{\link{.getCorrelatedLR}} for more details about the parameters.
 #'
 #' @importFrom foreach %do% %dopar%
-#'
 .getEmpiricalNullCorrLR <- function(ncounts, n.rand = 5, min.cor = -1) {
 
     pindices <- .buildPermutationIndices(ncounts)
     r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY")
 
     if (foreach::getDoParWorkers() > 1)
-        foreach::foreach(k = seq_len(n.rand), .combine = c) %dopar% {
+        foreach::foreach(k = seq_len(n.rand), .combine = 'c',
+            .packages="BulkSignalR"
+            ) %dopar% {
             ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices)
             list(.getCorrelatedLR(r.ds, min.cor = min.cor))
         }

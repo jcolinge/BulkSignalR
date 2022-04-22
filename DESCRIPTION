@@ -22,6 +22,8 @@ Imports:
     rlang,
     methods,
     doParallel,
+    biomaRt,
+    orthogene,
     foreach,
     multtest,
     igraph,

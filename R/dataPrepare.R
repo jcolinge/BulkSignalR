@@ -6,6 +6,7 @@
 #' are not instantiated directly, but through this function.
 #'
 #' @param counts     A table or matrix of read counts.
+#' @param organism   Organism
 #' @param normalize  A logical indicating whether \code{counts} should be
 #'   normalized according to \code{method} or if it was normalized beforehand.
 #' @param symbol.col The index of the column containing the gene symbols in case
@@ -56,7 +57,8 @@
 #' bsrdm <- prepareDataset(sdc[,-normal])
 #'
 prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.count = 10,
-    prop = 0.1, method = c("UQ", "TC"), log.transformed = FALSE, min.LR.found = 80) {
+    prop = 0.1, method = c("UQ", "TC"), log.transformed = FALSE, min.LR.found = 80, 
+    species = "hsapiens",conversion.dict = data.frame(Gene.name="A",row.names = "B")) {
 
     if (prop < 0 || prop > 1)
         stop("prop must lie in [0;1]")
@@ -112,7 +114,19 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     }
     else
         ncounts <- counts
-
+    
+    homolog.genes <- list()
+    if (species!="hsapiens"){
+          ncounts <- as.data.frame(ncounts) 
+          ncounts$human.gene.name          <- rownames(ncounts)
+          conversion.dict$human.gene.name  <- rownames(conversion.dict) 
+          counts.transposed <- merge(ncounts,conversion.dict, by.x='human.gene.name',all=FALSE,sort=FALSE)
+          homolog.genes <- list(counts.transposed$Gene.name)
+          ncounts$human.gene.name <- NULL
+          ncounts <- data.matrix(ncounts) 
+          rm(counts.transposed)
+    }
+       
     nLR <- length(intersect(
         c(SingleCellSignalR::LRdb$ligand, SingleCellSignalR::LRdb$receptor),
         rownames(ncounts)))
@@ -121,6 +135,155 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
                     " were found).\n"))
 
     new("BSRDataModel", ncounts=ncounts, log.transformed=log.transformed,
-        normalization=toupper(method))
+        normalization=toupper(method),initial.organism=species,
+        initial.orthologs=homolog.genes)
 
 }  # prepareDataset
+
+
+#' @title Orthologs Gene Names 
+#'
+#' @description By default, BulkSignalR is designed to work with Homo Sapiens.
+#' In order to work with other species, gene names need to be first converted
+#' to Human following an orthology mapping process.
+#' @param from_organism    An organism as defined in Ensembl : 
+#' drerio, mmusculus, celegans, dmelanogaster...This is the source organism 
+#' from which you want to convert the gene names to Homo Sapiens.
+#' @param from_values    A vector of gene names from the current species studied.
+
+#' @return Return a datraframe with 2 columns containing the gene names
+#' for two species.  
+#' First column is the gene name from the source organism 
+#' and the second column corresponds to the  homologous gene name
+#' in  Homo Sapiens.
+#' This function uses BiomaRt to query distant Ensembl database 
+#' for homologous genes annotatio
+#'
+#' @export
+#' @examples
+#' print('findOrthoGenes')
+#'
+#'
+findOrthoGenes<- function(from_organism ="mmusculus",from_values=c("TP53"),
+        method = "gprofiler") {
+
+          orthologs_dictionnary <- orthogene::convert_orthologs(gene_df = from_values,
+                                        gene_input = "rownames", 
+                                        gene_output = "rownames", 
+                                        input_species = from_organism,
+                                        output_species = "human",
+                                        non121_strategy = "drop_both_species", # 1.1 should be fix
+                                        method = method,
+                                        verbose = FALSE) 
+           
+          orthologs_dictionnary$index <- NULL  
+          names(orthologs_dictionnary)[1] <- paste("Gene.name")
+    
+    print(head(orthologs_dictionnary,10))
+    cat("Dictionnary Size: ", 
+        dim(orthologs_dictionnary)[1],
+         " genes \n", sep="") 
+
+    nL <- length(intersect(
+        SingleCellSignalR::LRdb$ligand,
+        rownames(orthologs_dictionnary)) )
+    cat("-> ",nL, " : Ligands \n", sep="") 
+
+    nR <- length(intersect(
+        SingleCellSignalR::LRdb$receptor,
+        rownames(orthologs_dictionnary))) 
+    cat("-> ", nR, " : Receptors \n", sep="") 
+      
+    orthologs_dictionnary
+
+
+} #findOrthoGenes 
+
+
+#' @title Transpose To Human Gene Names
+#' @description By default, BulkSignalR is designed to work with Homo Sapiens.
+#' In order to work with other species, gene names need to be first converted
+#' to Human following an orthology mapping process.
+#' @param counts     A table or matrix of read counts.
+#' @param dictionnary   A dataframe where first column & rownames
+#  is the gene name from the source organism 
+#' and the second column corresponds to the  homologous gene name
+#' in  Homo Sapiens.
+#'
+#' @return Return a counts matrix transposed for Human.
+#'
+#' @export
+#' @examples
+#' print('transposeToHuman')
+convertToHuman <- function(counts,dictionnary=data.frame(Gene.name="A",row.names = "B")) {
+
+          # Should test counts have rownames.
+          if(all(row.names(counts)==seq(1, nrow(counts))))
+            stop("Rownames should be set as human gene names for counts.", call. = FALSE)
+         if(all(row.names(dictionnary)==seq(1, nrow(dictionnary))))
+            stop("Rownames should be set ashuman gene names dictionnary.", call. = FALSE)
+          if(dim(dictionnary)[2]!=1)
+            stop("Unique column must be set for dictionnary.", call. = FALSE)
+         if(! all(apply(counts, 2, function(x) is.numeric(x)))) 
+            stop("Some variables are not defined as numerics.", call. = FALSE)
+
+          # Transform Matrice using orthologs_dictionnary
+          counts$Gene.name  <- rownames(counts)
+          dictionnary$human.gene.name  <- rownames(dictionnary) 
+ 
+          counts.transposed <- merge(counts,dictionnary, by.x='Gene.name',all=FALSE,sort=FALSE)
+
+          counts.transposed$Gene.name <- NULL
+          counts.transposed <-counts.transposed[c("human.gene.name", setdiff(names(counts.transposed), "human.gene.name"))]
+
+          rownames(counts.transposed) <- counts.transposed[,1]
+          counts.transposed           <- counts.transposed[,-1]
+        
+          counts.transposed
+
+ } 
+
+
+#' @title Convert gene symbol to another organism 
+#'
+#' @description Convert gene symbol to another organism 
+#' based on a dictionnary with human and ortholog species.
+#'
+#' @param genes genes you want to convert
+#' @param ortholog.dict Dataframe containing
+#' gene names for source species and Homo Sapiens.
+#'
+#' @return Depend type of input genes 
+#' LRinter return a vector of genes 
+#' tGenes receptors ligands : return list of list of genes
+#'
+.geneNameConversion <- function(genes,ortholog.dict){
+
+    #print(".geneNameConversion")
+    if(typeof(genes) == "character"){
+        genes.df <- data.frame(human.gene.name = genes)
+        genes.converted <- merge(genes.df,ortholog.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+        genes.converted$human.gene.name <- NULL
+        as.vector(unlist(genes.converted))
+    }
+    else if (typeof(genes) == "list") {
+        list <- list()
+
+        for (i in seq_len(length(genes))){
+            genes.df <- data.frame(human.gene.name = genes[[i]])
+            genes.converted <- merge(genes.df,ortholog.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+            genes.converted$human.gene.name <- NULL
+            list[[i]] <-  as.vector(unlist(genes.converted))    
+            rm(genes.df)
+            rm(genes.converted)
+        }
+
+        list
+    }
+    else {
+        stop("Something went wrong during gene conversion.", call. = FALSE)
+    }
+
+    
+}
+#.geneNameConversion

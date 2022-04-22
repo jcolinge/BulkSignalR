@@ -11,23 +11,30 @@ library(methods)
 #' \code{ncounts} were log2-transformed.
 #' @slot normalization       Name of the normalization method.
 #' @slot param            List containing the statistical model parameters.
+#' @slot organismDefinition         Organism
 #' @export
 #' @examples
 #' new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
 #'                                    dimnames=list(c("A","B"), c("C","D"))),
 #'                     log.transformed=TRUE,
-#'                     normalization="TC")
+#'                     normalization="TC",species="hsapiens")
 #'
 setClass("BSRDataModel",
-         slots=c(ncounts="matrix",
+         slots=c(initial.organism="character",
+                 initial.orthologs="list",
+                 ncounts="matrix",
                  log.transformed="logical",
                  normalization="character",
-                 param="list"),
+                 param="list"
+                ),
          prototype=list(
+             initial.organism="hsapiens",
+             initial.orthologs=list("A","B","C"),
              ncounts=matrix(1.0,nrow=2,ncol=1,dimnames=list(c("A","B"),"C")),
              log.transformed=FALSE,
              normalization="UQ",
              param=list()
+            
          ))
 
 setValidity("BSRDataModel",
@@ -50,6 +57,7 @@ setMethod("show", "BSRDataModel",
         cat("Expression values are log2-transformed: ", object@log.transformed,
             "\n", sep="")
         cat("Normalization method: ", object@normalization, "\n", sep="")
+        cat("Organism : ", object@initial.organism,"\n", sep="")
         cat("Statistical model parameters:\n")
         print(object@param)
         cat("Expression data:\n")
@@ -60,6 +68,30 @@ setMethod("show", "BSRDataModel",
 
 
 # Accessors & setters ========================================================
+
+if (!isGeneric("initialOrganism")) {
+    if (is.function("initialOrganism"))
+        fun <- initialOrganism
+    else
+        fun <- function(x) standardGeneric("initialOrganism")
+    setGeneric("initialOrganism", fun)
+}
+#' organism accessor
+#' @export
+setMethod("initialOrganism", "BSRDataModel", function(x) x@initial.organism)
+
+
+if (!isGeneric("initialOrthologs")) {
+    if (is.function("initialOrthologs"))
+        fun <- initialOrthologs
+    else
+        fun <- function(x) standardGeneric("initialOrthologs")
+    setGeneric("initialOrthologs", fun)
+}
+#' Model parameter accessor
+#' @export
+setMethod("initialOrthologs", "BSRDataModel", function(x) x@initial.orthologs)
+
 
 if (!isGeneric("ncounts")) {
     if (is.function("ncounts"))
@@ -85,6 +117,7 @@ setMethod("ncounts<-", "BSRDataModel", function(x,value){
     methods::validObject(x)
     x
 })
+
 
 if (!isGeneric("param")) {
     if (is.function("param"))
@@ -119,8 +152,6 @@ if (!isGeneric("normalization")) {
 #' @export
 setMethod("normalization", "BSRDataModel", function(x) x@normalization)
 
-
-# Training of model parameters ========================================
 
 
 if (!isGeneric("learnParameters")) {
@@ -189,10 +220,11 @@ if (!isGeneric("learnParameters")) {
 #' print("learnParameters")
 #' bsrdm <- BulkSignalR::learnParameters(bsrdm)
 #' bsrdm
-#'
+#'ortholog.dict = data.frame(Gene.name="A",row.names = "B"),
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
-      max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = TRUE) {
+      max.pw.size = 200, min.pw.size = 5, min.positive = 4, 
+       quick = TRUE) {
 
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
     if (obj@param$n.rand.LR < 1)
@@ -465,17 +497,23 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
         stop("sig must be a BSRSignature object")
     if (LR.weight<=0 || LR.weight>=1)
         stop("LRweight must reside in (0;1)")
-
+  
+    if( initialOrganism(obj)!="hsapiens" )
+        all.genes <- unlist(initialOrthologs(obj))
+    else all.genes <- rownames(ncounts)
     # intersect signature gene names with RNA-seq data
     ncounts <- ncounts(obj)
-    ligands <- sapply(ligands(sig), function(x) intersect(x, rownames(ncounts)))
-    receptors <- sapply(receptors(sig), function(x) intersect(x, rownames(ncounts)))
-    t.genes <- sapply(tGenes(sig), function(x) intersect(x, rownames(ncounts)))
+
+    
+    ligands <- sapply(ligands(sig), function(x) intersect(x, all.genes))
+    receptors <- sapply(receptors(sig), function(x) intersect(x, all.genes))
+    t.genes <- sapply(tGenes(sig), function(x) intersect(x, all.genes))
+
     good <- sapply(ligands, length) > 0 & sapply(receptors, length) > 0 & sapply(t.genes, length) > 0
-    ligands <- ligands[good]
+    ligands   <- ligands[good]
     receptors <- receptors[good]
-    t.genes <- t.genes[good]
-    pathways <- pathways(sig)[good]
+    t.genes   <- t.genes[good]
+    pathways  <- pathways(sig)[good]
 
     # scale ncounts
     if (logTransformed(obj))
@@ -487,17 +525,25 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
     if (abs.z.score)
         z <- abs(z)
 
+    if( initialOrganism(obj)!="hsapiens" )
+        rownames(z) <- all.genes
+
     # compute the LR gene signatures
     i <- NULL
     pwn <- foreach::foreach(i=seq_len(length(pathways)), .combine=c) %do% {
         paste0("{", paste(ligands[[i]], collapse=";") ,"} / {",
                     paste(receptors[[i]], collapse=";"), "}")
     }
-    if (name.by.pathway)
-        pwn <- paste(pwn, pathways, sep="  ")
+    if (name.by.pathway){
+         pwn <- pathways
+         #if (duplicated(pwn))
+            #stop("Pathways has to be unique.", call. = FALSE)
+    }
+    print(length(pwn))
+   
     res <- matrix(0,nrow=length(pathways),ncol=ncol(ncounts),dimnames=list(pwn,colnames(ncounts)))
     for (i in seq_len(length(pathways))){
-
+      
         # average ligand z-score
         zz <- z[ligands[[i]],]
         if (is.matrix(zz))

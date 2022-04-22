@@ -728,13 +728,15 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
         selected <- pairs$qval <= qval.thres
 
     # obtain the signature object
-    pairs <- pairs[selected,]
-    ligands <- ligands(obj)[selected]
+    pairs     <- pairs[selected,]
+    ligands   <- ligands(obj)[selected]
     receptors <- receptors(obj)[selected]
-    pathways <- paste(pairs$pw.id, pairs$pw.name)
-    t.genes <- tGenes(obj)[selected]
-    tg.corr <- tgCorr(obj)[selected]
-    signed <- infParam(obj)$signed
+    pathways  <- pairs$pw.name
+    #pathways  <- paste(pairs$pw.id, pairs$pw.name)
+    t.genes   <- tGenes(obj)[selected]
+    tg.corr   <- tgCorr(obj)[selected]
+    signed    <- infParam(obj)$signed
+
     for (i in seq_len(nrow(pairs))){
         tg <- t.genes[[i]]
         if (signed)
@@ -750,3 +752,90 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
         receptors=receptors, t.genes=t.genes)
 
 }) # getLRGeneSignatures
+
+
+# Reset gene names to initial organism providen in first instance
+# ==========================
+
+if (!isGeneric("resetToInitialOrganism")) {
+  if (is.function("resetToInitialOrganism"))
+    fun <- resetToInitialOrganism
+  else
+    fun <- function(obj, ...) standardGeneric("resetToInitialOrganism")
+  setGeneric("resetToInitialOrganism", fun)
+}
+
+#' # Reset gene names to initial organism providen in first instance
+#'
+#' @param conversion.dict   A dictionnary
+#'
+#' @return An BSRInference object updated for gene names.
+#' The gene names are replaced by the ones from
+#' the organism providen in first instance.
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' }
+setMethod("resetToInitialOrganism", "BSRInference", function(obj,
+                  conversion.dict=data.frame(Gene.name="A",row.names = "B") ){
+
+    print("resetToInitialOrganism")
+    # Need to check conversion.dict format
+    
+     conversion.dict$human.gene.name  <- rownames(conversion.dict) 
+
+     LRinter(obj)$L <- .geneNameConversion(LRinter(obj)$L,conversion.dict)
+     LRinter(obj)$R <- .geneNameConversion(LRinter(obj)$R,conversion.dict)
+
+     ligands(obj)   <- .geneNameConversion(ligands(obj),conversion.dict)
+     receptors(obj) <- .geneNameConversion(receptors(obj),conversion.dict)
+     tGenes(obj)    <- .geneNameConversion(tGenes(obj),conversion.dict)
+
+    obj
+
+})
+
+#' @title Convert gene symbol to another organism 
+#'
+#' @description Convert gene symbol to another organism 
+#' based on a dictionnary with human and ortholog species.
+#'
+#' @param genes genes you want to convert
+#' @param conversion.dict Dataframe containing
+#' gene names for source species and Homo Sapiens.
+#'
+#' @return Depend type of input genes 
+#' LRinter return a vector of genes 
+#' tGenes receptors ligands : return list of list of genes
+#'
+.geneNameConversion <- function(genes,conversion.dict=data.frame(Gene.name="A",row.names = "B")){
+
+    #print(".geneNameConversion")
+    if(typeof(genes) == "character"){
+        genes.df <- data.frame(human.gene.name = genes)
+        genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+        genes.converted$human.gene.name <- NULL
+        as.vector(unlist(genes.converted))
+    }
+    else if (typeof(genes) == "list") {
+        list <- list()
+
+        for (i in seq_len(length(genes))){
+            genes.df <- data.frame(human.gene.name = genes[[i]])
+            genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+            genes.converted$human.gene.name <- NULL
+            list[[i]] <-  as.vector(unlist(genes.converted))    
+            rm(genes.df)
+            rm(genes.converted)
+        }
+
+        list
+    }
+    else {
+        stop("Something went wrong during gene conversion.", call. = FALSE)
+    }
+
+    
+}
+#.geneNameConversion

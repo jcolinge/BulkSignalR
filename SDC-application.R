@@ -141,4 +141,3 @@ abline(a=0, b=1, col="red")
 
 # stop cluster if parallel computation was used [optional]
 stopCluster(cl)
-
