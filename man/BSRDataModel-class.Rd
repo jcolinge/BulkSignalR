@@ -20,12 +20,14 @@ official gene symbols.}
 \item{\code{normalization}}{Name of the normalization method.}
 
 \item{\code{param}}{List containing the statistical model parameters.}
+
+\item{\code{organismDefinition}}{Organism}
 }}
 
 \examples{
 new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
                                    dimnames=list(c("A","B"), c("C","D"))),
                     log.transformed=TRUE,
-                    normalization="TC")
+                    normalization="TC",species="hsapiens")
 
 }

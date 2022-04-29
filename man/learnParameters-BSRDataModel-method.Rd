@@ -87,7 +87,12 @@ normal <- grep("^N", names(sdc))
 bsrdm <- prepareDataset(sdc[,-normal])
 
 print("learnParameters")
-bsrdm <- BulkSignalR::learnParameters(bsrdm)
-bsrdm
+print('prepareDataset')
+data(sdc,package='BulkSignalR')
+normal <- grep("^N", names(sdc))
+bsrdm <- prepareDataset(sdc[,-normal])
 
+print("learnParameters")
+bsrdm <- learnParameters(bsrdm)
+bsrdm
 }
