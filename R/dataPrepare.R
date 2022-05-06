@@ -6,7 +6,7 @@
 #' are not instantiated directly, but through this function.
 #'
 #' @param counts     A table or matrix of read counts.
-#' @param organism   Organism
+#' @param species    The dataset belongs to this organism.
 #' @param normalize  A logical indicating whether \code{counts} should be
 #'   normalized according to \code{method} or if it was normalized beforehand.
 #' @param symbol.col The index of the column containing the gene symbols in case
@@ -166,29 +166,34 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
 #' drerio, mmusculus, celegans, dmelanogaster...This is the source organism 
 #' from which you want to convert the gene names to Homo Sapiens.
 #' @param from_values    A vector of gene names from the current species studied.
-
+#' @param method    3 choices are available ("gprofiler","homologene","babelgene")
+#' gprofiler is set by  default.
 #' @return Return a datraframe with 2 columns containing the gene names
 #' for two species.  
 #' First column is the gene name from the source organism 
 #' and the second column corresponds to the  homologous gene name
 #' in  Homo Sapiens.
-#' This function uses BiomaRt to query distant Ensembl database 
-#' for homologous genes annotatio
+#' This function uses orthogene package to query databases
+#' for homologous genes annotation.
+#' @importFrom orthogene convert_orthologs
 #'
 #' @export
 #' @examples
 #' print('findOrthoGenes')
-#'
-#'
-findOrthoGenes<- function(from_organism ="mmusculus",from_values=c("TP53"),
-        method = "gprofiler") {
+findOrthoGenes<- function(from_organism ="mmusculus",
+        from_values=c("TP53"),
+        method = c("gprofiler","homologene","babelgene")) {
+
+        method <- match.arg(method)
+        if (!method  %in% c("gprofiler","homologene","babelgene"))
+                stop("Method selected should be gprofiler,homologene or babelgene")
 
           orthologs_dictionnary <- orthogene::convert_orthologs(gene_df = from_values,
                                         gene_input = "rownames", 
                                         gene_output = "rownames", 
                                         input_species = from_organism,
                                         output_species = "human",
-                                        non121_strategy = "drop_both_species", # 1.1 should be fix
+                                        non121_strategy = "drop_both_species", # assure 1.1 
                                         method = method,
                                         verbose = FALSE) 
            
@@ -221,10 +226,8 @@ findOrthoGenes<- function(from_organism ="mmusculus",from_values=c("TP53"),
 #' In order to work with other species, gene names need to be first converted
 #' to Human following an orthology mapping process.
 #' @param counts     A table or matrix of read counts.
-#' @param dictionnary   A dataframe where first column & rownames
-#  is the gene name from the source organism 
-#' and the second column corresponds to the  homologous gene name
-#' in  Homo Sapiens.
+#' @param dictionnary   A dataframe where first column belong to 
+#  organism of study & rownames are the human gene names.
 #'
 #' @return Return a counts matrix transposed for Human.
 #'

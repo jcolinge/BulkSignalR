@@ -38,6 +38,6 @@ signature in each sample.
 Compute ligand-receptor gene signature scores over a BSRDataModel.
 }
 \examples{
-\dontrun{
-}
+if(FALSE){}
+
 }

@@ -13,6 +13,8 @@ prepareDataset(
   method = c("UQ", "TC"),
   log.transformed = FALSE,
   min.LR.found = 80,
+  species = "hsapiens",
+  conversion.dict = data.frame(Gene.name = "A", row.names = "B"),
   UQ.pc = 0.75
 )
 }
@@ -44,6 +46,8 @@ zeros according to \code{min.count} and \code{prop}.}
 \item{UQ.pc}{Percentile for upper-quartile normalization, number
 between 0 and 1 (in case the default 0.75 - hence the name - is not
 appropriate).}
+
+\item{organism}{Organism}
 }
 \value{
 A BSRModelData object with empty model parameters.

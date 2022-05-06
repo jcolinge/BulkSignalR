@@ -9,9 +9,11 @@ library(methods)
 #' official gene symbols.
 #' @slot log.transformed  Logical indicating whether values in
 #' \code{ncounts} were log2-transformed.
-#' @slot normalization       Name of the normalization method.
+#' @slot normalization    Name of the normalization method.
 #' @slot param            List containing the statistical model parameters.
-#' @slot organismDefinition         Organism
+#' @slot initial.organism         Organism
+#' @slot initial.orthologs        List of ortholog genes for which human
+#' analog exists for the organism of study.
 #' @export
 #' @examples
 #' new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
@@ -167,6 +169,7 @@ if (!isGeneric("learnParameters")) {
 #' BulkSignalR statistical models.
 #'
 #' @param plot.folder   A folder name for generating control plots.
+#' @param filename      Name of the output plot.
 #' @param verbose       A logical activating progress messages for the user.
 #' @param n.rand.LR     The number of random expression matrices to use for
 #'   learning the ligand-receptor correlation distribution.
@@ -184,6 +187,7 @@ if (!isGeneric("learnParameters")) {
 #'   for the receptor-target correlations should be used.
 #' @param null.model      The null model to use for Spearman correlation
 #'   null distributions.
+#' @param seed      Seed to reproduce exact same sampling.
 #'
 #' @details Estimates the model parameters that are stored in the
 #'   slot \code{param}.
@@ -220,14 +224,19 @@ if (!isGeneric("learnParameters")) {
 #' bsrdm <- prepareDataset(sdc[,-normal])
 #'
 #' print("learnParameters")
-#' bsrdm <- BulkSignalR::learnParameters(bsrdm)
+#' print('prepareDataset')
+#' data(sdc,package='BulkSignalR')
+#' normal <- grep("^N", names(sdc))
+#' bsrdm <- prepareDataset(sdc[,-normal])
+#'
+#' print("learnParameters")
+#' bsrdm <- learnParameters(bsrdm)
 #' bsrdm
-#'ortholog.dict = data.frame(Gene.name="A",row.names = "B"),
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
       max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = TRUE,
-      null.model = c("normal","mixedNormal","stable"),
-      FUN = NULL) {
+      null.model = c("normal","mixedNormal","stable"),filename = "distribution",
+      seed = 123) {
 
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
     if (obj@param$n.rand.LR < 1)
@@ -238,6 +247,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
     obj@param$plot.folder <- plot.folder
     if (!is.null(plot.folder) && !file.exists(plot.folder))
         stop("The provided plot.folder does not exist")
+    obj@param$file.name <- filename
     obj@param$with.complex <- with.complex
     obj@param$max.pw.size <- trunc(max.pw.size)
     if (obj@param$max.pw.size < 1)
@@ -249,7 +259,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
     if (obj@param$min.positive < 1)
         stop("Parameter min.positive must be an integer > 0")
     obj@param$quick <- quick
-
+    obj@param$seed  <- seed
     null.model <- match.arg(null.model)
     if (null.model == "normal")
         trainModel <- .getGaussianParam
@@ -267,7 +277,8 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
     obj@param$min.corr.LR <- -1.0
     ds.LR.null <- .getEmpiricalNullCorrLR(obj@ncounts,
                                           n.rand=obj@param$n.rand.LR,
-                                          min.cor=obj@param$min.corr.LR)
+                                          min.cor=obj@param$min.corr.LR,
+                                          seed=123)
     rc <- ds.LR.null[[1]]$corr
     if (length(ds.LR.null) > 1)
         for (i in 2:length(ds.LR.null)) rc <- c(rc, ds.LR.null[[i]]$corr)
@@ -275,9 +286,10 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
 
     # Gaussian model
     if (!is.null(plot.folder))
-        file.name <- paste0(plot.folder, "/LR-null.pdf")
+        file.name <- paste0(plot.folder, "/",filename,"_LR-null.pdf")
     else
         file.name <- NULL
+
     gp <- trainModel(rc, "LR correlation (null)", verbose = verbose,
                             file.name = file.name)
     obj@param$LR.0$model <- gp
@@ -302,7 +314,8 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
                                         max.pw.size = obj@param$max.pw.size,
                                         min.pw.size = obj@param$min.pw.size,
                                         min.positive = obj@param$min.positive,
-                                        min.cor = obj@param$min.corr.LR)
+                                        min.cor = obj@param$min.corr.LR,
+                                        seed=seed)
         t <- ds.RT.null[[1]]
         if (length(ds.RT.null) > 1)
             for (i in 2:length(ds.RT.null)) t <- rbind(t, ds.RT.null[[i]])
@@ -316,9 +329,10 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
 
         # Gaussian model
         if (!is.null(plot.folder))
-            file.name <- paste0(plot.folder, "/RT-null.pdf")
+            file.name <- paste0(plot.folder,  "/",filename,"_RT-null.pdf")
         else
             file.name <- NULL
+
         gp <- trainModel(r.corrs, "RT correlation (null)",
                                 verbose = verbose, file.name = file.name)
         obj@param$RT.0$model <- gp
@@ -494,8 +508,8 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' if(FALSE){}
+#'
 #' @importFrom foreach %do% %dopar%
 setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
                   sig, LR.weight=0.5, robust=FALSE,
