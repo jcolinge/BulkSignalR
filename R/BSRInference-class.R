@@ -9,7 +9,7 @@ library(methods)
 #' @slot ligands   A list of ligands, one entry per LR interaction.
 #' @slot receptors   A list of receptors, one entry per LR interaction.
 #' @slot t.genes  A list of target genes, one entry per LR interaction.
-#' @slot tg.ccorr  A list of target gene correlations to the receptor, one
+#' @slot tg.corr  A list of target gene correlations to the receptor, one
 #' entry per interaction
 #' @slot inf.param  The parameters used for the inference.
 #'
@@ -257,7 +257,7 @@ if (!isGeneric("rescoreInference")) {
 #'
 #' @export
 #'
-setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.65,
+setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.55,
                     fdr.proc=c("BH", "Bonferroni", "Holm",
                     "Hochberg", "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
 
@@ -446,8 +446,10 @@ setMethod("reduceToBestPathway", "BSRInference", function(obj) {
     pairs <- obj@LRinter
     LR <- unique(pairs[, c("L","R")])
     for (i in seq_len(nrow(LR))){
+    
         L <- LR$L[i]
         R <- LR$R[i]
+        
         pwr <- pairs[pairs$L==L & pairs$R==R,]
         k <- which.min(pwr$pval)
         j <- which(pairs$L==L & pairs$R==R & pairs$pw.id==pwr$pw.id[k])
@@ -465,6 +467,7 @@ setMethod("reduceToBestPathway", "BSRInference", function(obj) {
     obj@t.genes <- t.genes
     obj@tg.corr <- tg.corr
     obj@inf.param$pathway.reduced <- TRUE
+
 
     obj
 
@@ -729,16 +732,18 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
     pathways  <- pairs$pw.name
     #pathways  <- paste(pairs$pw.id, pairs$pw.name)
     t.genes   <- tGenes(obj)[selected]
-    tg.corr   <- tgCorr(obj)[selected]
-
-
+    t.corrs   <- tgCorr(obj)[selected]
+    
     for (i in seq_len(nrow(pairs))){
         tg <- t.genes[[i]]
             t.genes[[i]] <- tg[pairs$rank[i]:length(tg)] 
+
+        tc <- t.corrs[[i]]
+            t.corrs[[i]] <- tc[pairs$rank[i]:length(tc)] 
     }
 
     new("BSRSignature", pathways=pathways, ligands=ligands,
-        receptors=receptors, t.genes=t.genes)
+        receptors=receptors, t.genes=t.genes,tg.corr=t.corrs)
 
 }) # getLRGeneSignatures
 
@@ -769,8 +774,8 @@ if (!isGeneric("resetToInitialOrganism")) {
 setMethod("resetToInitialOrganism", "BSRInference", function(obj,
                   conversion.dict=data.frame(Gene.name="A",row.names = "B") ){
 
-    print("resetToInitialOrganism")
-    # Need to check conversion.dict format
+     print("resetToInitialOrganism")
+     # Need to check conversion.dict format
     
      conversion.dict$human.gene.name  <- rownames(conversion.dict) 
 
@@ -803,8 +808,15 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
     #print(".geneNameConversion")
     if(typeof(genes) == "character"){
         genes.df <- data.frame(human.gene.name = genes)
+     
+        genes.df$id <- 1:nrow(genes.df) 
+
         genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+        genes.converted <- genes.converted[order(genes.converted$id), ]
+
         genes.converted$human.gene.name <- NULL
+        genes.converted$id <- NULL
+
         as.vector(unlist(genes.converted))
     }
     else if (typeof(genes) == "list") {
@@ -812,8 +824,11 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 
         for (i in seq_len(length(genes))){
             genes.df <- data.frame(human.gene.name = genes[[i]])
+            genes.df$id <- 1:nrow(genes.df) 
             genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
             genes.converted$human.gene.name <- NULL
+            genes.converted$id <- NULL
+
             list[[i]] <-  as.vector(unlist(genes.converted))    
             rm(genes.df)
             rm(genes.converted)

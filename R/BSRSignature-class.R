@@ -19,12 +19,14 @@ setClass("BSRSignature",
          slots=c(pathways="character",
                  ligands="list",
                  receptors="list",
-                 t.genes="list"),
+                 t.genes="list",
+                 tg.corr="list"),
          prototype=list(
              pathways="path 1",
              ligands=list("A"),
              receptors=list("B"),
-             t.genes=list(c("a","b","c"))
+             t.genes=list(c("a","b","c")),
+             tg.corr=list(c(0.1,0.2,0.3))
          ))
 
 setValidity("BSRSignature",
@@ -37,7 +39,8 @@ setValidity("BSRSignature",
                     return("receptors is not a list")
                 if(!is.list(object@t.genes))
                     return("t.genes is not a list")
-
+                if(!is.list(object@tg.corr))
+                    return("tg.corr is not a list")
                 TRUE
             }
 )
@@ -48,6 +51,7 @@ setMethod("show", "BSRSignature", function(object) {
                    R=sapply(object@receptors, function(x) paste(x,collapse=";")),
                    pathways=object@pathways,
                    tGenes=sapply(object@t.genes, function(x) paste(x,collapse=";"))
+
         )
     ))
 })
@@ -99,3 +103,13 @@ if (!isGeneric("tGenes")) {
 #' @export
 setMethod("tGenes", "BSRSignature", function(x) x@t.genes)
 
+if (!isGeneric("tgCorr")) {
+    if (is.function("tgCorr"))
+        fun <- tgCorr
+    else
+        fun <- function(x) standardGeneric("tgCorr")
+    setGeneric("tgCorr", fun)
+}
+#' Target genes accessor
+#' @export
+setMethod("tgCorr", "BSRSignature", function(x) x@tg.corr)

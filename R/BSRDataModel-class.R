@@ -421,7 +421,7 @@ if (!isGeneric("initialInference")) {
 #' bsrinf <- initialInference(bsrdm)
 #' bsrinf
 #'
-setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.65,
+setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.55,
         min.cor = 0.25,
         restrict.genes = NULL, reference=c("REACTOME-GOBP","REACTOME","GOBP"),
         max.pw.size=NULL, min.pw.size=NULL, min.positive=NULL, restrict.pw=NULL,
@@ -502,7 +502,9 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' @param abs.z.score  A logical to use absolute z-scores (useful if the
 #' activity of a paythway is reported by a mixture of up- and down-genes
 #' whose z-score averages might hide actual activity).
-#'
+#' @param rownames.LRP Logical. If TRUE, Ligand Receptor and Pathway
+#  names are concatened in the rownames. Otherwise you got Pathway
+#  name only when name.by.pathway is TRUE. 
 #' @return A matrix containing the scores of each ligand-receptor gene
 #' signature in each sample.
 #'
@@ -513,7 +515,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' @importFrom foreach %do% %dopar%
 setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
                   sig, LR.weight=0.5, robust=FALSE,
-                  name.by.pathway=FALSE, abs.z.score=FALSE){
+                  name.by.pathway=FALSE, abs.z.score=FALSE,rownames.LRP=FALSE){
 
     if (!is(sig, "BSRSignature"))
         stop("sig must be a BSRSignature object")
@@ -525,6 +527,7 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
         all.genes <- unlist(initialOrthologs(obj))
 
     else all.genes <- rownames(ncounts(obj))
+    
     
     # intersect signature gene names with RNA-seq data
     ncounts <- ncounts(obj)
@@ -554,16 +557,23 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
     # compute the LR gene signatures
     i <- NULL
     pwn <- foreach::foreach(i=seq_len(length(pathways)), .combine=c) %do% {
-        paste0("{", paste(ligands[[i]], collapse=";") ,"} / {",
-                    paste(receptors[[i]], collapse=";"), "}")
+
+        if (name.by.pathway){
+            
+            if(rownames.LRP){
+            
+              paste0(paste(ligands[[i]], collapse=" / ") ," | ",
+                    paste(receptors[[i]], collapse=" / ")," | ",pathways[[i]]) 
+             } else { pathways[[i]] }
+           
+        }
+        else if (!name.by.pathway){
+            paste0(paste(ligands[[i]], collapse="/") ," -> ",
+                    paste(receptors[[i]], collapse="/"))
+        }
+
     }
-    if (name.by.pathway){
-         pwn <- pathways
-         #if (duplicated(pwn))
-            #stop("Pathways has to be unique.", call. = FALSE)
-    }
-    print(length(pwn))
-   
+      
     res <- matrix(0,nrow=length(pathways),ncol=ncol(ncounts),dimnames=list(pwn,colnames(ncounts)))
     for (i in seq_len(length(pathways))){
       

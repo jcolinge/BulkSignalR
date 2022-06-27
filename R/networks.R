@@ -92,7 +92,6 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' @param id.col          Column index or name in \code{pw} for the pathway IDs.
 #' @param gene.col        Column index or name in \code{pw} for the gene symbols.
 #' @param min.cor       Minimum correlation required for the target genes.
-#' @param signed        A logical indicating whether \code{min.cor} is imposed
 #' to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).
 #'
 #' @return An \code{igraph} object featuring the ligand-receptor-downstream
@@ -100,7 +99,7 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #'
 #' @importFrom foreach %do% %dopar%
 .edgesLRIntracell <- function(pairs, pw, t.genes, tg.corr, id.col, gene.col,
-                              min.cor=0.3, signed=FALSE){
+                              min.cor=0.3){
 
     # local binding
     i <- NULL
@@ -114,10 +113,7 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
         p <- pairs$pw.id[i]
         tg <- t.genes[[i]]
         corr <- tg.corr[[i]]
-        if (signed)
-            targets <- tg[corr>=min.cor]
-        else
-            targets <- tg[abs(corr)>=min.cor]
+        targets <- tg[abs(corr)>=min.cor]
 
         # build a hybrid directed/undirected graph
         a.iter <- data.frame(from=pairs$L[i], to=r, edge.type="LR",
@@ -238,8 +234,7 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
         if (!is.null(restrict.pw))
             react <- react[react$`Reactome ID` %in% restrict.pw,]
         all.edges <- .edgesLRIntracell(pairs.react, react, t.genes.react,
-                        tg.corr.react, "Reactome ID", "Gene name", min.cor,
-                        signed=ipar$signed)
+                        tg.corr.react, "Reactome ID", "Gene name", min.cor)
     }
 
     # GOBP
@@ -254,8 +249,8 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
             go <- go[go$`GO ID` %in% restrict.pw,]
         all.edges <- unique(rbind(all.edges,
                         .edgesLRIntracell(pairs.go, go, t.genes.go,
-                            tg.corr.go, "GO ID", "Gene name", min.cor,
-                            signed=ipar$signed)))
+                            tg.corr.go, "GO ID", "Gene name", min.cor
+                            )))
     }
 
     # generate igraph object -------------------

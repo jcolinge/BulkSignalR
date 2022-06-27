@@ -306,3 +306,166 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 } # scoreSignatures
 
 
+#' Chord Diagram of LR interactions with correlations
+#'
+#' @description By default, chord diagrams will be plot on disk.
+#'
+#' @param interactions Dataframe with Ligand, Receptor and LR.corr
+#  This is reformated from a bsrinf object in order to fit circlize
+#' format for plotting and let the user specify interactions he
+#' wants to highlight.
+#' @param path Path where to plot
+#' @param filename Filename for the plot
+#' @param pw.id.filter One Pathway ID accepted only to 
+#  retrieve respective LR interactions.
+#' @param ligands Vector of respective ligands 
+#' for the LR pair that you want to 
+#' highlight in the chord diagram. 
+#' @param receptors Vector of respective receptors
+#' for the LR pair that you want to highlight
+#' in the chord diagram. 
+#' @param limit Number of interactions you can visualize.
+#  Maximum set to 30.
+#' @param format png / svg / pdf. By default means it will 
+#' plot in a pdf format.
+#' @return NULL
+#' @import ComplexHeatmap
+#' @import circlize  
+#'
+#' @export
+#' @examples
+#' print('chord.diagram.LR')
+chord.diagram.LR  <- function(interactions,path="./",filename="chord",
+    pw.id.filter="R-RSA-17821",ligands=c("L1"),receptors=c("R1"),
+    limit=20,format="pdf") {
+
+    print("chord.diagram.LR")
+
+    if (limit >= 30){
+       cat("Number of selected interactions is too large",limit,".\n")
+       stop("Number of visualised interactions sould be less than 30.\n")
+    }
+
+    pair.to.highlight <- paste(ligands,receptors,sep='-')
+
+    dataframe.bsrinf<- data.frame(
+        ligands=unlist(ligands(bsrinf)),
+        receptors=unlist(receptors(bsrinf)),
+        corr = LRinter(bsrinf)$LR.corr,
+        pw.id=LRinter(bsrinf)$pw.id,
+        pathways=LRinter(bsrinf)$pw.name,
+        pval=LRinter(bsrinf)$pval,
+        qval=LRinter(bsrinf)$qval
+        )
+    dataframe.bsrinf$pair <- paste(dataframe.bsrinf$ligands,dataframe.bsrinf$receptors,sep="-")
+    dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pw.id==pw.id.filter,]
+    if(dim(dataframe.bsrinf)[1]==0)
+        stop("ID was not found")
+
+    if (dim(dataframe.bsrinf)[1] < limit) {
+        limit <- dim(dataframe.bsrinf)[1] 
+        cat("Limit is too high. Only ", limit, " interactions are found.\n")
+    }
+
+    dataframe.bsrinf <- dataframe.bsrinf[order(dataframe.bsrinf$qval),]
+    dataframe.bsrinf <- dataframe.bsrinf[1:limit,]
+
+    # FROM -> LIGANDS -> GREEN
+    # TO -> RECEPTORS -> RED
+
+    #cr <- colorRampPalette(c("#FF9900","#CC0000"))(max(interactions$value)-min(interactions$value)+1)
+    #cr <- colorRamp2(c(min(dataframe.bsrinf$corr), max(dataframe.bsrinf$corr)), c("lightblue","#FF9900"))
+    cr <- colorRamp2(c(min(dataframe.bsrinf$corr), max(dataframe.bsrinf$corr)), c("white","#febd17"))
+
+    #grid.col <- c(receptors = "red", ligands = "green")
+
+    myList.ligands <- rep("gray25",times=length(dataframe.bsrinf$ligands))
+    names(myList.ligands)  <- as.list(dataframe.bsrinf$ligands)
+    
+    myList.receptors <- rep("#7fbb00",times=length(dataframe.bsrinf$receptors))
+    names(myList.receptors)  <- as.list(dataframe.bsrinf$receptors)
+
+    myList <- c(myList.receptors,myList.ligands)
+
+    link.col <- rep("dodgerblue3",nrow(dataframe.bsrinf))
+    
+    link.lwd <- rep(1,nrow(dataframe.bsrinf))
+    
+    link.width <- rep(0.12,nrow(dataframe.bsrinf))
+
+    dataframe.bsrinf <- dataframe.bsrinf[order(1:limit),]
+
+    index.filter <- which(pair.to.highlight %in% dataframe.bsrinf$pair)
+    print(index.filter)
+
+    link.col[index.filter] <- "#d40000"
+    link.lwd[index.filter] <- 3
+    link.width[index.filter] <- 0.15
+
+    if (format=="svg")#3.6
+        svg(paste0(path,"/",filename,".svg"),width=4, height=4) #inch
+    if (format=="png")
+        png(paste0(path,"/",filename,".png"))
+    if (format=="pdf")
+        pdf(paste0(path,"/",filename,".pdf"))
+
+    interactions <- data.frame(from=dataframe.bsrinf$ligands,to=dataframe.bsrinf$receptors,value=dataframe.bsrinf$corr)
+    chordDiagramFromDataFrame(interactions,
+          #grid.col = grid.col, 
+          col=cr,
+          annotationTrack = "grid", 
+          grid.col = myList, 
+          transparency = 0.7,
+          preAllocateTracks = 1,   
+          directional = 1,
+          direction.type = "arrows",
+          link.arr.length = link.width,
+          link.arr.width  = link.width,
+          link.arr.type  = "triangle", 
+          link.arr.lty = par("lty"),
+          link.arr.lwd = link.lwd, 
+          link.arr.col = link.col,
+          big.gap = 2, 
+          small.gap = 1)
+  
+  circos.trackPlotRegion(track.index = 2, panel.fun = function(x, y) {
+  xlim = get.cell.meta.data("xlim")
+  ylim = get.cell.meta.data("ylim")
+  sector.name = get.cell.meta.data("sector.index")
+
+  circos.text(mean(xlim), ylim[1] + 1.9, sector.name, 
+              facing = "clockwise", niceFacing = TRUE,
+              adj = c(0, 0.5), cex = 0.7)
+
+  circos.axis(h="top",labels=FALSE,minor.ticks=FALSE,
+                    major.tick.length=1,
+                    major.at=c(xlim), sector.index=sector.name,
+                    track.index=2)
+  })
+
+  # LEGEND 
+
+    lgd_points = Legend(labels = c("Ligands", "Receptors"), type = "points", pch = 16,
+        legend_gp = gpar(col = c("gray25","#7fbb00")), title_position = "topleft", 
+            labels_gp = gpar( font = 6),
+        title = "LR") 
+   
+    lgd_links = Legend(at = c(round(min(interactions$value),digits = 2) , round(max(interactions$value),digits = 2)), col_fun = cr, 
+         title = "Correlation",direction ="horizontal"   ,   
+         grid_width = unit(0.9, "mm") ,     grid_height = unit(1.3, "mm") , 
+
+        labels_gp = gpar( font = 6),title_position = "topcenter",
+       )# border = "black"
+
+    lgd_list_vertical = packLegend(lgd_points)
+
+     draw(lgd_list_vertical, x = unit(2, "mm"), y = unit(2, "mm"), just = c("left", "bottom"))
+    draw(lgd_links, x = unit(2.7, "inch"), y = unit(2, "mm"),just = c("left", "bottom"))
+
+     circos.clear()
+
+     dev.off()
+
+ NULL   
+}
+

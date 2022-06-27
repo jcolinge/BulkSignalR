@@ -136,8 +136,15 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
           ncounts <- as.data.frame(ncounts) 
           ncounts$human.gene.name          <- rownames(ncounts)
           conversion.dict$human.gene.name  <- rownames(conversion.dict) 
+          ncounts$id <- 1:nrow(ncounts) 
+
           counts.transposed <- merge(ncounts,conversion.dict, by.x='human.gene.name',all=FALSE,sort=FALSE)
+          counts.transposed <- counts.transposed[order(counts.transposed$id), ]
+
           homolog.genes <- list(counts.transposed$Gene.name)
+          
+          counts.transposed$id <- NULL
+          ncounts$id <- NULL
           ncounts$human.gene.name <- NULL
           ncounts <- data.matrix(ncounts) 
           rm(counts.transposed)
@@ -221,7 +228,7 @@ findOrthoGenes<- function(from_organism ="mmusculus",
 } #findOrthoGenes 
 
 
-#' @title Transpose To Human Gene Names
+#' @title Transpose to Human Gene Names
 #' @description By default, BulkSignalR is designed to work with Homo Sapiens.
 #' In order to work with other species, gene names need to be first converted
 #' to Human following an orthology mapping process.
@@ -233,7 +240,7 @@ findOrthoGenes<- function(from_organism ="mmusculus",
 #'
 #' @export
 #' @examples
-#' print('transposeToHuman')
+#' print('convertToHuman')
 convertToHuman <- function(counts,dictionnary=data.frame(Gene.name="A",row.names = "B")) {
 
           # Should test counts have rownames.
@@ -249,11 +256,18 @@ convertToHuman <- function(counts,dictionnary=data.frame(Gene.name="A",row.names
           # Transform Matrice using orthologs_dictionnary
           counts$Gene.name  <- rownames(counts)
           dictionnary$human.gene.name  <- rownames(dictionnary) 
- 
+      
+          counts$id <- 1:nrow(counts) 
+
           counts.transposed <- merge(counts,dictionnary, by.x='Gene.name',all=FALSE,sort=FALSE)
+          counts.transposed <- counts.transposed[order(counts.transposed$id), ]
+          counts.transposed$id <- NULL
+
+          # aesthetics only
+          counts.transposed <-counts.transposed[,c(which(colnames(counts.transposed)=="human.gene.name"),which(colnames(counts.transposed)!="human.gene.name"))]
+          #counts.transposed <-counts.transposed[c("human.gene.name", setdiff(names(counts.transposed), "human.gene.name"))]
 
           counts.transposed$Gene.name <- NULL
-          counts.transposed <-counts.transposed[c("human.gene.name", setdiff(names(counts.transposed), "human.gene.name"))]
 
           rownames(counts.transposed) <- counts.transposed[,1]
           counts.transposed           <- counts.transposed[,-1]
