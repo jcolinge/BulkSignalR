@@ -34,7 +34,7 @@
 #'
 .shufflePermutationIndices <- function(pind,seed) {
 
-    set.seed(seed)
+    #set.seed(seed)
     lapply(pind,
            function(x) sample(x, length(x))
     )

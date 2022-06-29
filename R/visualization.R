@@ -305,29 +305,100 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 
 } # scoreSignatures
 
+#' Alluvial plot (sankey like)
+#'
+#' @description Representation of the links
+#' between Ligands,Receptors and Pathways.
+#'
+#' @param bsrsig object bsrinf inference.
+#' @param keywords vector of pathways.
+#' @param qval threshold over Q-value.
+#' @param type filter on Ligand, Recptor or pathway id.
+#' @return ggplot object to print
+#' This is a convenience function that relies on the \code{ggalluvial}
+#' package to propose a simple way
+#' of representing Ligands, Receptors 
+#  and underlying Pathways associated. 
+#' @import ggplot2
+#' @import ggalluvial
+#' @export
+#' @examples
+#' print('ggalluvial')
+alluvial.plot <- function(bsrinf,keywords=c("COL4A1"),type=c("L","R","pw.id"),qval=1) {
+
+     interactions <- data.frame(
+           L =  unlist(ligands(bsrinf)) 
+          ,R =  unlist(receptors(bsrinf))
+          ,pw.name = LRinter(bsrinf)$pw.name
+          ,pw.id = LRinter(bsrinf)$pw.id
+          ,qval = LRinter(bsrinf)$qval
+          ,targets = sapply(tGenes(bsrinf), paste, collapse = "  ")
+
+          )
+
+    type <- match.arg(type)
+
+     if(type=="L")
+          subset.interactions                <- interactions[interactions$L %in% keywords,]
+     if(type=="R")
+          subset.interactions                <- interactions[interactions$R %in% keywords,]
+     if(type=="pw.id")
+          subset.interactions                <- interactions[interactions$pw.id %in% keywords,]  
+
+       if (dim(subset.interactions)[1]==0){
+        cat(paste(keywords, collapse = ' ')," for ", type, " not found.","\n", sep="")
+        stop("Try another value for filtering.")
+    }
+     subset.interactions                <- subset.interactions[subset.interactions$qval < qval,]  
+     subset.interactions$count <- 1
+     subset.interactions       <- subset.interactions[,c("L" ,   "R"  ,  "pw.name" ,"count")]
+
+     stratum <- ggalluvial::StatStratum
+
+     pl <- ggplot2::ggplot(as.data.frame(subset.interactions),
+        aes(y = count, axis1 = L, axis2 = R,axis3 = pw.name)) +
+        ggalluvial::geom_alluvium(aes(fill = R), width = 1/12) +
+        ggalluvial::geom_stratum(width = 1/12, fill = "black", color = "grey") +
+        ggplot2::geom_label(stat = stratum,  aes(label = ggplot2::after_stat(stratum)))+
+        ggplot2::scale_x_discrete(limits = c("L", "R","pw.name"), expand = c(0.5, 0.5)) +
+        ggplot2::scale_fill_brewer(type = "qual", palette = "Set1") +
+        ggplot2::ggtitle("Ligand-Receptor Interactions & Underlying Pathways")
+
+     pl <- pl + ggplot2::theme_bw()
+     pl <- pl + ggplot2::theme(legend.position = "none")
+     pl <- pl + ggplot2::theme(axis.title = ggplot2::element_blank()
+                       ,text = ggplot2::element_text(size = 12)
+                       , plot.title = ggplot2::element_text(hjust = .5)
+                       , axis.text.y = ggplot2::element_blank()
+                       , axis.text.x = ggplot2::element_blank()
+                       , axis.ticks = ggplot2::element_blank()  
+                       , panel.grid = ggplot2::element_blank())
+
+ return (pl)
+} #alluvial.plot
+
 
 #' Chord Diagram of LR interactions with correlations
 #'
 #' @description By default, chord diagrams will be plot on disk.
 #'
-#' @param interactions Dataframe with Ligand, Receptor and LR.corr
-#  This is reformated from a bsrinf object in order to fit circlize
-#' format for plotting and let the user specify interactions he
-#' wants to highlight.
+#' @param bsrinf bsrinf object 
 #' @param path Path where to plot
 #' @param filename Filename for the plot
 #' @param pw.id.filter One Pathway ID accepted only to 
 #  retrieve respective LR interactions.
-#' @param ligands Vector of respective ligands 
+#' @param ligand Ligand
 #' for the LR pair that you want to 
 #' highlight in the chord diagram. 
-#' @param receptors Vector of respective receptors
+#' @param receptor Receptor
 #' for the LR pair that you want to highlight
 #' in the chord diagram. 
 #' @param limit Number of interactions you can visualize.
 #  Maximum set to 30.
 #' @param format png / svg / pdf. By default means it will 
 #' plot in a pdf format.
+#' @param width width of image 
+#' @param height height of image 
 #' @return NULL
 #' @import ComplexHeatmap
 #' @import circlize  
@@ -335,9 +406,11 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' @export
 #' @examples
 #' print('chord.diagram.LR')
-chord.diagram.LR  <- function(interactions,path="./",filename="chord",
-    pw.id.filter="R-RSA-17821",ligands=c("L1"),receptors=c("R1"),
-    limit=20,format="pdf") {
+chord.diagram.LR  <- function(bsrinf,path="./",filename="chord",
+    pw.id.filter="R-RSA-17821",ligand="L1",receptor="R1",
+    limit=20,format=c("svg","png","pdf"),width=4,height=4) {
+
+    format <- match.arg(format)
 
     print("chord.diagram.LR")
 
@@ -346,7 +419,7 @@ chord.diagram.LR  <- function(interactions,path="./",filename="chord",
        stop("Number of visualised interactions sould be less than 30.\n")
     }
 
-    pair.to.highlight <- paste(ligands,receptors,sep='-')
+    pair.to.highlight <- paste(ligand,receptor,sep='-')
 
     dataframe.bsrinf<- data.frame(
         ligands=unlist(ligands(bsrinf)),
@@ -358,26 +431,24 @@ chord.diagram.LR  <- function(interactions,path="./",filename="chord",
         qval=LRinter(bsrinf)$qval
         )
     dataframe.bsrinf$pair <- paste(dataframe.bsrinf$ligands,dataframe.bsrinf$receptors,sep="-")
+    if (!pair.to.highlight %in% dataframe.bsrinf$pair) {
+        cat("Highlighted LR pair ", pair.to.highlight, " was not found for",pw.id.filter,".\n")
+    }
+
     dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pw.id==pw.id.filter,]
+
     if(dim(dataframe.bsrinf)[1]==0)
-        stop("ID was not found")
+        stop("Pathway ID was not found")
 
     if (dim(dataframe.bsrinf)[1] < limit) {
         limit <- dim(dataframe.bsrinf)[1] 
-        cat("Limit is too high. Only ", limit, " interactions are found.\n")
+        cat("Only ", limit, " interactions were found.\n")
     }
 
     dataframe.bsrinf <- dataframe.bsrinf[order(dataframe.bsrinf$qval),]
     dataframe.bsrinf <- dataframe.bsrinf[1:limit,]
 
-    # FROM -> LIGANDS -> GREEN
-    # TO -> RECEPTORS -> RED
-
-    #cr <- colorRampPalette(c("#FF9900","#CC0000"))(max(interactions$value)-min(interactions$value)+1)
-    #cr <- colorRamp2(c(min(dataframe.bsrinf$corr), max(dataframe.bsrinf$corr)), c("lightblue","#FF9900"))
     cr <- colorRamp2(c(min(dataframe.bsrinf$corr), max(dataframe.bsrinf$corr)), c("white","#febd17"))
-
-    #grid.col <- c(receptors = "red", ligands = "green")
 
     myList.ligands <- rep("gray25",times=length(dataframe.bsrinf$ligands))
     names(myList.ligands)  <- as.list(dataframe.bsrinf$ligands)
@@ -393,21 +464,18 @@ chord.diagram.LR  <- function(interactions,path="./",filename="chord",
     
     link.width <- rep(0.12,nrow(dataframe.bsrinf))
 
-    dataframe.bsrinf <- dataframe.bsrinf[order(1:limit),]
-
-    index.filter <- which(pair.to.highlight %in% dataframe.bsrinf$pair)
-    print(index.filter)
+    index.filter <- which(pair.to.highlight == dataframe.bsrinf$pair)
 
     link.col[index.filter] <- "#d40000"
     link.lwd[index.filter] <- 3
     link.width[index.filter] <- 0.15
 
     if (format=="svg")#3.6
-        svg(paste0(path,"/",filename,".svg"),width=4, height=4) #inch
+        svg(paste0(path,"/",filename,".svg"),width=width, height=height) #inch
     if (format=="png")
-        png(paste0(path,"/",filename,".png"))
+        png(paste0(path,"/",filename,".png"),width=width, height=height)
     if (format=="pdf")
-        pdf(paste0(path,"/",filename,".pdf"))
+        pdf(paste0(path,"/",filename,".pdf"),width=width, height=height)
 
     interactions <- data.frame(from=dataframe.bsrinf$ligands,to=dataframe.bsrinf$receptors,value=dataframe.bsrinf$corr)
     chordDiagramFromDataFrame(interactions,
@@ -459,7 +527,7 @@ chord.diagram.LR  <- function(interactions,path="./",filename="chord",
 
     lgd_list_vertical = packLegend(lgd_points)
 
-     draw(lgd_list_vertical, x = unit(2, "mm"), y = unit(2, "mm"), just = c("left", "bottom"))
+    draw(lgd_list_vertical, x = unit(2, "mm"), y = unit(2, "mm"), just = c("left", "bottom"))
     draw(lgd_links, x = unit(2.7, "inch"), y = unit(2, "mm"),just = c("left", "bottom"))
 
      circos.clear()
