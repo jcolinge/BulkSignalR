@@ -99,7 +99,8 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #'
 #' @importFrom foreach %do% %dopar%
 .edgesLRIntracell <- function(pairs, pw, t.genes, tg.corr, id.col, gene.col,
-                              min.cor=0.3){
+min.cor=0.3){
+
 
     # local binding
     i <- NULL
@@ -109,6 +110,8 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                       "controls-phosphorylation-of")
 
     arcs <- foreach::foreach(i=1:nrow(pairs), .combine=rbind) %do% {
+    # arcs <- NULL
+    # for (i in 1:nrow(pairs)) {
         r <- pairs$R[i]
         p <- pairs$pw.id[i]
         tg <- t.genes[[i]]
@@ -152,6 +155,7 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                         }
                 }
         }
+        # arcs <- rbind(arcs, unique(a.iter))
         unique(a.iter)
     }
 
@@ -173,6 +177,8 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' @param restrict.pw   A vector of pathway IDs to which receptor downstream
 #' signaling is restricted.
 #' @param node.size     Default node size in the network.
+#' @param signed        A logical indicating whether \code{min.cor} is imposed
+#' to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).
 #' @return An \code{igraph} object featuring the ligand-receptor-downstream
 #' signaling network. Default colors and node sizes are assigned,
 #' which can be changed afterwards if necessary.
@@ -188,8 +194,8 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' \dontrun{
 #' }
 getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
-                                  min.cor=0.3, restrict.pw=NULL,
-                                  node.size=5){
+                                  min.cor=0.25, restrict.pw=NULL,
+                                  node.size=5, signed=FALSE){
 
     if (!is(bsrinf, "BSRInference"))
         stop("bsrinf must be a BSRInference object")
@@ -228,13 +234,24 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
     pairs.react <- pairs[i.react,]
     t.genes.react <- t.genes[i.react]
     tg.corr.react <- tg.corr[i.react]
+    if (!is.null(restrict.pw)){
+        i.react <- which(pairs.react$pw.id %in% restrict.pw)
+        pairs.react <- pairs.react[i.react,]
+        t.genes.react <- t.genes.react[i.react]
+        tg.corr.react <- tg.corr.react[i.react]
+    }
     if (nrow(pairs.react)>0){
         ids <- unique(reactome[reactome$`Gene name` %in% pool, "Reactome ID"])
         react <- reactome[reactome$`Reactome ID` %in% ids,]
         if (!is.null(restrict.pw))
             react <- react[react$`Reactome ID` %in% restrict.pw,]
         all.edges <- .edgesLRIntracell(pairs.react, react, t.genes.react,
+<<<<<<< HEAD
                         tg.corr.react, "Reactome ID", "Gene name", min.cor)
+=======
+                        tg.corr.react, "Reactome ID", "Gene name", min.cor,
+                        signed=signed)
+>>>>>>> d8a2b7e876c78b9c46b00961db5fc410700a0312
     }
 
     # GOBP
@@ -242,6 +259,12 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
     pairs.go <- pairs[i.go,]
     t.genes.go <- t.genes[i.go]
     tg.corr.go <- tg.corr[i.go]
+    if (!is.null(restrict.pw)){
+        i.go <- which(pairs.go$pw.id %in% restrict.pw)
+        pairs.go <- pairs.go[i.go,]
+        t.genes.go <- t.genes.go[i.go]
+        tg.corr.go <- tg.corr.go[i.go]
+    }
     if (nrow(pairs.go)>0){
         ids <- unique(gobp[gobp$`Gene name` %in% pool, "GO ID"])
         go <- gobp[gobp$`GO ID` %in% ids,]
@@ -249,8 +272,13 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
             go <- go[go$`GO ID` %in% restrict.pw,]
         all.edges <- unique(rbind(all.edges,
                         .edgesLRIntracell(pairs.go, go, t.genes.go,
+<<<<<<< HEAD
                             tg.corr.go, "GO ID", "Gene name", min.cor
                             )))
+=======
+                            tg.corr.go, "GO ID", "Gene name", min.cor,
+                            signed=signed)))
+>>>>>>> d8a2b7e876c78b9c46b00961db5fc410700a0312
     }
 
     # generate igraph object -------------------
