@@ -29,6 +29,7 @@ Imports:
     multtest,
     igraph,
     SingleCellSignalR,
+    orthogene,
     stringr,
     stabledist,
     circlize,
