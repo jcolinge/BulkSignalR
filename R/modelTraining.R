@@ -83,7 +83,7 @@
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
 .getGaussianParam <- function(d, title, verbose = FALSE, file.name = NULL) {
-   
+
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
                        pointsize = 10, useDingbats = FALSE)
@@ -105,7 +105,11 @@
         -sum(stats::dnorm(d, par[1], par[2], log=TRUE)) + length(d)*log(q)
     }
     par.0 <- c(mu, sigma)
-    res <- stats::optim(par.0, GaussianLL)
+    lo.bound <- c(mu-0.5, 0.5*sigma)
+    hi.bound <- c(mu+0.5, 1.5*sigma)
+    res <- stats::optim(par.0, GaussianLL, method="L-BFGS-B",
+                        lower=lo.bound, upper=hi.bound,
+                        control=list(maxit=2000))
     if (res$convergence != 0)
         stop("optim() could not fit the normal distribution parameters")
     mu <- res$par[1]
@@ -190,8 +194,11 @@
     mu <- mean(d)
     sigma <- sd(d)
     par.0 <- c(0.7, mu-0.1, 0.75*sigma, mu+0.1, 3*sigma)
-    res <- stats::optim(par.0, mixedGaussianLL,
-                        control=list(reltol=1e-5, maxit=2000))
+    lo.bound <- c(0.5, mu-0.5, 0.5*sigma, mu-0.2, 2*sigma)
+    hi.bound <- c(1.0, mu+0.2, 1.5*sigma, mu+0.4, 10*sigma)
+    res <- stats::optim(par.0, mixedGaussianLL, method="L-BFGS-B",
+                        lower=lo.bound, upper=hi.bound,
+                        control=list(maxit=2000))
     if (res$convergence != 0)
         stop("optim() could not fit the mixed normal distribution parameters")
     if (verbose)
@@ -277,7 +284,7 @@
                                  gamma=(par[3])**2, delta=par[4], log=TRUE)
              ) + length(d)*log(q)
     }
-    par.0 <- c(1.5, 0.2, 0.2, mean(d))
+    par.0 <- c(1.5, 0.5, sqrt(sd(d)), mean(d))
     if (verbose)
         cat(paste0("Starting stable distribution parameter estimation. ",
                    "This can take minutes...\n"))

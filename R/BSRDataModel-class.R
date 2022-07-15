@@ -36,7 +36,7 @@ setClass("BSRDataModel",
              log.transformed=FALSE,
              normalization="UQ",
              param=list()
-            
+
          ))
 
 setValidity("BSRDataModel",
@@ -234,8 +234,8 @@ if (!isGeneric("learnParameters")) {
 #' bsrdm
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
-      max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = TRUE,
-      null.model = c("normal","mixedNormal","stable"),filename = "distribution",
+      max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = FALSE,
+      null.model = c("mixedNormal","normal","stable"),filename = "distribution",
       seed = 123) {
 
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
@@ -519,13 +519,13 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
         stop("sig must be a BSRSignature object")
     if (LR.weight<=0 || LR.weight>=1)
         stop("LRweight must reside in (0;1)")
-  
+
 
     if( initialOrganism(obj)!="hsapiens" )
         all.genes <- unlist(initialOrthologs(obj))
 
     else all.genes <- rownames(ncounts(obj))
-    
+
     # intersect signature gene names with RNA-seq data
     ncounts <- ncounts(obj)
     ligands <- sapply(ligands(sig), function(x) intersect(x, all.genes))
@@ -563,10 +563,10 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
             #stop("Pathways has to be unique.", call. = FALSE)
     }
     print(length(pwn))
-   
+
     res <- matrix(0,nrow=length(pathways),ncol=ncol(ncounts),dimnames=list(pwn,colnames(ncounts)))
     for (i in seq_len(length(pathways))){
-      
+
         # average ligand z-score
         zz <- z[ligands[[i]],]
         if (is.matrix(zz))

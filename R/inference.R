@@ -128,11 +128,11 @@
                 directed <- int$type %in% directed.int
 
                 # double the undirected interactions and generate a directed graph
-                ret <- int[!directed,c("a.gn","b.gn")]
+                ret <- int[!directed,c("a.gn", "b.gn")]
                 from <- ret$a.gn
                 ret$a.gn <- ret$b.gn
                 ret$b.gn <- from
-                d.int <- unique(rbind(int[,c("a.gn","b.gn")],ret))
+                d.int <- unique(rbind(int[,c("a.gn", "b.gn")],ret))
                 g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
 
                 # extract the target genes of receptor r

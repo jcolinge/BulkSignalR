@@ -129,9 +129,9 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
             SingleCellSignalR::PwC_ReactomeKEGG$a.gn %in% genes.in.pw &
                 SingleCellSignalR::PwC_ReactomeKEGG$b.gn %in% genes.in.pw,]
         directed <- int$type %in% directed.int
-        d.int <- unique(rbind(int[directed, c("a.gn","b.gn")],
-                              int[!directed,c("a.gn","b.gn")],
-                              int[!directed,c("b.gn","a.gn")]))
+        ret <- int[!directed,c("b.gn", "a.gn")]
+        names(ret) <- c("a.gn", "b.gn")
+        d.int <- unique(rbind(int[, c("a.gn", "b.gn")], ret))
         g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
         targets <- intersect(targets, c(d.int$a.gn, d.int$b.gn))
 
@@ -210,7 +210,6 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                     "ligands or the receptors"))
 
     # get unique LR pairs with required statistical significance
-    bsrinf <- reduceToBestPathway(bsrinf)
     pairs <- LRinter(bsrinf)
     t.genes <- tGenes(bsrinf)
     tg.corr <- tgCorr(bsrinf)
@@ -221,13 +220,6 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
     pairs <- pairs[good,]
     t.genes <- t.genes[good]
     tg.corr <- tg.corr[good]
-
-    # different pathways for the same LR pair can have the same P-value
-    ref <- paste(pairs$L, pairs$R, sep="||")
-    dup <- duplicated(ref)
-    pairs <- pairs[!dup,]
-    t.genes <- t.genes[!dup]
-    tg.corr <- tg.corr[!dup]
 
     pool <- unique(c(pairs$L, pairs$R))
     all.edges <- NULL
