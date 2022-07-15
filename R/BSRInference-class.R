@@ -826,6 +826,8 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
             genes.df <- data.frame(human.gene.name = genes[[i]])
             genes.df$id <- 1:nrow(genes.df) 
             genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+            genes.converted <- genes.converted[order(genes.converted$id), ]
+
             genes.converted$human.gene.name <- NULL
             genes.converted$id <- NULL
 
