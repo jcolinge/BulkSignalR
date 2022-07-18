@@ -8,6 +8,16 @@
 #' @usage data(sdc)
 "sdc"
 
+#' Mouse transcriptomes across tissues
+#'
+#' A dataset containing rpkm values of brain and
+#'   liver tissues from mice.
+#'
+#' @format A data frame with 29860 rows and 8 variables.
+#' @source Bin Li & al., Scientific Reports, 2017;
+#' @usage data(bodyMap.mouse)
+"bodyMap.mouse"
+
 
 #' Tumor microenvironment gene signatures
 #'
@@ -15,8 +25,8 @@
 #'   cell populations that are present in the microenvironment of a tumor.
 #'
 #' @format A data frame with 209 rows and 2 variables: \describe{
-#'   \item{gene}{HUGO gene symbol} \item{signature}{cell population name}git }
-#' @source Becht et al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
+#'   \item{gene}{HUGO gene symbol} \item{signature}{cell population name} }
+#' @source Becht & al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
 #' @usage data(tme.signatures)
 "tme.signatures"
 
