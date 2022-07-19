@@ -424,8 +424,11 @@ signatureHeatmaps <- function(
 #' @param n.row.clust    Number of row clusters.
 #' @param gap.size       Gap size between clusters.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
-#' @param row.names      A logical to turn on/off the display of row (gene)
-#' names.
+#' @param row.names      A logical to turn on/off the display 
+#' of row (gene) names.
+#' @param column.names      A logical to turn on/off the display
+#' of column (sample) names.
+#' 
 #' @return A heatmap. Since heatmap plotting tend to be slow on the screen,
 #' it is advisable to provide a
 #' PDF file name and plot in a file (much faster).
@@ -448,7 +451,9 @@ signatureHeatmaps <- function(
 simpleHeatmap <- function(mat.c, width, height, file.name=NULL, dend.row=NULL,
                           dend.spl=NULL, cols=NULL, pointsize=4,
                           bottom.annotation=NULL, n.col.clust=0, n.row.clust=0,
-                          gap.size=0.5, cut.p=0.01, row.names=TRUE){
+                          gap.size=0.5, cut.p=0.01, row.names=TRUE,
+                          column.names = TRUE 
+                          ){
 
     if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
         stop(paste0("Package \"ComplexHeatmap\" needed for this function ",
@@ -484,7 +489,7 @@ simpleHeatmap <- function(mat.c, width, height, file.name=NULL, dend.row=NULL,
         if (n.col.clust>0)
             print(ComplexHeatmap::Heatmap(mat.c, cluster_rows=dend.row,
                 cluster_columns=dend.spl, col=cols, show_row_names=row.names,
-                show_column_names=FALSE, use_raster=TRUE, raster_device="png",
+                show_column_names=column.names, use_raster=TRUE, raster_device="png",
                 raster_quality=8, raster_by_magick=FALSE,
                 row_names_gp=grid::gpar(fontsize=pointsize),
                 show_row_dend=TRUE, bottom_annotation=bottom.annotation,
@@ -493,7 +498,7 @@ simpleHeatmap <- function(mat.c, width, height, file.name=NULL, dend.row=NULL,
     else
         print(ComplexHeatmap::Heatmap(mat.c, cluster_rows=dend.row,
                 cluster_columns=dend.spl,col=cols,show_row_names=row.names,
-                show_column_names=FALSE, use_raster=TRUE,raster_device="png",
+                show_column_names=column.names, use_raster=TRUE,raster_device="png",
                 raster_quality=8, raster_by_magick=FALSE,
                 row_names_gp=grid::gpar(fontsize=pointsize),
                 show_row_dend=TRUE, bottom_annotation=bottom.annotation,
@@ -502,7 +507,7 @@ simpleHeatmap <- function(mat.c, width, height, file.name=NULL, dend.row=NULL,
         if (n.col.clust)
             print(ComplexHeatmap::Heatmap(mat.c, cluster_rows=dend.row,
                 cluster_columns=dend.spl, col=cols, show_row_names=row.names,
-                show_column_names=FALSE, use_raster=TRUE, raster_device="png",
+                show_column_names=column.names, use_raster=TRUE, raster_device="png",
                 raster_quality=8, raster_by_magick=FALSE,
                 row_names_gp=grid::gpar(fontsize=pointsize),
                 show_row_dend=TRUE, bottom_annotation=bottom.annotation,
@@ -510,7 +515,7 @@ simpleHeatmap <- function(mat.c, width, height, file.name=NULL, dend.row=NULL,
     else
         print(ComplexHeatmap::Heatmap(mat.c, cluster_rows=dend.row,
                 cluster_columns=dend.spl,col=cols, show_row_names=row.names,
-                show_column_names=FALSE, use_raster=TRUE, raster_device="png",
+                show_column_names=column.names, use_raster=TRUE, raster_device="png",
                 raster_quality=8, raster_by_magick=FALSE,
                 row_names_gp=grid::gpar(fontsize=pointsize),
                 show_row_dend=TRUE,bottom_annotation=bottom.annotation))
