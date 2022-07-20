@@ -35,7 +35,7 @@ devtools::install_github("jcolinge/BulkSignalR")
 
 ## HowTo
 
-The full description of the package can be access [Here](https://zhefrench.github.io/BulksignalR/).  
+The full description of the package can be access [Here](https://zhefrench.github.io/BulkSignalR/).  
 All instructions, documentation, and tutorials can be found on this website.
 
 For a version history/changelog, please see the [NEWS file](https://github.com/zhefrench/BulksignalR/blob/master/NEWS.md).
