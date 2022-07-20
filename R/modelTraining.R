@@ -249,6 +249,121 @@
 } # .cdfMixedGaussian
 
 
+#' Internal function to fit an empirical distribution
+#'
+#' @description Based on stats::ecdf.
+#'
+#' @param d   A vector of values to fit.
+#' @param title     A plot title.
+#' @param file.name   The file name of a PDF file.
+#'
+#' @return A list with the step function implementing the CDF of
+#'   the empirical distribution (\code{empirCDF}).
+#'
+#'   If \code{file.name} is provided, a control plot is generated in a PDF with
+#'   a data histogram and the fitted Gaussian. \code{title} is used to give this
+#'   plot a main title.
+.getEmpiricalParam <- function(d, title, file.name = NULL) {
+
+    if (!is.null(file.name)) {
+        grDevices::pdf(file = file.name, width = 4, height = 4,
+                       pointsize = 10, useDingbats = FALSE)
+        graphics::hist(d, freq=FALSE, main=paste0(title, " / empirical"),
+                       xlab = "Spearman correlation", breaks=30)
+    }
+
+    empir <- stats::ecdf(d)
+
+    # control plot
+    if (!is.null(file.name)) {
+        step <- 0.005
+        x <- seq(-1, 1, by = step)
+        cd <- empir(x)
+        n <- length(x)
+        left <- cd[-c(n-1,n)]
+        right <- cd[-c(1,2)]
+        dens <- c(0, (right-left)/2/step, 0)
+        graphics::lines(x = x, y = dens, col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
+                         col = "blue", bty = "n", pt.cex = 0.5)
+        grDevices::dev.off()
+    }
+
+    list(empirCDF = empir, distrib = "empirical")
+
+}  # .getEmpiricalParam
+
+
+#' Internal function to compute an empirical CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the step function implementing the CDF.
+#'
+#' @return A vector of probabilities P(X<x|par).
+.cdfEmpirical <- function(x, par){
+    par$empirCDF(x)
+
+} # .cdfEmpirical
+
+
+#' Internal function to fit a Gaussian kernel-based empirical distribution
+#'
+#' @description Based on stats::density.
+#'
+#' @param d   A vector of values to fit.
+#' @param title     A plot title.
+#' @param file.name   The file name of a PDF file.
+#' @param n  The number of grid points for density FFT
+#'
+#' @return A list with the step function implementing the CDF of
+#'   the empirical distribution (\code{kernelCDF}).
+#'
+#'   If \code{file.name} is provided, a control plot is generated in a PDF with
+#'   a data histogram and the fitted Gaussian. \code{title} is used to give this
+#'   plot a main title.
+.getKernelEmpiricalParam <- function(d, title, file.name = NULL, n=1024) {
+
+    if (!is.null(file.name)) {
+        grDevices::pdf(file = file.name, width = 4, height = 4,
+                       pointsize = 10, useDingbats = FALSE)
+        graphics::hist(d, freq=FALSE, main=paste0(title, " / empirical"),
+                       xlab = "Spearman correlation", breaks=30)
+    }
+
+    df <- stats::density(d, from=-1, to=1, n=n)
+    cd <- cumsum(df$y)
+    cd <- cd/cd[n]
+
+    # control plot
+    if (!is.null(file.name)) {
+        # left <- cd[-c(n-1,n)]
+        # right <- cd[-c(1,2)]
+        # step <- 1/(n/2)
+        # dens <- c(0, (right-left)/2/step, 0)
+        # graphics::lines(x = df$x, y = dens, col = "blue", type = "l")
+        graphics::lines(df, col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
+                         col = "blue", bty = "n", pt.cex = 0.5)
+        grDevices::dev.off()
+    }
+
+    list(kernelCDF = stepfun(df$x, c(0, cd)), distrib = "kernelEmpirical")
+
+}  # .getKernelEmpiricalParam
+
+
+#' Internal function to compute an empirical CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the step function implementing the CDF.
+#'
+#' @return A vector of probabilities P(X<x|par).
+.cdfKernelEmpirical <- function(x, par){
+    par$kernelCDF(x)
+
+} # .cdfKernelEmpirical
+
+
 #' Internal function to fit a censored (alpha-) stable distribution
 #'
 #' @description Maximum-likelihood estimators are used.
