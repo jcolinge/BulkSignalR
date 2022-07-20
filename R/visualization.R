@@ -940,6 +940,8 @@ chord.diagram.LR  <- function(bsrinf,path="./",
         pdf(paste0(path,"/",filename,".pdf"),width=width, height=height)
 
     interactions <- data.frame(from=dataframe.bsrinf$ligands,to=dataframe.bsrinf$receptors,value=dataframe.bsrinf$corr)
+    circos.par(points.overflow.warning=FALSE)
+
     chordDiagramFromDataFrame(interactions,
           #grid.col = grid.col, 
           col=cr,
