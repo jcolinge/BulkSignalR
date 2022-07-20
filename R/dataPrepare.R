@@ -207,7 +207,6 @@ findOrthoGenes<- function(from_organism ="mmusculus",
           orthologs_dictionary$index <- NULL  
           names(orthologs_dictionary)[1] <- paste("Gene.name")
     
-    print(head(orthologs_dictionary,10))
     cat("Dictionary Size: ", 
         dim(orthologs_dictionary)[1],
          " genes \n", sep="") 
