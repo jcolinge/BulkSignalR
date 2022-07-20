@@ -10,10 +10,11 @@
 
 #' Mouse transcriptomes across tissues
 #'
-#' A dataset containing rpkm values of brain and
+#' A dataset containing rpkm values of  brain, liver,
+#'   heart, thymus, muscle, lung, stomach, spleen and
 #'   liver tissues from mice.
 #'
-#' @format A data frame with 29860 rows and 8 variables.
+#' @format A data frame with 29860 rows and 16 variables.
 #' @source Bin Li & al., Scientific Reports, 2017;
 #' @usage data(bodyMap.mouse)
 "bodyMap.mouse"

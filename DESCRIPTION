@@ -32,7 +32,7 @@ Imports:
     orthogene,
     stringr,
     stabledist,
-    circlize,
+    circlize (>= 0.4.14),
     ComplexHeatmap (>= 2.0.0),
     stats
 Suggests: 
