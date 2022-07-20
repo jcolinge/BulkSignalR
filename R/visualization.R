@@ -510,7 +510,8 @@ simpleHeatmap <- function(mat.c, width, height,
              ,width=width, height=height) 
 
         if (format=="pdf")
-           grDevices::pdf(filename, width=width, height=height,
+           grDevices::pdf(file=paste0(path,filename,".pdf")
+                    , width=width, height=height,
                        pointsize=pointsize, useDingbats=FALSE)
 
     if (n.row.clust>0)
