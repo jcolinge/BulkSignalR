@@ -356,6 +356,10 @@
         cdf <- .cdfMixedGaussian
     else if (LR.par$distrib == 'censored_stable')
         cdf <- .cdfAlphaStable
+    else if (LR.par$distrib == 'empirical')
+        cdf <- .cdfEmpirical
+    else if (LR.par$distrib == 'kernel_empirical')
+        cdf <- .cdfKernelEmpirical
     else
         stop(paste0("Unknown statistical model: ", LR.par$LR.0$model$distrib))
 

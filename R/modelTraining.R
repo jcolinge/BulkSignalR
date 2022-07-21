@@ -120,6 +120,15 @@
     }
     q <- stats::pnorm(1, mu, sigma) - stats::pnorm(-1, mu, sigma)
 
+    # KS test D statistics
+    x <- seq(-1, 1, by = 0.005)
+    y <- stats::dnorm(x, mu, sigma)/q
+    D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
+
+    # Chi2
+    x <- seq(-1, 1, by = 0.05)
+    h <- hist(d, breaks=x, freq=FALSE)
+
     # control plot
     if (!is.null(file.name)) {
         x <- seq(-1, 1, by = 0.002)
@@ -132,7 +141,7 @@
         # write.table(d, file=fn, row.names = FALSE)
     }
     list(mu = mu, sigma = sigma, factor = q,
-         start = stats::pnorm(-1, mu, sigma), distrib = "censored_normal")
+         start = stats::pnorm(-1, mu, sigma), D=D, distrib = "censored_normal")
 
 }  # .getGaussianParam
 
@@ -216,6 +225,10 @@
         )
     start <- alpha*stats::pnorm(-1, mu1, sigma1) +
         (1-alpha)*stats::pnorm(-1, mu2, sigma2)
+    x <- seq(-1, 1, by = 0.005)
+    y <- alpha*stats::dnorm(x, mu1, sigma1) +
+        (1-alpha)*stats::dnorm(x, mu2, sigma2)/q
+    D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
 
     # control plot
     if (!is.null(file.name)) {
@@ -228,7 +241,7 @@
         grDevices::dev.off()
     }
     list(alpha=alpha, mu1=mu1, sigma1=sigma1, mu2=mu2, sigma2=sigma2, factor=q,
-         start=start, distrib="censored_mixed_normal")
+         start=start, D=D, distrib="censored_mixed_normal")
 
 }  # .getMixedGaussianParam
 
@@ -263,7 +276,7 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
-.getEmpiricalParam <- function(d, title, file.name = NULL) {
+.getEmpiricalParam <- function(d, title, verbose = FALSE, file.name = NULL) {
 
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
@@ -321,7 +334,8 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
-.getKernelEmpiricalParam <- function(d, title, file.name = NULL, n=1024) {
+.getKernelEmpiricalParam <- function(d, title, verbose = FALSE,
+                                     file.name = NULL, n=512) {
 
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
@@ -333,6 +347,7 @@
     df <- stats::density(d, from=-1, to=1, n=n)
     cd <- cumsum(df$y)
     cd <- cd/cd[n]
+    D <- as.numeric(suppressWarnings(stats::ks.test(d, df$y)$statistic))
 
     # control plot
     if (!is.null(file.name)) {
@@ -347,7 +362,7 @@
         grDevices::dev.off()
     }
 
-    list(kernelCDF = stepfun(df$x, c(0, cd)), distrib = "kernelEmpirical")
+    list(kernelCDF = stepfun(df$x, c(0, cd)), D=D, distrib = "kernel_empirical")
 
 }  # .getKernelEmpiricalParam
 
