@@ -313,21 +313,38 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
 
     if (is.null(trainModel)){
         # automatic selection of the model
-        np <- .getGaussianParam(rc, "LR correlation (null)")
-        mp <- .getMixedGaussianParam(rc, "LR correlation (null)")
+        np <- try(.getGaussianParam(rc, "LR correlation (null)"), silent=TRUE)
+        if (inherits(np, "try-error"))
+            np <- NULL
+        mp <- try(.getMixedGaussianParam(rc, "LR correlation (null)"),
+                  silent=TRUE)
+        if (inherits(mp, "try-error"))
+            mp <- NULL
         kp <- .getKernelEmpiricalParam(rc, "LR correlation (null)")
         if (verbose){
             cat("Automatic null model choice:\n")
-            cat("  Censored normal D=", np$D, "\n")
-            cat("  Censored mixture of 2 normals D=", mp$D, "\n")
-            cat("  Gaussian kernel-based empirical D=", kp$D, "\n")
+            if (is.null(np))
+                cat("  Censored normal estimation did not converge\n")
+            else
+                cat("  Censored normal D=", np$D,
+                    ", Chi2=", np$Chi2, "\n", sep="")
+            if (is.null(mp))
+                cat("  Censored Mixture of normals estimation did not converge\n")
+            else
+                cat("  Censored mixture D=", mp$D,
+                    ", Chi2=", mp$Chi2, "\n", sep="")
+            cat("  Gaussian kernel empirical D=", kp$D,
+                ", Chi2=", kp$Chi2, "\n", sep="")
         }
-        if ((np$D < 1.1*mp$D) && (np$D < 1.1*np$D)){
+        npchi <- ifelse(is.null(np), 100, sqrt(np$Chi2))
+        mpchi <- ifelse(is.null(mp), 100, sqrt(mp$Chi2))
+        kpchi <- sqrt(kp$Chi2)
+        if ((npchi < 1.25*mpchi) && (npchi < 2*kpchi)){
             trainModel <- .getGaussianParam
             if (verbose)
                 cat("  ==> select censored normal\n")
         }
-        else if (mp$D < 1.2*kp$D){
+        else if (mpchi < 2*kpchi){
             trainModel <- .getMixedGaussianParam
             if (verbose)
                 cat("  ==> select censored mixture of 2 normals\n")

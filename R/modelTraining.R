@@ -119,15 +119,22 @@
         cat("Censored normal standard deviation: ", sigma, "\n", sep="")
     }
     q <- stats::pnorm(1, mu, sigma) - stats::pnorm(-1, mu, sigma)
+    start <- stats::pnorm(-1, mu, sigma)
+    params <- list(mu = mu, sigma = sigma, factor = q,
+                   start = start, distrib = "censored_normal")
 
     # KS test D statistics
     x <- seq(-1, 1, by = 0.005)
     y <- stats::dnorm(x, mu, sigma)/q
-    D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
+    params$D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, freq=FALSE)
+    h <- hist(d, breaks=x, plot=FALSE)
+    hist.rf <- h$counts/length(d)
+    gauss.rf <- .cdfGaussian(h$breaks[-1], params) -
+        .cdfGaussian(h$breaks[-length(h$breaks)], params)
+    params$Chi2 <- sum((hist.rf-gauss.rf)**2)
 
     # control plot
     if (!is.null(file.name)) {
@@ -140,8 +147,8 @@
         # fn <- gsub("pdf$", "txt", file.name)
         # write.table(d, file=fn, row.names = FALSE)
     }
-    list(mu = mu, sigma = sigma, factor = q,
-         start = stats::pnorm(-1, mu, sigma), D=D, distrib = "censored_normal")
+
+    params
 
 }  # .getGaussianParam
 
@@ -225,10 +232,22 @@
         )
     start <- alpha*stats::pnorm(-1, mu1, sigma1) +
         (1-alpha)*stats::pnorm(-1, mu2, sigma2)
+    params <- list(alpha=alpha, mu1=mu1, sigma1=sigma1, mu2=mu2, sigma2=sigma2,
+                   factor=q, start=start, distrib="censored_mixed_normal")
+
+    # KS test D statistics
     x <- seq(-1, 1, by = 0.005)
     y <- alpha*stats::dnorm(x, mu1, sigma1) +
         (1-alpha)*stats::dnorm(x, mu2, sigma2)/q
-    D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
+    params$D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
+
+    # Chi2
+    x <- seq(-1, 1, by = 0.05)
+    h <- hist(d, breaks=x, plot=FALSE)
+    hist.rf <- h$counts/length(d)
+    mixed.rf <- .cdfMixedGaussian(h$breaks[-1], params) -
+        .cdfMixedGaussian(h$breaks[-length(h$breaks)], params)
+    params$Chi2 <- sum((hist.rf-mixed.rf)**2)
 
     # control plot
     if (!is.null(file.name)) {
@@ -240,8 +259,8 @@
                          col = "blue", bty = "n", pt.cex = 0.5)
         grDevices::dev.off()
     }
-    list(alpha=alpha, mu1=mu1, sigma1=sigma1, mu2=mu2, sigma2=sigma2, factor=q,
-         start=start, D=D, distrib="censored_mixed_normal")
+
+    params
 
 }  # .getMixedGaussianParam
 
@@ -347,7 +366,19 @@
     df <- stats::density(d, from=-1, to=1, n=n)
     cd <- cumsum(df$y)
     cd <- cd/cd[n]
-    D <- as.numeric(suppressWarnings(stats::ks.test(d, df$y)$statistic))
+    params <- list(kernelCDF = stepfun(df$x, c(0, cd)),
+                   distrib = "kernel_empirical")
+
+    # KS test D statistics
+    params$D <- as.numeric(suppressWarnings(stats::ks.test(d, df$y)$statistic))
+
+    # Chi2
+    x <- seq(-1, 1, by = 0.05)
+    h <- hist(d, breaks=x, plot=FALSE)
+    hist.rf <- h$counts/length(d)
+    kernel.rf <- .cdfKernelEmpirical(h$breaks[-1], params) -
+        .cdfKernelEmpirical(h$breaks[-length(h$breaks)], params)
+    params$Chi2 <- sum((hist.rf-kernel.rf)**2)
 
     # control plot
     if (!is.null(file.name)) {
@@ -362,12 +393,12 @@
         grDevices::dev.off()
     }
 
-    list(kernelCDF = stepfun(df$x, c(0, cd)), D=D, distrib = "kernel_empirical")
+    params
 
 }  # .getKernelEmpiricalParam
 
 
-#' Internal function to compute an empirical CDF
+#' Internal function to compute a Gaussian kernel-based empirical CDF
 #'
 #' @param x   A vector of observed values.
 #' @param par A list containing the step function implementing the CDF.
