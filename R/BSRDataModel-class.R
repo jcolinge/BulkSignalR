@@ -61,7 +61,7 @@ setMethod("show", "BSRDataModel",
         cat("Normalization method: ", object@normalization, "\n", sep="")
         cat("Organism : ", object@initial.organism,"\n", sep="")
         cat("Statistical model parameters:\n")
-        print(object@param)
+        str(object@param)
         cat("Expression data:\n")
         if (ncol(object@ncounts) > 10)
             print(head(object@ncounts[,1:10]))

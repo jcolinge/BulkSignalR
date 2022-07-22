@@ -68,7 +68,7 @@ setMethod("show", "BSRInference",
               print(head(object@LRinter[order(object@LRinter$qval),
                         c("L", "R", "pval", "qval", "pw.id", "pw.name"),]))
               cat("Inference parameters:\n")
-              print(object@inf.param)
+              str(object@inf.param)
           }
 )
 
@@ -279,6 +279,10 @@ setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.55,
         cdf <- .cdfGaussian
     else if (LR.par$distrib == 'censored_mixed_normal')
         cdf <- .cdfMixedGaussian
+    else if (LR.par$distrib == 'empirical')
+        cdf <- .cdfEmpirical
+    else if (LR.par$distrib == 'kernel_empirical')
+        cdf <- .cdfKernelEmpirical
     else if (LR.par$distrib == 'censored_stable')
         cdf <- .cdfAlphaStable
     else
@@ -446,10 +450,10 @@ setMethod("reduceToBestPathway", "BSRInference", function(obj) {
     pairs <- obj@LRinter
     LR <- unique(pairs[, c("L","R")])
     for (i in seq_len(nrow(LR))){
-    
+
         L <- LR$L[i]
         R <- LR$R[i]
-        
+
         pwr <- pairs[pairs$L==L & pairs$R==R,]
         k <- which.min(pwr$pval)
         j <- which(pairs$L==L & pairs$R==R & pairs$pw.id==pwr$pw.id[k])
@@ -733,13 +737,13 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
     #pathways  <- paste(pairs$pw.id, pairs$pw.name)
     t.genes   <- tGenes(obj)[selected]
     t.corrs   <- tgCorr(obj)[selected]
-    
+
     for (i in seq_len(nrow(pairs))){
         tg <- t.genes[[i]]
-            t.genes[[i]] <- tg[pairs$rank[i]:length(tg)] 
+            t.genes[[i]] <- tg[pairs$rank[i]:length(tg)]
 
         tc <- t.corrs[[i]]
-            t.corrs[[i]] <- tc[pairs$rank[i]:length(tc)] 
+            t.corrs[[i]] <- tc[pairs$rank[i]:length(tc)]
     }
 
     new("BSRSignature", pathways=pathways, ligands=ligands,
@@ -776,8 +780,8 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 
      print("resetToInitialOrganism")
      # Need to check conversion.dict format
-    
-     conversion.dict$human.gene.name  <- rownames(conversion.dict) 
+
+     conversion.dict$human.gene.name  <- rownames(conversion.dict)
 
      LRinter(obj)$L <- .geneNameConversion(LRinter(obj)$L,conversion.dict)
      LRinter(obj)$R <- .geneNameConversion(LRinter(obj)$R,conversion.dict)
@@ -790,17 +794,17 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 
 })
 
-#' @title Convert gene symbol to another organism 
+#' @title Convert gene symbol to another organism
 #'
-#' @description Convert gene symbol to another organism 
+#' @description Convert gene symbol to another organism
 #' based on a dictionnary with human and ortholog species.
 #'
 #' @param genes genes you want to convert
 #' @param conversion.dict Dataframe containing
 #' gene names for source species and Homo Sapiens.
 #'
-#' @return Depend type of input genes 
-#' LRinter return a vector of genes 
+#' @return Depend type of input genes
+#' LRinter return a vector of genes
 #' tGenes receptors ligands : return list of list of genes
 #'
 .geneNameConversion <- function(genes,conversion.dict=data.frame(Gene.name="A",row.names = "B")){
@@ -808,8 +812,8 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
     #print(".geneNameConversion")
     if(typeof(genes) == "character"){
         genes.df <- data.frame(human.gene.name = genes)
-     
-        genes.df$id <- 1:nrow(genes.df) 
+
+        genes.df$id <- 1:nrow(genes.df)
 
         genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
         genes.converted <- genes.converted[order(genes.converted$id), ]
@@ -824,14 +828,14 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 
         for (i in seq_len(length(genes))){
             genes.df <- data.frame(human.gene.name = genes[[i]])
-            genes.df$id <- 1:nrow(genes.df) 
+            genes.df$id <- 1:nrow(genes.df)
             genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
             genes.converted <- genes.converted[order(genes.converted$id), ]
 
             genes.converted$human.gene.name <- NULL
             genes.converted$id <- NULL
 
-            list[[i]] <-  as.vector(unlist(genes.converted))    
+            list[[i]] <-  as.vector(unlist(genes.converted))
             rm(genes.df)
             rm(genes.converted)
         }
@@ -842,6 +846,6 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
         stop("Something went wrong during gene conversion.", call. = FALSE)
     }
 
-    
+
 }
 #.geneNameConversion
