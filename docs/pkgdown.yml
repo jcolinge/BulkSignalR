@@ -1,7 +1,0 @@
-pandoc: 1.19.2.4
-pkgdown: 2.0.5
-pkgdown_sha: ~
-articles:
-  BulkSignalR: BulkSignalR.html
-last_built: 2022-07-22T18:01Z
-
