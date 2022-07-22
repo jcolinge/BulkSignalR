@@ -88,7 +88,7 @@
         grDevices::pdf(file = file.name, width = 4, height = 4,
                        pointsize = 10, useDingbats = FALSE)
         graphics::hist(d, freq=FALSE, main=paste0(title, " / censored normal"),
-                       xlab = "Spearman correlation")
+                       xlab = "Spearman correlation", breaks = 30)
     }
 
     # initial fit with a Gaussian over ]-infty;+infty[]
@@ -188,7 +188,7 @@
                        pointsize = 10, useDingbats = FALSE)
         graphics::hist(d, freq=FALSE,
                        main=paste0(title, " / censored mixed normal"),
-                       xlab = "Spearman correlation")
+                       xlab = "Spearman correlation", breaks = 30)
     }
 
     # ML fit of a censored mixed-Gaussian on [-1;1]
@@ -359,7 +359,7 @@
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
                        pointsize = 10, useDingbats = FALSE)
-        graphics::hist(d, freq=FALSE, main=paste0(title, " / empirical"),
+        graphics::hist(d, freq=FALSE, main=paste0(title, " / kernel empirical"),
                        xlab = "Spearman correlation", breaks=30)
     }
 
@@ -432,7 +432,7 @@
                        pointsize = 10, useDingbats = FALSE)
         graphics::hist(d, freq=FALSE,
                        main=paste0(title, " / censored stable"),
-                       xlab = "Spearman correlation")
+                       breaks = 30, xlab = "Spearman correlation")
     }
 
     # ML fit of a censored stable on [-1;1]
@@ -448,7 +448,7 @@
     par.0 <- c(1.5, 0.5, sqrt(sd(d)), mean(d))
     if (verbose)
         cat(paste0("Starting stable distribution parameter estimation. ",
-                   "This can take minutes...\n"))
+                   "This can take a few dozens of minutes...\n"))
     res <- stats::optim(par.0, stableLL,
                         control=list(reltol=1e-5, maxit=800,
                                      trace=ifelse(verbose,1,0)))

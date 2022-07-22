@@ -391,6 +391,9 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
             corr <- as.numeric(strsplit(above[i], split = ";")[[1]])
             r.corrs <- c(r.corrs, corr)
         }
+        if (null.model == "stable")
+            # sub-sample randomized R-T correlations to limit compute time
+            r.corrs <- sample(r.corrs, obj@param$LR.0$n)
         obj@param$RT.0$n <- length(r.corrs)
 
         # fit null model
