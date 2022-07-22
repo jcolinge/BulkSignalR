@@ -30,19 +30,38 @@
 #' @param color     Main color used for the gradient.
 #' @param width     Global image width size.
 #' @param height    Global image height size.
-#' @param format   File format svg (default)/png/pdf
-
+#' @param pointsize Global pointsize.
+#' @param format   File format svg (default), png or pdf
+#'
 #' @return  A plot is created with the given filename. 
 #'
-#' This is a convenience function that relies on the \code{ComplexHeatmap}
-#' package to propose a simple way
+#' This is a convenience function to propose a simple way
 #' of representing LR - Pathways association
 #' with their respective correlation
 #' and Q-values.
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' print('bubblePlot.pathways.LR')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' pathways <- c("PD-1 signaling","Interferon gamma signaling")
+#' bubblePlot.pathways.LR(bsrinf,
+#'    pathways = pathways, 
+#'    threshold = 1,
+#'    path = "./",
+#'    color = "red",
+#'    filename  = "sdc_bubble", 
+#'    width  = 16, 
+#'    height = 7,
+#'    pointsize = 8
+#'    )  
 #' @import ggplot2
 bubblePlot.pathways.LR <- function(bsrinf,
     pathways=c("Cell surface interactions at the vascular wall"),
@@ -54,6 +73,7 @@ bubblePlot.pathways.LR <- function(bsrinf,
     color= "#16a647",
     width  = 16, 
     height = 7,
+    pointsize = 6, 
     format=c("svg","png","pdf") ) {
 
     if (!dir.exists(path)) {
@@ -112,20 +132,29 @@ bubblePlot.pathways.LR <- function(bsrinf,
             ,width=(width+3)/2.54, height=height/2.54) 
 
 
-    print(ggplot2::ggplot(filtered.brinf, aes(x = LR, y = pw.name)) + 
-      ggplot2::geom_point(aes(size = -log10(LR.corr), fill = log10 ), alpha = 0.75, shape = 21) + 
-       labs(x= "", y = "", size = "-log10 (LR.corr)", fill = "-log10 (Qval)")  + 
+    print(ggplot2::ggplot(filtered.brinf, 
+       aes(x = LR, y = pw.name)) + 
+       ggplot2::geom_point(aes(size = -log10(LR.corr),
+       fill = log10 ), alpha = 0.75, shape = 21) + 
+       labs(x= "", y = "", size = "-log10 (LR.corr)",
+        fill = "-log10 (Qval)")  + 
        ggplot2::theme(legend.key=ggplot2::element_blank(),  
        legend.key.size = unit(0.2, "cm"),
        legend.position = "right",  legend.box = "horizontal",
-       axis.text.x = ggplot2::element_text(colour = "black", size = 6, angle = 90, vjust = 0.3, hjust = 1), 
-       axis.text.y = ggplot2::element_text(colour = "black", face = "bold", size = 6), 
-       legend.text = ggplot2::element_text(size = 5, face ="bold", colour ="black"), 
-       legend.title = ggplot2::element_text(size = 6, face = "bold"), 
+       axis.text.x = ggplot2::element_text(colour = "black", 
+       size = pointsize, angle = 90, vjust = 0.3, hjust = 1), 
+       axis.text.y = ggplot2::element_text(colour = "black", 
+       face = "bold", size = pointsize), 
+       legend.text = ggplot2::element_text(size = pointsize-1, 
+       face ="bold", colour ="black"), 
+       legend.title = ggplot2::element_text(size = pointsize, 
+       face = "bold"), 
        panel.background = ggplot2::element_blank(), 
-       panel.border = ggplot2::element_rect(colour = "black", fill = NA, size = 1.2), 
+       panel.border = ggplot2::element_rect(colour = "black", 
+       fill = NA, size = 1.2), 
        panel.grid.major.y = ggplot2::element_line(colour = "grey95")) +    
-       ggplot2::scale_fill_gradient(low = "white",high = color,space = "Lab",na.value = "grey50",
+       ggplot2::scale_fill_gradient(low = "white",
+       high = color,space = "Lab",na.value = "grey50",
        guide = "colourbar",aesthetics = "fill") +
        ggplot2::scale_y_discrete(limits = rev(levels(filtered.brinf$pw.name))) )
    
@@ -159,13 +188,10 @@ bubblePlot.pathways.LR <- function(bsrinf,
 #' package to propose a simple way
 #' of representing expression of genes involved in a specific
 #' pathway.
-#' @export
-#' @examples
-#' \dontrun{
-#' }
+#'
 #' @import ComplexHeatmap
 #' @import circlize   
-customheatmap <- function(counts, 
+.customheatmap <- function(counts, 
     width=5, 
     height=10 ,
     scoring = c(-1.5,0,4,5,6.1,0.3) ,
@@ -174,12 +200,13 @@ customheatmap <- function(counts,
     show_column_names = FALSE
     ) {
 
-    print("customheatmap")
+    print(".customheatmap")
 
     counts <- data.matrix(counts)
     counts.scaled = t(scale(t(counts)))
 
-    cols <- circlize::colorRamp2(breaks=c(-1, 0, 3), hcl_palette = palette,reverse=TRUE) 
+    cols <- circlize::colorRamp2(breaks=c(-1, 0, 3), 
+        hcl_palette = palette,reverse=TRUE) 
 
     top.annotation <- HeatmapAnnotation(    
      border = c(scoring = TRUE),
@@ -205,18 +232,22 @@ customheatmap <- function(counts,
      p <- ComplexHeatmap::Heatmap(counts.scaled, 
        cluster_rows = dend.row,   cluster_columns = dend.spl,
        show_row_dend = FALSE,  show_column_dend = TRUE,
-       col = cols, show_row_names = TRUE, show_column_names = show_column_names, 
-       use_raster = TRUE,raster_device = "png", raster_quality = 8,  raster_by_magick = FALSE,
-       rect_gp = grid::gpar(col= "white"),  row_names_gp = grid::gpar(fontsize = 6),column_names_gp = grid::gpar(fontsize = 4),
+       col = cols, show_row_names = TRUE, 
+       show_column_names = show_column_names, 
+       use_raster = TRUE,raster_device = "png", 
+       raster_quality = 8,  raster_by_magick = FALSE,
+       rect_gp = grid::gpar(col= "white"),  
+       row_names_gp = grid::gpar(fontsize = 6),
+       column_names_gp = grid::gpar(fontsize = 4),
        top_annotation = top.annotation,
        show_heatmap_legend = FALSE, 
        width =unit(width, "cm"),
-       height =unit(height, "cm"),# all heatmap components (excluding the legends)
+       height =unit(height, "cm"),
        column_gap = grid::unit(0.5, "mm")
      )
 
     return(p)
-} # customheatmap
+} # .customheatmap
 
 #' Heatmap function for gene expression of signature
 #'
@@ -236,14 +267,36 @@ customheatmap <- function(counts,
 
 #' @return  A plot is created with the given filename. 
 #'
-#' This is a convenience function that relies on the \code{ComplexHeatmap}
-#' package to propose a simple way
-#' of representing expression of genes involved in a specific
-#' pathway.
+#' This is a convenience function 
+#' to propose a simple way
+#' of representing expression of genes 
+#' involved in a specific pathway.
+#' 
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' print('signatureHeatmaps')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redP  <- reduceToPathway(bsrinf)  
+#' bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP) 
+#' bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP,qval.thres=0.001)
+#' pathway1 <- "Elastic fibre formation"
+#' signatureHeatmaps(
+#'        pathway = pathway1,
+#'        bsrdm = bsrdm,
+#'        bsrsig = bsrsig.redPBP,
+#'        path = "./",
+#'        filename = "sdc_signatureheatmap",
+#'        width  = 15,
+#'        height = 10 ,
+#'        show_column_names = TRUE)
 #' @import ComplexHeatmap
 #' @import circlize
 #' @import grid
@@ -313,19 +366,19 @@ signatureHeatmaps <- function(
     if(height.fit  > height ) height  <- height.fit
 
     # width and height in cm
-    p.T <- customheatmap(counts=counts.T,
+    p.T <- .customheatmap(counts=counts.T,
      width=heatmap_ind_witdth,height=heatmap_ind_height, 
          scoring=as.vector(scoresPathway[idx.path.sig,]),
       palette= palette.T,cols.scoring=cols.scoring,
           show_column_names = show_column_names)
 
-    p.R <- customheatmap(counts=counts.R, 
+    p.R <- .customheatmap(counts=counts.R, 
         width=heatmap_ind_witdth,height=heatmap_ind_height ,
          scoring=as.vector(scoresPathway[idx.path.sig,]),
           palette= palette.R,cols.scoring=cols.scoring,
           show_column_names = show_column_names)
 
-    p.L <- customheatmap(counts=counts.L, 
+    p.L <- .customheatmap(counts=counts.L, 
         width= heatmap_ind_witdth,height=heatmap_ind_height,
          scoring=as.vector(scoresPathway[idx.path.sig,]),
           palette= palette.L,cols.scoring=cols.scoring,
@@ -451,8 +504,30 @@ signatureHeatmaps <- function(
 #' should be controlled, users should implement their own function.
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' print('simpleHeatmap')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redBP <- reduceToBestPathway(bsrinf) 
+#' bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP,
+#' qval.thres=0.001)
+#'
+#' scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,
+#'                        name.by.pathway=FALSE)
+#' simpleHeatmap(scoresLR[1:20,], 
+#'                   path = "./",
+#'                   filename = "sdc_scoresLR",
+#'                   column.names = TRUE, 
+#'                   height = 5, width = 9,
+#'                   pointsize = 10,
+#'                   hcl_palette = "Cividis"                   
+#'                   )
 #' @import ComplexHeatmap
 #' @import circlize
 simpleHeatmap <- function(mat.c, width, height, 
@@ -596,8 +671,30 @@ simpleHeatmap <- function(mat.c, width, height,
 #' should be controlled, users should implement their own function.
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' print('simpleHeatmap')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redP <- reduceToPathway(bsrinf) 
+#' bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP) 
+#' bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP,
+#' qval.thres=0.001)
+#'
+#' scoresPathway <- scoreLRGeneSignatures(bsrdm,
+#'                bsrsig.redPBP,name.by.pathway=TRUE)
+#' 
+#  # correlate with the immune microenvironment
+#' data(immune.signatures, package="BulkSignalR")
+#' imm.scores <- scoreSignatures(bsrdm, immune.signatures)
+#' dualHeatmap(scoresPathway, imm.scores, width=6, height=9,
+#'            file="SDC-LR-dualheatmap.pdf",
+#' pointsize=4, vert.p=0.85)
 #' @import ComplexHeatmap
 #' @import circlize
 #' @importFrom ComplexHeatmap %v%
@@ -675,23 +772,36 @@ dualHeatmap <- function(mat.c, mat.e, width, height, file.name=NULL,
 
 #' Generic gene signature scoring
 #'
-#' Scores generic gene signatures over the samples of a BSRDataModel object.
+#' Scores generic gene signatures over the 
+#' samples of a BSRDataModel object.
 #'
 #' @param ds         A BSRDataModel object.
 #' @param ref.signatures           Gene signatures.
-#' @param robust       A logical indicating that z-scores should be computed
-#' with median and MAD instead of mean and standard deviation.
-#' @details This function relies on a simple average of gene z-scores
-#' over each signature. It is no replacement for mode advanced methods
-#' such as CYBERSORT or BisqueRNA. It is provided for convenience.
-#' @return A matrix containing the scores of each gene signature in each sample.
+#' @param robust       A logical indicating that z-scores 
+#' should be computed with median and MAD 
+#' instead of mean and standard deviation.
+#' @details This function relies on 
+#' a simple average of gene z-scores over each signature.
+#' It is no replacement for mode advanced methods
+#' such as CYBERSORT or BisqueRNA. 
+#' It is provided for convenience.
+#' @return A matrix containing the scores of 
+#' each gene signature in each sample.
 #' Note that ligand-receptor gene
 #' signature scores should be computed with \code{\link{scoreLRGeneSignatures}}
 #' instead.
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' data(immune.signatures, package="BulkSignalR")
+#' imm.scores <- scoreSignatures(bsrdm, immune.signatures)
 scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 
     if (!is(ds, "BSRDataModel"))
@@ -729,7 +839,7 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 
 } # scoreSignatures
 
-#' Alluvial plot (sankey like)
+#' Alluvial plot 
 #'
 #' @description Representation of the links
 #' between Ligands,Receptors and Pathways.
@@ -753,7 +863,25 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' @import ggalluvial
 #' @export
 #' @examples
-#' print('ggalluvial')
+#' print('alluvial.plot')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' alluvial.plot(bsrinf,
+#'              keywords = c("COL4A1"),
+#'              type = "L",
+#'              qval = 0.001,
+#'              path = "./",
+#'              filename = "sdc_alluvial", 
+#'              width  = 16, 
+#'              height = 12
+#'              )
 alluvial.plot <- function(bsrinf,
                  keywords=c("COL4A1"),
                  type=c("L","R","pw.id"),
@@ -803,7 +931,7 @@ alluvial.plot <- function(bsrinf,
         aes(y = count, axis1 = L, axis2 = R,axis3 = pw.name)) +
         ggalluvial::geom_alluvium(aes(fill = R), width = 1/12) +
         ggalluvial::geom_stratum(width = 1/12, fill = "black", color = "grey") +
-        ggplot2::geom_label(stat = stratum,  aes(label = ggplot2::after_stat(stratum)))+
+        ggplot2::geom_label(stat = stratum,  aes(label = ggplot2::after_stat(stratum))) +
         ggplot2::scale_x_discrete(limits = c("L", "R","pw.name"), expand = c(0.5, 0.5)) +
         ggplot2::scale_fill_brewer(type = "qual", palette = "Set1") +
         ggplot2::ggtitle("Ligand-Receptor Interactions & Underlying Pathways")
@@ -857,13 +985,32 @@ alluvial.plot <- function(bsrinf,
 #' plot in a svg format.
 #' @param width width of image 
 #' @param height height of image 
-#' @return NULL
+#' @return NULL 
 #' @import ComplexHeatmap
 #' @import circlize  
 #'
 #' @export
 #' @examples
 #' print('chord.diagram.LR')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' chord.diagram.LR (bsrinf,
+#'                  path="./",
+#'                  filename="sdc_chord",
+#'                  pw.id.filter="R-HSA-202733",
+#'                  ligand="COL18A1",
+#'                  receptor="ITGA3",
+#'                  limit=20,
+#'                  width=5, 
+#'                  height=4.5
+#'    )
 chord.diagram.LR  <- function(bsrinf,path="./",
     filename="chord",
     pw.id.filter="R-RSA-17821",
@@ -892,7 +1039,9 @@ chord.diagram.LR  <- function(bsrinf,path="./",
         pval=LRinter(bsrinf)$pval,
         qval=LRinter(bsrinf)$qval
         )
-    dataframe.bsrinf$pair <- paste(dataframe.bsrinf$ligands,dataframe.bsrinf$receptors,sep="-")
+    dataframe.bsrinf$pair <- paste(dataframe.bsrinf$ligands,
+        dataframe.bsrinf$receptors,sep="-")
+
     if (!pair.to.highlight %in% dataframe.bsrinf$pair) {
         cat("Highlighted LR pair ", pair.to.highlight, " was not found for",pw.id.filter,".\n")
     }
@@ -910,7 +1059,8 @@ chord.diagram.LR  <- function(bsrinf,path="./",
     dataframe.bsrinf <- dataframe.bsrinf[order(dataframe.bsrinf$qval),]
     dataframe.bsrinf <- dataframe.bsrinf[1:limit,]
 
-    cr <- colorRamp2(c(min(dataframe.bsrinf$corr), max(dataframe.bsrinf$corr)), c("white","#febd17"))
+    cr <- colorRamp2(c(min(dataframe.bsrinf$corr),
+                     max(dataframe.bsrinf$corr)), c("white","#febd17"))
 
     myList.ligands <- rep("gray25",times=length(dataframe.bsrinf$ligands))
     names(myList.ligands)  <- as.list(dataframe.bsrinf$ligands)
@@ -939,7 +1089,10 @@ chord.diagram.LR  <- function(bsrinf,path="./",
     if (format=="pdf")
         pdf(paste0(path,"/",filename,".pdf"),width=width, height=height)
 
-    interactions <- data.frame(from=dataframe.bsrinf$ligands,to=dataframe.bsrinf$receptors,value=dataframe.bsrinf$corr)
+    interactions <- data.frame(from=dataframe.bsrinf$ligands,
+        to=dataframe.bsrinf$receptors,
+        value=dataframe.bsrinf$corr)
+
     circos.par(points.overflow.warning=FALSE)
 
     chordDiagramFromDataFrame(interactions,
@@ -960,7 +1113,8 @@ chord.diagram.LR  <- function(bsrinf,path="./",
           big.gap = 2, 
           small.gap = 1)
   
-  circos.trackPlotRegion(track.index = 2, panel.fun = function(x, y) {
+  circos.trackPlotRegion(track.index = 2, 
+  panel.fun = function(x, y) {
   xlim = get.cell.meta.data("xlim")
   ylim = get.cell.meta.data("ylim")
   sector.name = get.cell.meta.data("sector.index")
@@ -971,33 +1125,42 @@ chord.diagram.LR  <- function(bsrinf,path="./",
 
   circos.axis(h="top",labels=FALSE,minor.ticks=FALSE,
                     major.tick.length=1,
-                    major.at=c(xlim), sector.index=sector.name,
+                    major.at=c(xlim), 
+                    sector.index=sector.name,
                     track.index=2)
   })
 
   # LEGEND 
 
-    lgd_points = Legend(labels = c("Ligands", "Receptors"), type = "points", pch = 16,
-        legend_gp = grid::gpar(col = c("gray25","#7fbb00")), title_position = "topleft", 
-            labels_gp = grid::gpar( font = 6),
+    lgd_points = Legend(labels = c("Ligands", "Receptors"),
+        type = "points", pch = 16,
+        legend_gp = grid::gpar(col = c("gray25","#7fbb00")),
+        title_position = "topleft", 
+        labels_gp = grid::gpar( font = 6),
         title = "LR") 
    
-    lgd_links = Legend(at = c(round(min(interactions$value),digits = 2) , round(max(interactions$value),digits = 2)), col_fun = cr, 
-         title = "Correlation",direction ="horizontal"   ,   
-         grid_width = unit(0.9, "mm") ,     grid_height = unit(1.3, "mm") , 
-
-        labels_gp = grid::gpar( font = 6),title_position = "topcenter",
-       )# border = "black"
+    lgd_links = Legend(at = c(round(min(interactions$value),
+        digits = 2), round(max(interactions$value),
+        digits = 2)), col_fun = cr, 
+        title = "Correlation",direction ="horizontal"   ,   
+        grid_width = unit(0.9, "mm") ,
+        grid_height = unit(1.3, "mm") , 
+        labels_gp = grid::gpar( font = 6),
+        title_position = "topcenter",
+       )
 
     lgd_list_vertical = packLegend(lgd_points)
 
-    draw(lgd_list_vertical, x = unit(2, "mm"), y = unit(2, "mm"), just = c("left", "bottom"))
-    draw(lgd_links, x = unit(2.7, "inch"), y = unit(2, "mm"),just = c("left", "bottom"))
+    draw(lgd_list_vertical, x = unit(2, "mm"),
+            y = unit(2, "mm"),
+            just = c("left", "bottom"))
+    draw(lgd_links, x = unit(2.7, "inch"),
+            y = unit(2, "mm"),
+            just = c("left", "bottom"))
 
      circos.clear()
 
      dev.off()
 
- NULL   
 }
 

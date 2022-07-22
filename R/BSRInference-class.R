@@ -256,6 +256,13 @@ if (!isGeneric("rescoreInference")) {
 #' @return A BSRInference object.
 #'
 #' @export
+#' @examples
+#' print('rescoreInference')
+#' data(sdc,package='BulkSignalR')
+#' normal <- grep("^N", names(sdc))
+#' bsrdm <- prepareDataset(sdc[,-normal])
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.new <- rescoreInference(bsrinf, param=param(bsrdm), rank.p=0.75)
 #'
 setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.55,
                     fdr.proc=c("BH", "Bonferroni", "Holm",
@@ -350,10 +357,15 @@ if (!isGeneric("getPathwayStats")) {
 #' this (hypergeometric test) computation.
 #' @export
 #' @examples
-#' \dontrun{
+#' print('getPathwayStats')
+#' data(sdc,package='BulkSignalR')
+#' normal <- grep("^N", names(sdc))
+#' bsrdm <- prepareDataset(sdc[,-normal])
+#' bsrinf <- initialInference(bsrdm)
+#'
 #' pw.stat <- getPathwayStats(bsrinf)
 #' head(pw.stat)
-#' }
+#' 
 #' @importFrom foreach %do% %dopar%
 setMethod("getPathwayStats", "BSRInference", function(obj,
                                 pval.thres=NULL, qval.thres=NULL){
@@ -428,9 +440,18 @@ if (!isGeneric("reduceToBestPathway")) {
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' bsrinf.red <- reduceToBestPathway(bsrinf)
-#' }
+#' print('reduceToBestPathway')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redBP  <- reduceToBestPathway(bsrinf)  
+#'
 #' @importFrom rlang .data
 setMethod("reduceToBestPathway", "BSRInference", function(obj) {
 
@@ -494,9 +515,18 @@ if (!isGeneric("reduceToReceptor")) {
 #' pathway featuring the smallest P-value.
 #' @export
 #' @examples
-#' \dontrun{
-#' bsrinf.redR <- reduceToReceptor(bsrinf)
-#' }
+#' print('reduceToReceptor')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redR  <- reduceToReceptor(bsrinf)  
+#'
 #' @importFrom rlang .data
 setMethod("reduceToReceptor", "BSRInference", function(obj){
 
@@ -560,9 +590,18 @@ if (!isGeneric("reduceToLigand")) {
 #' the smallest P-value.
 #' @export
 #' @examples
-#' \dontrun{
-#' bsrinf.redL <- reduceToLigand(bsrinf)
-#' }
+#' print('reduceToLigand')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redL  <- reduceToLigand(bsrinf)  
+#'
 #' @importFrom rlang .data
 setMethod("reduceToLigand", "BSRInference", function(obj){
 
@@ -632,9 +671,17 @@ if (!isGeneric("reduceToPathway")) {
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' bsrinf.redP <- reduceToPathway(bsrinf)
-#' }
+#' print('reduceToPathway')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redP  <- reduceToPathway(bsrinf)  
 #' @importFrom rlang .data
 setMethod("reduceToPathway", "BSRInference", function(obj){
 
@@ -708,8 +755,19 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' the rank is defined for correlation absolute values.
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' print('getLRGeneSignatures')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redP  <- reduceToPathway(bsrinf)  
+#' bsrsig.redP <- getLRGeneSignatures(bsrinf.redP,qval.thres=0.001)
+#'
 #' @importFrom foreach %do% %dopar%
 setMethod("getLRGeneSignatures", "BSRInference", function(obj,
         pval.thres=NULL, qval.thres=NULL){
@@ -769,8 +827,25 @@ if (!isGeneric("resetToInitialOrganism")) {
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#'data(bodyMap.mouse)
+#'ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
+#'                                     from_values = rownames(bodyMap.mouse))
+#' 
+#'matrix.expression.human <- convertToHuman(counts = bodyMap.mouse, 
+#'                                           dictionary = ortholog.dict)
+#'
+#'bsrdm  <- prepareDataset(counts = matrix.expression.human,
+#'           species = "mmusculus",
+#'           conversion.dict = ortholog.dict)
+#'
+#'bsrdm <- learnParameters(bsrdm, null.model="normal" , quick = FALSE, 
+#'           plot.folder="../man/figures/",filename = "bodyMap.mouse",
+#'           verbose = TRUE)
+#' 
+#'bsrinf  <- initialInference(bsrdm)
+#' 
+#'bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
+#'
 setMethod("resetToInitialOrganism", "BSRInference", function(obj,
                   conversion.dict=data.frame(Gene.name="A",row.names = "B") ){
 

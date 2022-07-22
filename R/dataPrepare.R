@@ -187,6 +187,10 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
 #' @export
 #' @examples
 #' print('findOrthoGenes')
+#' data(bodyMap.mouse)
+#' ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
+#'                                     from_values = rownames(bodyMap.mouse))
+#'
 findOrthoGenes<- function(from_organism ="mmusculus",
         from_values=c("TP53"),
         method = c("gprofiler","homologene","babelgene")) {
@@ -228,18 +232,27 @@ findOrthoGenes<- function(from_organism ="mmusculus",
 
 
 #' @title Transpose to Human Gene Names
+#'
 #' @description By default, BulkSignalR is designed to work with Homo Sapiens.
 #' In order to work with other species, gene names need to be first converted
 #' to Human following an orthology mapping process.
 #' @param counts     A table or matrix of read counts.
 #' @param dictionary   A dataframe where first column belong to 
-#  organism of study & rownames are the human gene names.
+#'  organism of study & rownames are the human gene names.
 #'
 #' @return Return a counts matrix transposed for Human.
 #'
 #' @export
 #' @examples
 #' print('convertToHuman')
+#' data(bodyMap.mouse)
+#' 
+#' ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
+#'                                     from_values = rownames(bodyMap.mouse))
+#' 
+#' matrix.expression.human <- convertToHuman(counts = bodyMap.mouse,   
+#' dictionary = ortholog.dict)
+#'
 convertToHuman <- function(counts,dictionary=data.frame(Gene.name="A",row.names = "B")) {
 
           # Should test counts have rownames.
