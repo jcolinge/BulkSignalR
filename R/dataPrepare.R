@@ -25,6 +25,8 @@
 #' @param min.LR.found  The minimum number of ligands or receptors found in
 #'   \code{count} row names after eliminating the rows containing too many
 #'   zeros according to \code{min.count} and \code{prop}.
+#' @param conversion.dict  Optional : Table correspondance gene symbols
+#' Human - Non Human organism
 #'
 #' @return A BSRModelData object with empty model parameters.
 #'

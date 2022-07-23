@@ -13,7 +13,7 @@ library(methods)
 #'
 #' @export
 #' @examples
-#' new("BSRSignatures")
+#' new("BSRSignature")
 #'
 setClass("BSRSignature",
          slots=c(pathways="character",
@@ -46,14 +46,13 @@ setValidity("BSRSignature",
 )
 
 setMethod("show", "BSRSignature", function(object) {
-    print(head(
-        data.frame(L=sapply(object@ligands, function(x) paste(x,collapse=";")),
+    print(data.frame(L=sapply(object@ligands, function(x) paste(x,collapse=";")),
                    R=sapply(object@receptors, function(x) paste(x,collapse=";")),
                    pathways=object@pathways,
                    tGenes=sapply(object@t.genes, function(x) paste(x,collapse=";"))
 
-        )
-    ))
+        )[5,]
+    )
 })
 
 
@@ -67,6 +66,7 @@ if (!isGeneric("pathways")) {
     setGeneric("pathways", fun)
 }
 #' pathways accessor
+#' @param x BSRSignature
 #' @export
 setMethod("pathways", "BSRSignature", function(x) x@pathways)
 
@@ -78,6 +78,7 @@ if (!isGeneric("ligands")) {
     setGeneric("ligands", fun)
 }
 #' ligands accessor
+#' @param x BSRSignature
 #' @export
 setMethod("ligands", "BSRSignature", function(x) x@ligands)
 
@@ -89,6 +90,7 @@ if (!isGeneric("receptors")) {
     setGeneric("receptors", fun)
 }
 #' receptors accessor
+#' @param x BSRSignature
 #' @export
 setMethod("receptors", "BSRSignature", function(x) x@receptors)
 
@@ -100,6 +102,7 @@ if (!isGeneric("tGenes")) {
     setGeneric("tGenes", fun)
 }
 #' Target genes accessor
+#' @param x BSRSignature
 #' @export
 setMethod("tGenes", "BSRSignature", function(x) x@t.genes)
 
@@ -111,5 +114,6 @@ if (!isGeneric("tgCorr")) {
     setGeneric("tgCorr", fun)
 }
 #' Target genes accessor
+#' @param x BSRSignature
 #' @export
 setMethod("tgCorr", "BSRSignature", function(x) x@tg.corr)

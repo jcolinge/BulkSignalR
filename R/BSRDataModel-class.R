@@ -17,9 +17,9 @@ library(methods)
 #' @export
 #' @examples
 #' new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
-#'                                    dimnames=list(c("A","B"), c("C","D"))),
-#'                     log.transformed=TRUE,
-#'                     normalization="TC",species="hsapiens")
+#'       dimnames=list(c("A","B"), c("C","D"))),
+#'       log.transformed=TRUE,
+#'       normalization="TC")
 #'
 setClass("BSRDataModel",
          slots=c(initial.organism="character",
@@ -64,7 +64,7 @@ setMethod("show", "BSRDataModel",
         print(object@param)
         cat("Expression data:\n")
         if (ncol(object@ncounts) > 10)
-            print(head(object@ncounts[,1:10]))
+            print(as.data.frame(object@ncounts[,1:10])[5,])
     }
 )
 
@@ -230,7 +230,7 @@ if (!isGeneric("learnParameters")) {
 #' bsrdm <- prepareDataset(sdc[,-normal])
 #'
 #' print("learnParameters")
-#' bsrdm <- learnParameters(bsrdm)
+#' bsrdm <- learnParameters(bsrdm,plot.folder="./")
 #' bsrdm
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,

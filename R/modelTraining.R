@@ -192,7 +192,7 @@
         ) + length(d)*log(q)
     }
     mu <- mean(d)
-    sigma <- sd(d)
+    sigma <- stats::sd(d)
     par.0 <- c(0.7, mu-0.1, 0.75*sigma, mu+0.1, 3*sigma)
     lo.bound <- c(0.5, mu-0.5, 0.5*sigma, mu-0.2, 2*sigma)
     hi.bound <- c(1.0, mu+0.2, 1.5*sigma, mu+0.4, 10*sigma)
@@ -284,7 +284,7 @@
                                  gamma=(par[3])**2, delta=par[4], log=TRUE)
              ) + length(d)*log(q)
     }
-    par.0 <- c(1.5, 0.5, sqrt(sd(d)), mean(d))
+    par.0 <- c(1.5, 0.5, sqrt(stats::sd(d)), mean(d))
     if (verbose)
         cat(paste0("Starting stable distribution parameter estimation. ",
                    "This can take minutes...\n"))

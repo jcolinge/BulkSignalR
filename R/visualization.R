@@ -31,7 +31,7 @@
 #' @param width     Global image width size.
 #' @param height    Global image height size.
 #' @param pointsize Global pointsize.
-#' @param format   File format svg (default), png or pdf
+#' @param format   File format svg (default),png or pdf.
 #'
 #' @return  A plot is created with the given filename. 
 #'
@@ -39,6 +39,7 @@
 #' of representing LR - Pathways association
 #' with their respective correlation
 #' and Q-values.
+#'
 #' @export
 #' @examples
 #' print('bubblePlot.pathways.LR')
@@ -66,14 +67,14 @@
 bubblePlot.pathways.LR <- function(bsrinf,
     pathways=c("Cell surface interactions at the vascular wall"),
     threshold = 1,
-    filter.L = NULL, 
-    filter.R = NULL,
+    filter.L=NULL, 
+    filter.R=NULL,
     path="./",
-    filename="DotPlot",
-    color= "#16a647",
-    width  = 16, 
-    height = 7,
-    pointsize = 6, 
+    filename="bubblePlot",
+    color="#16a647",
+    width=16, 
+    height=7,
+    pointsize=6, 
     format=c("svg","png","pdf") ) {
 
     if (!dir.exists(path)) {
@@ -89,7 +90,8 @@ bubblePlot.pathways.LR <- function(bsrinf,
     filtered.brinf$LR <- paste (filtered.brinf$L,filtered.brinf$R,sep= "->")
 
     filtered.brinf <- filtered.brinf[,c("LR","pw.name","LR.corr","qval")] 
-    filtered.brinf$log10 <- -log10(filtered.brinf$qval)
+    filtered.brinf$log10.qval <- -log10(filtered.brinf$qval)
+    filtered.brinf$log10.LR.corr <- -log10(filtered.brinf$LR.corr)
 
     filtered.brinf <- filtered.brinf[filtered.brinf$pw.name %in% pathways,]
    
@@ -119,23 +121,25 @@ bubblePlot.pathways.LR <- function(bsrinf,
 
     format <- match.arg(format)
 
-    if (format=="svg")
-        svg(file=paste0(path,filename,".svg")
-         ,width=(width+3)/2.54, height=height/2.54) 
+    #if (!is.null(filename))
+        if (format=="svg")
+            grDevices::svg(file=paste0(path,filename,".svg")
+             ,width=(width+3)/2.54, height=height/2.54) 
 
-    if (format=="png")
-        png(file=paste0(path,filename,".png")
-         ,width=(width+3)/2.54, height=height/2.54) 
+        if (format=="png")
+            grDevices::png(file=paste0(path,filename,".png")
+             ,width=(width+3)/2.54, height=height/2.54) 
 
-    if (format=="pdf")
-       pdf(file=paste0(path,filename,".pdf")
-            ,width=(width+3)/2.54, height=height/2.54) 
+        if (format=="pdf")
+           grDevices::pdf(file=paste0(path,filename,".pdf")
+                ,width=(width+3)/2.54, height=height/2.54) 
 
-
+    #else grDevices::dev.new(width=(width+3)/2.54, height=height/2.54)
+    #ggsave
     print(ggplot2::ggplot(filtered.brinf, 
-       aes(x = LR, y = pw.name)) + 
-       ggplot2::geom_point(aes(size = -log10(LR.corr),
-       fill = log10 ), alpha = 0.75, shape = 21) + 
+       ggplot2::aes_string(x = "LR", y = "pw.name")) + 
+       ggplot2::geom_point(ggplot2::aes_string(size = "log10.LR.corr",
+       fill = "log10.qval" ), alpha = 0.75, shape = 21) + 
        labs(x= "", y = "", size = "-log10 (LR.corr)",
         fill = "-log10 (Qval)")  + 
        ggplot2::theme(legend.key=ggplot2::element_blank(),  
@@ -157,8 +161,9 @@ bubblePlot.pathways.LR <- function(bsrinf,
        high = color,space = "Lab",na.value = "grey50",
        guide = "colourbar",aesthetics = "fill") +
        ggplot2::scale_y_discrete(limits = rev(levels(filtered.brinf$pw.name))) )
-   
-   grDevices::dev.off()
+    
+    #if (!is.null(filename))
+        grDevices::dev.off()
 
 }
 
@@ -387,15 +392,15 @@ signatureHeatmaps <- function(
     format <- match.arg(format)
 
     if (format=="svg")
-        svg(file=paste0(path,filename,".svg")
+        grDevices::svg(file=paste0(path,filename,".svg")
          ,width=(width+6)/2.54, height=height/2.54) 
 
     if (format=="png")
-        png(file=paste0(path,filename,".png")
+        grDevices::png(file=paste0(path,filename,".png")
          ,width=(width+6)/2.54, height=height/2.54) 
 
     if (format=="pdf")
-       pdf(file=paste0(path,filename,".pdf")
+       grDevices::pdf(file=paste0(path,filename,".pdf")
             ,width=(width+6)/2.54, height=height/2.54) 
 
      grid::grid.newpage()#grid
@@ -927,9 +932,9 @@ alluvial.plot <- function(bsrinf,
 
      stratum <- ggalluvial::StatStratum
 
-     pl <- ggplot2::ggplot(as.data.frame(subset.interactions),
-        aes(y = count, axis1 = L, axis2 = R,axis3 = pw.name)) +
-        ggalluvial::geom_alluvium(aes(fill = R), width = 1/12) +
+     pl <- ggplot2::ggplot(subset.interactions,
+        ggplot2::aes_string(y = "count", axis1 = "L", axis2 = "R",axis3 = "pw.name")) +
+        ggalluvial::geom_alluvium(ggplot2::aes_string(fill = "R"), width = 1/12) +
         ggalluvial::geom_stratum(width = 1/12, fill = "black", color = "grey") +
         ggplot2::geom_label(stat = stratum,  aes(label = ggplot2::after_stat(stratum))) +
         ggplot2::scale_x_discrete(limits = c("L", "R","pw.name"), expand = c(0.5, 0.5)) +
@@ -1083,11 +1088,11 @@ chord.diagram.LR  <- function(bsrinf,path="./",
     link.width[index.filter] <- 0.15
 
     if (format=="svg")#3.6
-        svg(paste0(path,"/",filename,".svg"),width=width, height=height) #inch
+        grDevices::svg(paste0(path,"/",filename,".svg"),width=width, height=height) #inch
     if (format=="png")
-        png(paste0(path,"/",filename,".png"),width=width, height=height)
+        grDevices::png(paste0(path,"/",filename,".png"),width=width, height=height)
     if (format=="pdf")
-        pdf(paste0(path,"/",filename,".pdf"),width=width, height=height)
+        grDevices::pdf(paste0(path,"/",filename,".pdf"),width=width, height=height)
 
     interactions <- data.frame(from=dataframe.bsrinf$ligands,
         to=dataframe.bsrinf$receptors,
@@ -1107,7 +1112,7 @@ chord.diagram.LR  <- function(bsrinf,path="./",
           link.arr.length = link.width,
           link.arr.width  = link.width,
           link.arr.type  = "triangle", 
-          link.arr.lty = par("lty"),
+          link.arr.lty = "solid",
           link.arr.lwd = link.lwd, 
           link.arr.col = link.col,
           big.gap = 2, 
@@ -1160,7 +1165,7 @@ chord.diagram.LR  <- function(bsrinf,path="./",
 
      circos.clear()
 
-     dev.off()
+     grDevices::dev.off()
 
 }
 
