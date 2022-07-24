@@ -16,8 +16,10 @@ library(methods)
 #' @details This class is a container for inferred LR interactions along with
 #' their statistical confidence. Data representation supports subsequent
 #' reductions to pathways, etc. See reduction functions
-#' \code{\link{reduceToBestPathway}}, \code{\link{reduceToLigand}},
-#' \code{\link{reduceToReceptor}}, and \code{\link{reduceToPathway}}.
+#' \code{"\link[=BSRInference-class]{reduceToBestPathway}"},
+#' \code{"\link[=BSRInference-class]{reduceToLigand}"},
+#' \code{"\link[=BSRInference-class]{reduceToReceptor}"} and
+#' \code{"\link[=BSRInference-class]{reduceToPathway}"}.
 #' @export
 #' @examples
 #' new("BSRInference")
@@ -83,6 +85,7 @@ if (!isGeneric("LRinter")) {
     setGeneric("LRinter", fun)
 }
 #' LRinter accessor
+#' @param x BSRInference object
 #' @export
 setMethod("LRinter", "BSRInference", function(x) x@LRinter)
 
@@ -94,6 +97,8 @@ if (!isGeneric("LRinter<-")) {
     setGeneric("LRinter<-", fun)
 }
 #' LRinter setter (internal use only)
+#' @param x BSRInference object
+#' @param value value to be set to BSRInference 
 setMethod("LRinter<-", "BSRInference", function(x, value){
     x@LRinter <- value
     methods::validObject(x)
@@ -108,6 +113,7 @@ if (!isGeneric("ligands")) {
     setGeneric("ligands", fun)
 }
 #' ligands accessor
+#' @param x BSRInference object
 #' @export
 setMethod("ligands", "BSRInference", function(x) x@ligands)
 
@@ -119,6 +125,8 @@ if (!isGeneric("ligands<-")) {
     setGeneric("ligands<-", fun)
 }
 #' ligands setter (internal use only)
+#' @param x BRSInference object
+#' @param value Value to be set for bsrinf
 setMethod("ligands<-", "BSRInference", function(x, value){
     x@ligands <- value
     methods::validObject(x)
@@ -133,6 +141,7 @@ if (!isGeneric("receptors")) {
     setGeneric("receptors", fun)
 }
 #' receptors accessor
+#' @param x BRSInference object
 #' @export
 setMethod("receptors", "BSRInference", function(x) x@receptors)
 
@@ -144,6 +153,8 @@ if (!isGeneric("receptors<-")) {
     setGeneric("receptors<-", fun)
 }
 #' receptors setter (internal use only)
+#' @param x BRSInference object
+#' @param value value to be set for BRSInference 
 setMethod("receptors<-", "BSRInference", function(x, value){
     x@receptors <- value
     methods::validObject(x)
@@ -158,6 +169,7 @@ if (!isGeneric("tGenes")) {
     setGeneric("tGenes", fun)
 }
 #' Target genes accessor
+#' @param x BSRInferance object
 #' @export
 setMethod("tGenes", "BSRInference", function(x) x@t.genes)
 
@@ -169,6 +181,8 @@ if (!isGeneric("tGenes<-")) {
     setGeneric("tGenes<-", fun)
 }
 #' Target genes setter (internal use only)
+#' @param x BSRInferance object
+#' @param value value to be set BSRInferance 
 setMethod("tGenes<-", "BSRInference", function(x, value){
     x@t.genes <- value
     methods::validObject(x)
@@ -183,6 +197,7 @@ if (!isGeneric("tgCorr")) {
     setGeneric("tgCorr", fun)
 }
 #' Target gene correlations accessor
+#' @param x BSRInference object
 #' @export
 setMethod("tgCorr", "BSRInference", function(x) x@tg.corr)
 
@@ -194,6 +209,8 @@ if (!isGeneric("tgCorr<-")) {
     setGeneric("tgCorr<-", fun)
 }
 #' Target gene correlations setter (internal use only)
+#' @param x BSRInference object
+#' @param value value to be set for bsrinf
 setMethod("tgCorr<-", "BSRInference", function(x, value){
     x@tg.corr <- value
     methods::validObject(x)
@@ -208,6 +225,7 @@ if (!isGeneric("infParam")) {
     setGeneric("infParam", fun)
 }
 #' Inference parameters accessor
+#' @param x BRSInferecence object.
 #' @export
 setMethod("infParam", "BSRInference", function(x) x@inf.param)
 if (!isGeneric("infParam<-")) {
@@ -218,6 +236,8 @@ if (!isGeneric("infParam<-")) {
     setGeneric("infParam<-", fun)
 }
 #' Inference parameters setter (internal use only)
+#' @param x BRSInferecence object.
+#' @param value value to be set.
 setMethod("infParam<-", "BSRInference", function(x, value){
     x@inf.param <- value
     methods::validObject(x)
@@ -238,14 +258,17 @@ if (!isGeneric("rescoreInference")) {
 #'
 #' A method to re-score an existing BSRInference object
 #' (P- and Q-value estimations).
-#'
+#' @param obj BRSInferecence object.
+#' @param param BSRdataModel parameters.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #'   considered target genes.
 #' @param fdr.proc      The procedure for adjusting P-values according to
 #'   \code{\link[multtest]{mt.rawp2adjp}}.
 #'
-#' @details A BSRInference object should be created by calling
-#' \code{\link{initialInference}}. Parameters controlling the estimation
+#' @details A BSRInference object should be created by calling 
+#' \code{"\link[=BSRDataModel-class]{initialInference}"}
+#'
+#' Parameters controlling the estimation
 #' of the statistical significance of the ligand/receptor/pathway triples
 #' are provided at the time of calling the latter method.
 #'
@@ -337,6 +360,7 @@ if (!isGeneric("getPathwayStats")) {
 }
 #' Basic statistics about hit pathways
 #'
+#' @param obj    BSRinf object.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
 #' @return A table with the pathways selected after the chosen threshold was
@@ -429,6 +453,8 @@ if (!isGeneric("reduceToBestPathway")) {
 }
 #' Keep one pathway per ligand-receptor pair
 #'
+#' @param obj BSRInference object
+#'
 #' @return A BSRInference object reduced to only report one pathway per
 #' ligand-receptor pair. The pathway with the
 #' smallest P-value is selected.
@@ -513,6 +539,7 @@ if (!isGeneric("reduceToReceptor")) {
 #'
 #' The reported P-value and target genes are those from the line with the
 #' pathway featuring the smallest P-value.
+#' @param obj BRSInfereance object
 #' @export
 #' @examples
 #' print('reduceToReceptor')
@@ -588,6 +615,7 @@ if (!isGeneric("reduceToLigand")) {
 #'
 #' The reported P-value and target genes are those from the pathway with
 #' the smallest P-value.
+#' @param obj BSRInference object
 #' @export
 #' @examples
 #' print('reduceToLigand')
@@ -669,6 +697,7 @@ if (!isGeneric("reduceToPathway")) {
 #' while the list representation slots (\code{ligands} and
 #' \code{receptors}) are update accordingly.
 #'
+#' @param obj BSRInference object
 #' @export
 #' @examples
 #' print('reduceToPathway')
@@ -742,8 +771,9 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' Obtains gene signatures reflecting ligand-receptor as well as
 #' receptor downstream activity to
 #' score ligand-receptor pairs across samples subsequently with
-#' \code{\link{scoreLRGeneSignatures}}.
+#' \code{"\link[=BSRInference-class]{scoreLRGeneSignatures}"}
 #'
+#' @param obj    BSRinf Object.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
 #' @return A BSRSignature object containing a gene signature for each triple
@@ -769,6 +799,7 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' bsrsig.redP <- getLRGeneSignatures(bsrinf.redP,qval.thres=0.001)
 #'
 #' @importFrom foreach %do% %dopar%
+#' @importFrom methods new
 setMethod("getLRGeneSignatures", "BSRInference", function(obj,
         pval.thres=NULL, qval.thres=NULL){
 
@@ -819,6 +850,7 @@ if (!isGeneric("resetToInitialOrganism")) {
 
 #' # Reset gene names to initial organism providen in first instance
 #'
+#' @param obj  BSRInference object
 #' @param conversion.dict   A dictionnary
 #'
 #' @return An BSRInference object updated for gene names.

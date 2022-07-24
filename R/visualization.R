@@ -171,14 +171,13 @@ bubblePlot.pathways.LR <- function(bsrinf,
 #' Heatmap function for gene expression of signature
 #'
 #' Generate one heatmap re-used by 
-#' by  \code{\link{scoreLRGeneSignatures}}
+#' by  
+#' \code{"\link[=BSRDataModel-class]{scoreLRGeneSignatures}"}
 #'
 #' @param counts  Matrice of counts exported from a
 #  BulksignalR data model object.
 #' @param width   Heatmap  width size.
 #' @param height      Heatmap  height size.
-#' @param image_width     Global image width size.
-#' @param image_height    Global image height size.
 #' @param scoring Vector of scored sample for a 
 #' a previously choosen pathway.
 #' @param cols.scoring   Fixed colorRamp2 object.
@@ -642,7 +641,7 @@ simpleHeatmap <- function(mat.c, width, height,
 #' feature along with gene signatures.
 #'
 #' @param mat.c         A matrix with the signature scores such as output by
-#' \code{\link{scoreLRGeneSignatures}}.
+#' \code{"\link[=BSRInference-class]{scoreLRGeneSignatures}"}
 #' @param mat.e         A second matrix to feature below mat.c.
 #' @param file.name     A PDF file name.
 #' @param dend.row       A precomputed row dendrogram for \code{mat.c}.
@@ -793,7 +792,8 @@ dualHeatmap <- function(mat.c, mat.e, width, height, file.name=NULL,
 #' @return A matrix containing the scores of 
 #' each gene signature in each sample.
 #' Note that ligand-receptor gene
-#' signature scores should be computed with \code{\link{scoreLRGeneSignatures}}
+#' signature scores should be computed with 
+#' \code{"\link[=BSRDataModel-class]{scoreLRGeneSignatures}"}
 #' instead.
 #' @export
 #' @examples
@@ -807,6 +807,7 @@ dualHeatmap <- function(mat.c, mat.e, width, height, file.name=NULL,
 #'          verbose = TRUE)
 #' data(immune.signatures, package="BulkSignalR")
 #' imm.scores <- scoreSignatures(bsrdm, immune.signatures)
+#' @importFrom methods is
 scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 
     if (!is(ds, "BSRDataModel"))
@@ -849,7 +850,7 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' @description Representation of the links
 #' between Ligands,Receptors and Pathways.
 #'
-#' @param bsrsig object bsrinf inference.
+#' @param bsrinf object bsrinf inference.
 #' @param keywords vector of pathways.
 #' @param type filter on Ligand, Recptor or pathway id.
 #' @param qval threshold over Q-value.

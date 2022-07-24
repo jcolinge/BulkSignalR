@@ -18,6 +18,7 @@
 #'   LRdb must be further restricted to a subset.
 #'   The putative ligand-receptor pairs has 3 columns : R, L and corr.
 #'
+#' @importFrom methods is
 #' @importFrom foreach %do% %dopar%
 #' @import doParallel
 #'
@@ -254,6 +255,7 @@
 #' and Reactome. The minimum pathway size is
 #' used to avoid overspecific, noninformative results.
 #'
+#' @importFrom methods is 
 .checkReceptorSignaling <- function(ds, lr, reference=c("REACTOME-GOBP",
                                                      "REACTOME","GOBP"),
                                     max.pw.size=200, min.pw.size=5,

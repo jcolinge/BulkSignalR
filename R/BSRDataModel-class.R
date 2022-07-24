@@ -79,6 +79,7 @@ if (!isGeneric("initialOrganism")) {
     setGeneric("initialOrganism", fun)
 }
 #' organism accessor
+#' @param x Object BSRDataModel
 #' @export
 setMethod("initialOrganism", "BSRDataModel", function(x) x@initial.organism)
 
@@ -91,6 +92,7 @@ if (!isGeneric("initialOrthologs")) {
     setGeneric("initialOrthologs", fun)
 }
 #' Model parameter accessor
+#' @param x Object BSRDataModel
 #' @export
 setMethod("initialOrthologs", "BSRDataModel", function(x) x@initial.orthologs)
 
@@ -103,6 +105,7 @@ if (!isGeneric("ncounts")) {
     setGeneric("ncounts", fun)
 }
 #' Normalized count matrix accessor
+#' @param x object BSRDataModel 
 #' @export
 setMethod("ncounts", "BSRDataModel", function(x) x@ncounts)
 
@@ -114,6 +117,8 @@ if (!isGeneric("ncounts<-")) {
     setGeneric("ncounts<-", fun)
 }
 #' Normalized count matrix setter (internal use only)
+#' @param x object BSRDataModel 
+#' @param value valut to be set for BSRDataModel 
 setMethod("ncounts<-", "BSRDataModel", function(x,value){
     x@ncounts <- value
     methods::validObject(x)
@@ -129,6 +134,7 @@ if (!isGeneric("param")) {
     setGeneric("param", fun)
 }
 #' Model parameter accessor
+#' @param x BSRDataModel oject
 #' @export
 setMethod("param", "BSRDataModel", function(x) x@param)
 
@@ -140,6 +146,7 @@ if (!isGeneric("logTransformed")) {
     setGeneric("logTransformed", fun)
 }
 #' log.transformed accessor
+#' @param x Object BRSDataModel
 #' @export
 setMethod("logTransformed", "BSRDataModel", function(x) x@log.transformed)
 
@@ -151,6 +158,7 @@ if (!isGeneric("normalization")) {
     setGeneric("normalization", fun)
 }
 #' Normalization accessor
+#' @param x oject BSRDatamModel 
 #' @export
 setMethod("normalization", "BSRDataModel", function(x) x@normalization)
 
@@ -168,6 +176,7 @@ if (!isGeneric("learnParameters")) {
 #' Unique entry point for training the parameters behind
 #' BulkSignalR statistical models.
 #'
+#' @param obj   A BSRDatamodel without learned paramaters.
 #' @param plot.folder   A folder name for generating control plots.
 #' @param filename      Name of the output plot.
 #' @param verbose       A logical activating progress messages for the user.
@@ -204,7 +213,7 @@ if (!isGeneric("learnParameters")) {
 #'   The \code{min.pw.size}, \code{max.pw.size}, and \code{min.positive}
 #'   parameters should be identical to the
 #'   values intended when searching for ligand-receptor pairs with
-#'   \code{\link{getCorrelatedLR}} and \code{\link{checkReceptorSignaling}}.
+#'   \code{\link{.getCorrelatedLR}}) and  \code{\link{.checkReceptorSignaling}})
 #'   Although the statistical distributions are rather robust, it is not
 #'   advisable to use different parameters that could introduce unanticipated
 #'   biases, but for saving compute time and exploring.
@@ -232,6 +241,8 @@ if (!isGeneric("learnParameters")) {
 #' print("learnParameters")
 #' bsrdm <- learnParameters(bsrdm,plot.folder="./")
 #' bsrdm
+#' bsrdm
+#' @importFrom methods new
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
       max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = FALSE,
@@ -361,8 +372,10 @@ if (!isGeneric("initialInference")) {
 #' In this initial inference, all the relevant pathways are reported,
 #' see reduction functions to reduce this list.
 #'
-#' @param ds         A BSRDataModel output by \code{\link{prepareDataset}} with
-#' statistical model parameters trained by its \code{learnParameters}
+#' @param obj         A BSRDataModel output by \code{\link{prepareDataset}} with
+#' statistical model parameters trained by 
+#' \code{"\link[=BSRDataModel-class]{learnParameters}"}
+#'
 #' method.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #' considered target genes.
@@ -397,7 +410,9 @@ if (!isGeneric("initialInference")) {
 #' Parameters defining minimum/maximum pathway sizes, etc. are set to NULL
 #' by default, meaning that their values will be taken from what was set
 #' during the training of the statistical model with
-#' BSRDataModel method (\code{\link{learnParameters}}). To use different
+#' \code{"\link[=BSRDataModel-class]{learnParameters}"}
+#'
+#' To use different
 #' values at the time of inference sounds like a bad idea, although this
 #' could be used to explore without retraining the underlying model.
 #' Retraining of the model with adjusted parameters is advised following
@@ -420,7 +435,7 @@ if (!isGeneric("initialInference")) {
 #' print('perform inference')
 #' bsrinf <- initialInference(bsrdm)
 #' bsrinf
-#'
+#' @importFrom methods new
 setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.55,
         min.cor = 0.25,
         restrict.genes = NULL, reference=c("REACTOME-GOBP","REACTOME","GOBP"),
@@ -491,6 +506,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #'
 #' Compute ligand-receptor gene signature scores over a BSRDataModel.
 #'
+#' @param obj           A BSRDataModel object.
 #' @param sig           A BSRSignature object.
 #' @param LR.weight    A number between 0 and 1 defining the relative weight
 #' of the ligand and the receptor in the signature.
@@ -513,6 +529,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' if(FALSE){}
 #'
 #' @importFrom foreach %do% %dopar%
+#' @importFrom methods is
 setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
                   sig, LR.weight=0.5, robust=FALSE,
                   name.by.pathway=FALSE, abs.z.score=FALSE,rownames.LRP=FALSE){

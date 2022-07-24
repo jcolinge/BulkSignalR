@@ -26,8 +26,9 @@
 #' bsrinf <- initialInference(bsrdm)
 #' gLR <- getLRNetwork(bsrinf, qval.thres=1e-4)
 #' # plot(gLR)
-#' write.graph(gLR, file="SDC-LR-network.graphml", format="graphml")
+#' # write.graph(gLR, file="SDC-LR-network.graphml", format="graphml")
 #' 
+#' @importFrom methods is
 getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                          node.size=5, red.pairs=NULL){
 
@@ -198,6 +199,7 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' targets adds other genes, which were either some targets with too low
 #' correlation or genes along the shortest paths to reach the selected targets.
 #' @import igraph
+#' @importFrom methods is
 #' @export
 #' @examples
 #' print('getLRIntracellNetwork')
@@ -218,8 +220,8 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=0.01,
 #'                                      restrict.pw=top$pw.id)
 #'
-#' write.graph(gLRintra, file="SDC-LR-intracellular-network.reduced.graphml",
-#'           format="graphml")
+#' # write.graph(gLRintra, file="SDC-LR-intracellular-network.reduced.graphml",
+#'           # format="graphml")
 #'
 getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                                   min.cor=0.25, restrict.pw=NULL,
