@@ -241,7 +241,6 @@ if (!isGeneric("learnParameters")) {
 #' print("learnParameters")
 #' bsrdm <- learnParameters(bsrdm,plot.folder="./")
 #' bsrdm
-#' bsrdm
 #' @importFrom methods new
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
@@ -526,8 +525,23 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #'
 #' @export
 #' @examples
-#' if(FALSE){}
+#' print('prepareDataset')
+#' data(sdc,package='BulkSignalR')
+#' normal <- grep("^N", names(sdc))
+#' bsrdm <- prepareDataset(sdc[,-normal])
 #'
+#' print("learnParameters")
+#' bsrdm <- learnParameters(bsrdm)
+#' bsrdm
+#'
+#' print('perform inference')
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redBP <- reduceToBestPathway(bsrinf) 
+#' bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP,
+#' qval.thres=0.001)
+#'
+#' scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,
+#'                        name.by.pathway=FALSE)
 #' @importFrom foreach %do% %dopar%
 #' @importFrom methods is
 setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,

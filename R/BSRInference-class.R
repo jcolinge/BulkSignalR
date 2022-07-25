@@ -284,6 +284,12 @@ if (!isGeneric("rescoreInference")) {
 #' data(sdc,package='BulkSignalR')
 #' normal <- grep("^N", names(sdc))
 #' bsrdm <- prepareDataset(sdc[,-normal])
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
 #' bsrinf <- initialInference(bsrdm)
 #' bsrinf.new <- rescoreInference(bsrinf, param=param(bsrdm), rank.p=0.75)
 #'
@@ -385,6 +391,12 @@ if (!isGeneric("getPathwayStats")) {
 #' data(sdc,package='BulkSignalR')
 #' normal <- grep("^N", names(sdc))
 #' bsrdm <- prepareDataset(sdc[,-normal])
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
 #' bsrinf <- initialInference(bsrdm)
 #'
 #' pw.stat <- getPathwayStats(bsrinf)
@@ -871,7 +883,7 @@ if (!isGeneric("resetToInitialOrganism")) {
 #'           conversion.dict = ortholog.dict)
 #'
 #'bsrdm <- learnParameters(bsrdm, null.model="normal" , quick = FALSE, 
-#'           plot.folder="../man/figures/",filename = "bodyMap.mouse",
+#'           plot.folder="./",filename = "bodyMap.mouse",
 #'           verbose = TRUE)
 #' 
 #'bsrinf  <- initialInference(bsrdm)
