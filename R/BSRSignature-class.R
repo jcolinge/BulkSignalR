@@ -67,6 +67,9 @@ if (!isGeneric("pathways")) {
     setGeneric("pathways", fun)
 }
 #' pathways accessor
+#'
+#' @name pathways
+#' @aliases pathways,BSRSignature-method
 #' @param x BSRSignature
 #' @export
 setMethod("pathways", "BSRSignature", function(x) x@pathways)
@@ -79,6 +82,9 @@ if (!isGeneric("ligands")) {
     setGeneric("ligands", fun)
 }
 #' ligands accessor
+#'
+#' @name ligands
+#' @aliases ligands,BSRSignature-method
 #' @param x BSRSignature
 #' @export
 setMethod("ligands", "BSRSignature", function(x) x@ligands)
@@ -91,6 +97,9 @@ if (!isGeneric("receptors")) {
     setGeneric("receptors", fun)
 }
 #' receptors accessor
+#'
+#' @name receptors
+#' @aliases receptors,BSRSignature-method
 #' @param x BSRSignature
 #' @export
 setMethod("receptors", "BSRSignature", function(x) x@receptors)
@@ -103,6 +112,9 @@ if (!isGeneric("tGenes")) {
     setGeneric("tGenes", fun)
 }
 #' Target genes accessor
+#'
+#' @name tGenes
+#' @aliases tGenes,BSRSignature-method
 #' @param x BSRSignature
 #' @export
 setMethod("tGenes", "BSRSignature", function(x) x@t.genes)
@@ -115,6 +127,9 @@ if (!isGeneric("tgCorr")) {
     setGeneric("tgCorr", fun)
 }
 #' Target genes accessor
+#'
+#' @name tgCorr
+#' @aliases tgCorr,BSRSignature-method
 #' @param x BSRSignature
 #' @export
 setMethod("tgCorr", "BSRSignature", function(x) x@tg.corr)

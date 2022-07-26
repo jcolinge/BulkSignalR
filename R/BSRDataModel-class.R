@@ -79,6 +79,9 @@ if (!isGeneric("initialOrganism")) {
     setGeneric("initialOrganism", fun)
 }
 #' organism accessor
+#'
+#' @name initialOrganism
+#' @aliases initialOrganism,BSRDataModel-method
 #' @param x Object BSRDataModel
 #' @export
 setMethod("initialOrganism", "BSRDataModel", function(x) x@initial.organism)
@@ -92,6 +95,9 @@ if (!isGeneric("initialOrthologs")) {
     setGeneric("initialOrthologs", fun)
 }
 #' Model parameter accessor
+#'
+#' @name initialOrthologs
+#' @aliases initialOrthologs,BSRDataModel-method
 #' @param x Object BSRDataModel
 #' @export
 setMethod("initialOrthologs", "BSRDataModel", function(x) x@initial.orthologs)
@@ -105,6 +111,9 @@ if (!isGeneric("ncounts")) {
     setGeneric("ncounts", fun)
 }
 #' Normalized count matrix accessor
+#'
+#' @name ncounts
+#' @aliases ncounts,BSRDataModel-method
 #' @param x object BSRDataModel 
 #' @export
 setMethod("ncounts", "BSRDataModel", function(x) x@ncounts)
@@ -117,6 +126,7 @@ if (!isGeneric("ncounts<-")) {
     setGeneric("ncounts<-", fun)
 }
 #' Normalized count matrix setter (internal use only)
+#'
 #' @param x object BSRDataModel 
 #' @param value valut to be set for BSRDataModel 
 setMethod("ncounts<-", "BSRDataModel", function(x,value){
@@ -134,6 +144,9 @@ if (!isGeneric("param")) {
     setGeneric("param", fun)
 }
 #' Model parameter accessor
+#'
+#' @name param
+#' @aliases param,BSRDataModel-method
 #' @param x BSRDataModel oject
 #' @export
 setMethod("param", "BSRDataModel", function(x) x@param)
@@ -146,6 +159,9 @@ if (!isGeneric("logTransformed")) {
     setGeneric("logTransformed", fun)
 }
 #' log.transformed accessor
+#'
+#' @name logTransformed
+#' @aliases logTransformed,BSRDataModel-method
 #' @param x Object BRSDataModel
 #' @export
 setMethod("logTransformed", "BSRDataModel", function(x) x@log.transformed)
@@ -158,6 +174,9 @@ if (!isGeneric("normalization")) {
     setGeneric("normalization", fun)
 }
 #' Normalization accessor
+#'
+#' @name normalization
+#' @aliases normalization,BSRDataModel-method
 #' @param x oject BSRDatamModel 
 #' @export
 setMethod("normalization", "BSRDataModel", function(x) x@normalization)
@@ -175,6 +194,9 @@ if (!isGeneric("learnParameters")) {
 #'
 #' Unique entry point for training the parameters behind
 #' BulkSignalR statistical models.
+#'
+#' @name learnParameters
+#' @aliases learnParameters,BSRDataModel-method
 #'
 #' @param obj   A BSRDatamodel without learned paramaters.
 #' @param plot.folder   A folder name for generating control plots.
@@ -371,6 +393,9 @@ if (!isGeneric("initialInference")) {
 #' In this initial inference, all the relevant pathways are reported,
 #' see reduction functions to reduce this list.
 #'
+#' @name initialInference
+#' @aliases initialInference,BSRDataModel-method
+#'
 #' @param obj         A BSRDataModel output by \code{\link{prepareDataset}} with
 #' statistical model parameters trained by 
 #' \code{"\link[=BSRDataModel-class]{learnParameters}"}
@@ -504,6 +529,9 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' Score ligand-receptor gene signatures
 #'
 #' Compute ligand-receptor gene signature scores over a BSRDataModel.
+#'
+#' @name scoreLRGeneSignatures
+#' @aliases scoreLRGeneSignatures,BSRDataModel-method
 #'
 #' @param obj           A BSRDataModel object.
 #' @param sig           A BSRSignature object.

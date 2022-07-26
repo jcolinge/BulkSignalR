@@ -85,6 +85,9 @@ if (!isGeneric("LRinter")) {
     setGeneric("LRinter", fun)
 }
 #' LRinter accessor
+#'
+#' @name LRinter
+#' @aliases LRinter,BSRInference-method
 #' @param x BSRInference object
 #' @export
 setMethod("LRinter", "BSRInference", function(x) x@LRinter)
@@ -113,6 +116,9 @@ if (!isGeneric("ligands")) {
     setGeneric("ligands", fun)
 }
 #' ligands accessor
+#'
+#' @name ligands
+#' @aliases ligands,BSRInference-method
 #' @param x BSRInference object
 #' @export
 setMethod("ligands", "BSRInference", function(x) x@ligands)
@@ -141,6 +147,9 @@ if (!isGeneric("receptors")) {
     setGeneric("receptors", fun)
 }
 #' receptors accessor
+#'
+#' @name receptors
+#' @aliases receptors,BSRInference-method
 #' @param x BRSInference object
 #' @export
 setMethod("receptors", "BSRInference", function(x) x@receptors)
@@ -169,6 +178,9 @@ if (!isGeneric("tGenes")) {
     setGeneric("tGenes", fun)
 }
 #' Target genes accessor
+#'
+#' @name tGenes
+#' @aliases tGenes,BSRInference-method
 #' @param x BSRInferance object
 #' @export
 setMethod("tGenes", "BSRInference", function(x) x@t.genes)
@@ -197,6 +209,9 @@ if (!isGeneric("tgCorr")) {
     setGeneric("tgCorr", fun)
 }
 #' Target gene correlations accessor
+#'
+#' @name tgCorr
+#' @aliases tgCorr,BSRInference-method
 #' @param x BSRInference object
 #' @export
 setMethod("tgCorr", "BSRInference", function(x) x@tg.corr)
@@ -225,6 +240,9 @@ if (!isGeneric("infParam")) {
     setGeneric("infParam", fun)
 }
 #' Inference parameters accessor
+#'
+#' @name infParam
+#' @aliases infParam,BSRInference-method
 #' @param x BRSInferecence object.
 #' @export
 setMethod("infParam", "BSRInference", function(x) x@inf.param)
@@ -258,6 +276,10 @@ if (!isGeneric("rescoreInference")) {
 #'
 #' A method to re-score an existing BSRInference object
 #' (P- and Q-value estimations).
+#'
+#' @name rescoreInference
+#' @aliases rescoreInference,BSRInference-method
+#'
 #' @param obj BRSInferecence object.
 #' @param param BSRdataModel parameters.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
@@ -366,6 +388,9 @@ if (!isGeneric("getPathwayStats")) {
 }
 #' Basic statistics about hit pathways
 #'
+#' @name getPathwayStats
+#' @aliases getPathwayStats,BSRInference-method
+#'
 #' @param obj    BSRinf object.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
@@ -465,6 +490,9 @@ if (!isGeneric("reduceToBestPathway")) {
 }
 #' Keep one pathway per ligand-receptor pair
 #'
+#' @name reduceToBestPathway
+#' @aliases reduceToBestPathway,BSRInference-method
+#'
 #' @param obj BSRInference object
 #'
 #' @return A BSRInference object reduced to only report one pathway per
@@ -544,6 +572,9 @@ if (!isGeneric("reduceToReceptor")) {
 #'
 #' Simplifies a ligand-receptor table to focus on the receptors.
 #'
+#' @name reduceToReceptor
+#' @aliases reduceToReceptor,BSRInference-method
+#'
 #' @return BSRInference object reduced to one row per receptor.
 #' All the ligands are combined in a
 #' semi-colon-separated list surrounded by curly braces in the tabular
@@ -619,6 +650,9 @@ if (!isGeneric("reduceToLigand")) {
 #' Aggregate the receptors of a same ligand
 #'
 #' Simplifies a ligand-receptor table to focus on the ligands.
+#'
+#' @name reduceToLigand
+#' @aliases reduceToLigand,BSRInference-method
 #'
 #' @return A BSRInference object but reduced to one row per ligand.
 #' All the receptors are combined in a
@@ -696,6 +730,9 @@ if (!isGeneric("reduceToPathway")) {
 #'
 #' Simplifies a ligand-receptor inference object to focus on
 #' the pathways.
+#'
+#' @name reduceToPathway
+#' @aliases reduceToPathway,BSRInference-method
 #'
 #' @return A BSRInference object reduced to only report one row per pathway.
 #' The information of which ligand interacted with which receptor is lost as
@@ -785,6 +822,9 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' score ligand-receptor pairs across samples subsequently with
 #' \code{"\link[=BSRInference-class]{scoreLRGeneSignatures}"}
 #'
+#' @name getLRGeneSignatures
+#' @aliases getLRGeneSignatures,BSRInference-method
+#'
 #' @param obj    BSRinf Object.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
@@ -860,7 +900,10 @@ if (!isGeneric("resetToInitialOrganism")) {
   setGeneric("resetToInitialOrganism", fun)
 }
 
-#' # Reset gene names to initial organism providen in first instance
+#'  Reset gene names to initial organism providen in first instance
+#'
+#' @name resetToInitialOrganism
+#' @aliases resetToInitialOrganism,BSRInference-method
 #'
 #' @param obj  BSRInference object
 #' @param conversion.dict   A dictionnary

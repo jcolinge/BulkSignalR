@@ -194,7 +194,7 @@ bubblePlot.pathways.LR <- function(bsrinf,
 #' pathway.
 #'
 #' @import ComplexHeatmap
-#' @import circlize   
+#' @importFrom circlize colorRamp2
 .customheatmap <- function(counts, 
     width=5, 
     height=10 ,
@@ -302,7 +302,7 @@ bubblePlot.pathways.LR <- function(bsrinf,
 #'        height = 10 ,
 #'        show_column_names = TRUE)
 #' @import ComplexHeatmap
-#' @import circlize
+#' @importFrom circlize colorRamp2
 #' @import grid
 signatureHeatmaps <- function(
         pathway="Cell surface interactions at the vascular wall",
@@ -533,7 +533,7 @@ signatureHeatmaps <- function(
 #'                   hcl_palette = "Cividis"                   
 #'                   )
 #' @import ComplexHeatmap
-#' @import circlize
+#' @importFrom circlize colorRamp2
 simpleHeatmap <- function(mat.c, width, height, 
                           path="./", filename="simpleHeatmap",
                           dend.row=NULL,
@@ -558,11 +558,11 @@ simpleHeatmap <- function(mat.c, width, height,
             stop(paste0("Package \"circlize\" needed for this function to ",
                         "work (generation of color scale). Please install it."))
 
-        cols <- colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
+        cols <- circlize::colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
                            colors=c("royalblue3","white","orange"))
 
         if (!is.null(hcl_palette)){
-                cols <- colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
+                cols <- circlize::colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
                            , hcl_palette = hcl_palette,reverse = reverse)
         }    
     }
@@ -700,7 +700,7 @@ simpleHeatmap <- function(mat.c, width, height,
 #'            file="SDC-LR-dualheatmap.pdf",
 #' pointsize=4, vert.p=0.85)
 #' @import ComplexHeatmap
-#' @import circlize
+#' @importFrom circlize colorRamp2
 #' @importFrom ComplexHeatmap %v%
 dualHeatmap <- function(mat.c, mat.e, width, height, file.name=NULL,
             dend.row=NULL, dend.spl=NULL, dend.e=NULL, cols=NULL, cols.e=NULL,
@@ -719,14 +719,14 @@ dualHeatmap <- function(mat.c, mat.e, width, height, file.name=NULL,
         if (!requireNamespace("circlize",quietly=TRUE))
             stop(paste0("Package \"circlize\" needed for this function to ",
                         "work (generation of color scale). Please install it."))
-        cols <- colorRamp2(breaks=c(min(mat.c), 0, max(mat.c)),
+        cols <- circlize::colorRamp2(breaks=c(min(mat.c), 0, max(mat.c)),
                            colors=c("royalblue3","white","orange"))
     }
     if (is.null(cols.e)){
         if (!requireNamespace("circlize",quietly=TRUE))
             stop(paste0("Package \"circlize\" needed for this function to ",
                         "work (generation of color scale). Please install it."))
-        cols.e <- colorRamp2(breaks=c(min(mat.e), 0, max(mat.e)),
+        cols.e <- circlize::colorRamp2(breaks=c(min(mat.e), 0, max(mat.e)),
                            colors=c("deepskyblue","white","tomato"))
     }
     if (cut.p!=0){
@@ -993,7 +993,9 @@ alluvial.plot <- function(bsrinf,
 #' @param height height of image 
 #' @return NULL 
 #' @import ComplexHeatmap
-#' @import circlize  
+#' @importFrom circlize colorRamp2 circos.par chordDiagramFromDataFrame
+#' @importFrom circlize circos.trackPlotRegion circos.text circos.axis 
+#' @importFrom circlize get.cell.meta.data circos.clear
 #'
 #' @export
 #' @examples
@@ -1065,7 +1067,7 @@ chord.diagram.LR  <- function(bsrinf,path="./",
     dataframe.bsrinf <- dataframe.bsrinf[order(dataframe.bsrinf$qval),]
     dataframe.bsrinf <- dataframe.bsrinf[1:limit,]
 
-    cr <- colorRamp2(c(min(dataframe.bsrinf$corr),
+    cr <- circlize::colorRamp2(c(min(dataframe.bsrinf$corr),
                      max(dataframe.bsrinf$corr)), c("white","#febd17"))
 
     myList.ligands <- rep("gray25",times=length(dataframe.bsrinf$ligands))
@@ -1099,9 +1101,9 @@ chord.diagram.LR  <- function(bsrinf,path="./",
         to=dataframe.bsrinf$receptors,
         value=dataframe.bsrinf$corr)
 
-    circos.par(points.overflow.warning=FALSE)
+    circlize::circos.par(points.overflow.warning=FALSE)
 
-    chordDiagramFromDataFrame(interactions,
+    circlize::chordDiagramFromDataFrame(interactions,
           #grid.col = grid.col, 
           col=cr,
           annotationTrack = "grid", 
@@ -1119,17 +1121,17 @@ chord.diagram.LR  <- function(bsrinf,path="./",
           big.gap = 2, 
           small.gap = 1)
   
-  circos.trackPlotRegion(track.index = 2, 
+  circlize::circos.trackPlotRegion(track.index = 2, 
   panel.fun = function(x, y) {
-  xlim = get.cell.meta.data("xlim")
-  ylim = get.cell.meta.data("ylim")
-  sector.name = get.cell.meta.data("sector.index")
+  xlim = circlize::get.cell.meta.data("xlim")
+  ylim = circlize::get.cell.meta.data("ylim")
+  sector.name = circlize::get.cell.meta.data("sector.index")
 
-  circos.text(mean(xlim), ylim[1] + 1.9, sector.name, 
+  circlize::circos.text(mean(xlim), ylim[1] + 1.9, sector.name, 
               facing = "clockwise", niceFacing = TRUE,
               adj = c(0, 0.5), cex = 0.7)
 
-  circos.axis(h="top",labels=FALSE,minor.ticks=FALSE,
+  circlize::circos.axis(h="top",labels=FALSE,minor.ticks=FALSE,
                     major.tick.length=1,
                     major.at=c(xlim), 
                     sector.index=sector.name,
@@ -1164,7 +1166,7 @@ chord.diagram.LR  <- function(bsrinf,path="./",
             y = unit(2, "mm"),
             just = c("left", "bottom"))
 
-     circos.clear()
+     circlize::circos.clear()
 
      grDevices::dev.off()
 
