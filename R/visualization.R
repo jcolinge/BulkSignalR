@@ -1284,10 +1284,10 @@ scalesReverse <- function(rasterImage, scale = "x") {
 #' @param rev.x  Reverse x-axis.
 #' @param ref.plot Logical to know if we plot reference object.
 #' @param image.raster Raster object image.
-#' @param x.col
-#' @param y.col
-#' @param label.col
-#' @param idSpatial.col
+#' @param x.col x coordinate
+#' @param y.col y coordinate
+#' @param label.col Labels
+#' @param idSpatial.col Spot ids
 #' @param cut.p Remove cut.p of extreme values
 #' @param low.color "Low" color for gradient.
 #' @param mid.color "Medium" color for gradient.
@@ -1299,11 +1299,11 @@ scalesReverse <- function(rasterImage, scale = "x") {
 #'
 #' @return A ggplot object
 #'   
-#' @export
-#' @examples
 #' @import ggplot2
 #' @import grid
 #' @importFrom gridExtra grid.arrange
+#' @export
+#' @examples
 #' print('spatialPlot')
 #' if(FALSE){
 #' img <- png::readPNG(path.to.file)
@@ -1343,6 +1343,9 @@ not in ","names(areas)"))
    # put the scores in the right order for display at (x,y) coordinates
    v <- v[areas[[idSpatial.col]]]
    w <- .cutExtremeValues(v, cut.p)
+
+    x <- y <- label <- score <- NULL
+
    tissue <- data.frame(x=areas[[x.col]], y=areas[[y.col]],
                         label=factor(areas[[label.col]]),
                         score=w)
