@@ -1,5 +1,5 @@
 ---
-title: "`BulkSignalR` : </br> Inference of ligand-receptor interactions from bulk-rnaseq."
+title: "`BulkSignalR` : </br> Inference of ligand-receptor interactions from bulk-rnaseq or spatial transcriptomics."
 author:
   - name: Jean-Philippe Villemin
     affiliation:
@@ -12,11 +12,12 @@ author:
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: > 
   <p> BulkSignalR is used to infer ligand-receptor (LR) interactions from bulk
-   (transcriptomic or proteomic) data. BulkSignalR bases its inferences on the 
+   (transcriptomic or proteomic) data or spatial transcriptomics too.
+   BulkSignalR bases its inferences on the 
    LRdb database included in our other package, SingleCellSignalR available from
-    Bioconductor. It relies on a statistical model that is specific to bulk data
-    sets. Different visualization and data summary functions are proposed to
-    help navigating prediction results.<br/><br/>
+   Bioconductor. It relies on a statistical model that is specific to bulk data
+   sets. Different visualization and data summary functions are proposed to
+   help navigating prediction results.<br/><br/>
   BulkSignalR package version: `r packageVersion("BulkSignalR")`
 output: 
   BiocStyle::html_document:
@@ -27,20 +28,13 @@ output:
       highlight: pygments
       fig_height: 3
       fig_width: 3
+      fig_caption: no
       code_folding: show
 vignette: >
   %\VignetteIndexEntry{BulkSignalR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-```{=html}
-<style type="text/css">
-.smaller {
-  font-size: 10px
-}
-</style>
-```
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -52,11 +46,9 @@ knitr::knit_hooks$set(optipng = knitr::hook_optipng)
 
 # Load packages {.unnumbered}
 ```{r load-libs, message = FALSE,  warning = FALSE, results = FALSE}
-#devtools::install_github("BulkSignalR")
-devtools::install("/home/jp/Documents/workingDir/new/BulkSignalR")
 library(BulkSignalR)
-library(dplyr)
 library(igraph)
+library(dplyr)
 library(kableExtra)
 ```
 
@@ -83,8 +75,6 @@ gene names as HUGO symbols.
 
 ## How it works ? 
 
-`BulkSignalR` uses (TODO).  
-
 As described on figure below, a few steps are required in order to 
 process a `BulkSignalR` analysis.
 
@@ -93,7 +83,7 @@ Three S4 objects will be sequentially constructed as follows :
 * **BSR-Inference**, annotated as `bsrinf`  
 * **BSR-Signature**, annotated as `bsrsig` 
 
-![id0](../man/figures/workflow.png)
+![workflow](../man/figures/workflow.png)
 
 **BSR-DataModel** will integrates the raw matrix and stores the 
 learned parameters of the LR correlation distribution. 
@@ -169,15 +159,12 @@ the file name  where you want to plot this distribution.
 `null.model` is set automatically according to the shape 
 of this distribution. 
 
-However `BulkSignalR` authorize three modes for this parameter :  
-* *normal* : for most cases, gaussian distribution.  
-* *mixedNormal* : when distribution looks bimodal.  
-* *stable* : for spatial transcriptomics (ST).  
+However `BulkSignalR` authorize several modes for this parameter. 
+(Please check Reference Manual for more details)
 
 ```{r learnParameters , cache=TRUE,results=FALSE}
-bsrdm <- learnParameters(bsrdm, null.model = "normal", quick = FALSE, 
-         plot.folder = "../man/figures/", filename = "sdc",
-         verbose = TRUE)
+bsrdm <- learnParameters(bsrdm,  quick = FALSE, 
+         plot.folder = "../man/figures/", filename = "sdc")
 ```
 
 ```{r printBsrdm , cache=TRUE}
@@ -186,7 +173,7 @@ str(bsrdm)
 ```
 The plot with distribution of LR correlation in `sdc` is displayed below. 
 
-![id1](../man/figures/sdc_LR-null.png)
+![LR.distribution.correlation](../man/figures/sdc_LR-null.png)
 
 
 ## Building a BSR-Inference
@@ -318,7 +305,7 @@ inside a heatmap as shown below.
     # quote = FALSE)
 ```
 
-![id3](../man/figures/sdc_scoresLR.svg)
+![Heatmap.scoreLR](../man/figures/sdc_scoresLR.svg)
 
 ###  Scoring by pathway
 
@@ -351,7 +338,7 @@ inside a heatmap as shown below.
      # quote = FALSE)
 ```
 
-![id4](../man/figures/sdc_scoresPathway.svg)
+![Heatmap.pathway](../man/figures/sdc_scoresPathway_clean.png)
 
 ## Other Visualisation utilities
 
@@ -380,7 +367,7 @@ signatureHeatmaps(
         show_column_names = TRUE)
 ```        
 
-![id5](../man/figures/sdc_signatureheatmap.svg)
+![Heatmaps.signature](../man/figures/sdc_signatureheatmap_clean.png)
 
 ### AlluvialPlot
 
@@ -396,7 +383,7 @@ rendering.
 
 ```{r AlluvialPlot,results=FALSE}   
 
-alluvial.plot(bsrinf,
+alluvialPlot(bsrinf,
               keywords = c("COL4A1"),
               type = "L",
               qval = 0.001,
@@ -408,7 +395,7 @@ alluvial.plot(bsrinf,
 
 ```
 
-![id6](../man/figures/sdc_alluvial.svg)
+![alluvial.plot](../man/figures/sdc_alluvial.svg)
 
 ### BubblePlot
 
@@ -424,7 +411,7 @@ pathway1 <- "PD-1 signaling"
 pathway2 <- "Interferon gamma signaling"
 pathways <- c(pathway1,pathway2)
 
-bubblePlot.pathways.LR(bsrinf,
+bubblePlotPathwaysLR(bsrinf,
     pathways = pathways, 
     threshold = 1,
     path = "../man/figures/",
@@ -437,8 +424,8 @@ bubblePlot.pathways.LR(bsrinf,
     #filter.R = c("ITGA3")
     ) 
 ```
+ ![bubblePlot](../man/figures/sdc_bubble.svg)
 
-![id7](../man/figures/sdc_bubble.svg)
 
 ### Chordiagram
 
@@ -451,7 +438,7 @@ You can highlight in red one specific interaction by passing values
 of a LR pair as follows  `ligand="COL18A1", receptor="ITGA3"`.  
 
 ```{r Chordiagram,results=FALSE} 
-chord.diagram.LR (bsrinf,
+chordDiagramLR (bsrinf,
                   path = "../man/figures/",
                   filename = "sdc_chord",
                   pw.id.filter = "R-HSA-202733",
@@ -480,7 +467,8 @@ yEd (www.yworks.com), or similar software tools.
 # for Cytoscape or similar tools
 gLR <- getLRNetwork(bsrinf.redBP, qval.thres=1e-8)
 
-write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
+# save to file
+# write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
 
 # As an alternative to Cytoscape, you can play with igraph package functions.
 plot(gLR,
@@ -489,13 +477,17 @@ plot(gLR,
      vertex.label.family="Helvetica",
      vertex.label.cex=0.1)
 
+# You can apply other functions.
+# For the next steps, we just share the code below but graph generation function
+# are commented to lighten the vignette.
+
 # Community detection
 u.gLR <- as.undirected(gLR) # most algorithms work for undirected graphs only
 comm <- cluster_edge_betweenness(u.gLR)
-plot(comm,u.gLR,
-     vertex.label.color="black",
-     vertex.label.family="Helvetica",
-     vertex.label.cex=0.1)
+# plot(comm,u.gLR,
+#     vertex.label.color="black",
+#     vertex.label.family="Helvetica",
+#     vertex.label.cex=0.1)
 
 # Cohesive blocks
 cb <- cohesive_blocks(u.gLR)
@@ -507,18 +499,18 @@ plot(cb,u.gLR,
 
 # Generate a ligand-receptor network complemented with intra-cellular,
 # receptor downstream pathways [computations are a bit longer here]
-gLRintra <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=1e-8)
+#
+# You can save to a file for cystoscape or plot with igraph.
 
-write.graph(gLRintra, file="SDC-LR-intracellular-network.graphml",
-            format="graphml")
+ gLRintra <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=1e-8)
 
 lay <- layout_with_kk(gLRintra)
-plot(gLRintra,
-     layout=lay,
-     edge.arrow.size=0.1,
-     vertex.label.color="black",
-     vertex.label.family="Helvetica",
-     vertex.label.cex=0.1)
+# plot(gLRintra,
+#     layout=lay,
+#     edge.arrow.size=0.1,
+#     vertex.label.color="black",
+#     vertex.label.family="Helvetica",
+#     vertex.label.cex=0.1)
 
 # Reduce complexity by focusing on strongly targeted pathways
 pairs <- LRinter(bsrinf.redBP)
@@ -528,15 +520,12 @@ gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=0.01,
                                       restrict.pw=top$pw.id)
 lay <- layout_with_fr(gLRintra.res)
 
-write.graph(gLRintra, file="SDC-LR-intracellular-network.reduced.graphml",
-            format="graphml")
-
-plot(gLRintra.res,
-     layout=lay,
-     edge.arrow.size=0.1,
-     vertex.label.color="black",
-     vertex.label.family="Helvetica",
-     vertex.label.cex=0.4)
+# plot(gLRintra.res,
+#     layout=lay,
+#     edge.arrow.size=0.1,
+#     vertex.label.color="black",
+#     vertex.label.family="Helvetica",
+#     vertex.label.cex=0.4)
     
 ```
 
@@ -580,9 +569,8 @@ bsrdm  <- prepareDataset(counts = matrix.expression.human,
            species = "mmusculus",
            conversion.dict = ortholog.dict)
 
-bsrdm <- learnParameters(bsrdm, null.model="normal" , quick = FALSE, 
-           plot.folder="../man/figures/",filename = "bodyMap.mouse",
-           verbose = TRUE)
+bsrdm <- learnParameters(bsrdm,  quick = FALSE, 
+           plot.folder="../man/figures/",filename = "bodyMap.mouse")
  
 bsrinf  <- initialInference(bsrdm)
  
@@ -600,13 +588,104 @@ bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
 
 # Spatial Transcriptomics
 
+You can reproduce the exact same workflow for Spatial Transcriptomics.  
+Here, we consider a spot as a sample. So you will start with a matrix, generaly
+exported from Seurat or SpatialExperiment, where column names are spot ids.  
+
+We implemented a convenient function `spatialPlot` to visualize scoring 
+on 2D space with a reference plot (raw image or areas) side-by-side.  
+
+You need to pass :  
+* A named vector with spatial ids and numeric values  
+* A dataframe with spatial ids, x/y coords, and numeric values for LRscore.  
+
+You can integrate the raw image from filepath using `rasterizeFromFile`.
+Of note the raster image, can also be extracted from Seurat 
+or SpatialExperiment objects.
+
+We also provide functions to manipulate the raw image via raster object using
+`coordsFlip` and `scalesReverse` .
+
+`BulkSignalR` package functions have many arguments that can be
+customized by the user (we highly recommend to browsing the
+Reference Manual for more details).  
+
+```{r spatial , eval=FALSE}
+     # Extract matrix of counts
+     #
+     # From Seurat
+     # matrix.count <-   as.data.frame(
+     #            as.matrix(seurat.object@assays$Spatial@counts))
+     # From SpatialExperiment
+     # matrix.count <- as.data.frame(
+     #       SummarizedExperiment::assays(spe.object)[[1]])
+
+     # Classical BulksignalR workflow
+     # ...
+     # ...
+     # you apply the workflow as described before until you get the scores
+     scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,name.by.pathway=FALSE)
+     #
+     # you retrieve score from one specific interaction 
+     # (using rownames from scoresLR)
+     LR <- "CALM1 -> KCNQ3"
+     score <- setNames(as.vector(scoresLR[LR,]),
+                       as.character(colnames(scoresLR)))
+     #
+     # You need to load another dataframe (here called spot)
+     # with id, coordinates and labels, as described below.
+     #
+     # idSpatial array_col array_row ground_truth
+     # 50x102       102        50      Label3
+     #   3x43        43         3      Label1
+     #  59x19        19        59      Label2
+     #  14x94        94        14      Label3
+     #   43x9         9        43      Label5
+     #  47x13        13        47      Label6
+
+     # Retrieve raw image
+     #
+     # From disk
+     # image.raster <- rasterizeFromFile(filePath)
+     # From Seurat
+     # image.raster <- GetImage(seurat.object, mode = c("raster")) 
+     # From SpatialExperiment
+     # img <- imgRaster(spatialExperiment, 
+     #      sample_id = "sample_151673", image_id = "lowres")
+
+    spatialPlot(
+	  score,
+	  spot[spot$in_tissue==1,], 
+	  inter.name = LR, 
+      rev.y=FALSE, 
+      rev.x=FALSE, 
+      ref.plot=TRUE,
+      image.raster=NULL,
+      x.col="array_col", 
+      y.col="array_row",
+      label.col="ground_truth", 
+      idSpatial.col="idSpatial",
+      cut.p=0.01, 
+      low.color="royalblue3",
+      mid.color="white", 
+      hi.color="orange",
+      title.fs=12, 
+      legend.fs=10, 
+      axis.fs=10,
+      label.fs=12
+	) 
+```
+![spatial](../man/figures/spatial_clean.png)
+
+
+
 <br/>
 
 # Acknowledgements
 
-We would like to thank a few people who contributed to this work :
-- Laia Bassaganyas for insightful comments on the manuscript.
-- Guillaume Tosato for his help with the figures.
+We would like to thank a few people who contributed to this work :  
+- Laia Bassaganyas for insightful comments on the manuscript.  
+- Guillaume Tosato for his help with the figures.  
 - Gauthier Gadouas for testing the software on different platforms.
 
 <br/>
