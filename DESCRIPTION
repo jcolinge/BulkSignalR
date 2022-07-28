@@ -24,6 +24,8 @@ Imports:
     doParallel,
     ggalluvial,
     ggplot2,
+    gridExtra,
+    png,
     foreach,
     multtest,
     igraph,
@@ -36,7 +38,9 @@ Imports:
 Suggests: 
     grid,
     knitr,
+    dplyr,
+    kableExtra,
     markdown,
     rmarkdown
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 VignetteBuilder: knitr

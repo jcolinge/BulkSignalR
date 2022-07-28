@@ -42,7 +42,7 @@
 #'
 #' @export
 #' @examples
-#' print('bubblePlot.pathways.LR')
+#' print('bubblePlotPathwaysLR')
 #' data(sdc,package='BulkSignalR')
 #' bsrdm <- prepareDataset(counts = sdc)
 #' bsrdm <- learnParameters(bsrdm, 
@@ -53,7 +53,7 @@
 #'          verbose = TRUE)
 #' bsrinf <- initialInference(bsrdm)
 #' pathways <- c("PD-1 signaling","Interferon gamma signaling")
-#' bubblePlot.pathways.LR(bsrinf,
+#' bubblePlotPathwaysLR(bsrinf,
 #'    pathways = pathways, 
 #'    threshold = 1,
 #'    path = "./",
@@ -64,7 +64,7 @@
 #'    pointsize = 8
 #'    )  
 #' @import ggplot2
-bubblePlot.pathways.LR <- function(bsrinf,
+bubblePlotPathwaysLR <- function(bsrinf,
     pathways=c("Cell surface interactions at the vascular wall"),
     threshold = 1,
     filter.L=NULL, 
@@ -869,7 +869,7 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' @import ggalluvial
 #' @export
 #' @examples
-#' print('alluvial.plot')
+#' print('alluvialPlot')
 #' data(sdc,package='BulkSignalR')
 #' bsrdm <- prepareDataset(counts = sdc)
 #' bsrdm <- learnParameters(bsrdm, 
@@ -879,7 +879,7 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #'          filename = "sdc",
 #'          verbose = TRUE)
 #' bsrinf <- initialInference(bsrdm)
-#' alluvial.plot(bsrinf,
+#' alluvialPlot(bsrinf,
 #'              keywords = c("COL4A1"),
 #'              type = "L",
 #'              qval = 0.001,
@@ -888,7 +888,7 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #'              width  = 16, 
 #'              height = 12
 #'              )
-alluvial.plot <- function(bsrinf,
+alluvialPlot <- function(bsrinf,
                  keywords=c("COL4A1"),
                  type=c("L","R","pw.id"),
                  qval=1,
@@ -954,20 +954,20 @@ alluvial.plot <- function(bsrinf,
 
     if (format=="svg")
         grDevices::svg(file=paste0(path,filename,".svg")
-         ,width=(width+6)/2.54, height=height/2.54) 
+         ,width=width/2.54, height=height/2.54) 
 
     if (format=="png")
         grDevices::png(file=paste0(path,filename,".png")
-         ,width=(width+6)/2.54, height=height/2.54) 
+         ,width=width/2.54, height=height/2.54) 
 
     if (format=="pdf")
        grDevices::pdf(file=paste0(path,filename,".pdf")
-            ,width=(width+6)/2.54, height=height/2.54) 
+            ,width=width/2.54, height=height/2.54) 
 
     print(pl)
 
     grDevices::dev.off()
-} #alluvial.plot
+} #alluvialPlot
 
 
 #' Chord Diagram of LR interactions with correlations
@@ -991,7 +991,7 @@ alluvial.plot <- function(bsrinf,
 #' plot in a svg format.
 #' @param width width of image 
 #' @param height height of image 
-#' @return NULL 
+#' @return Circos Plot on Disk
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2 circos.par chordDiagramFromDataFrame
 #' @importFrom circlize circos.trackPlotRegion circos.text circos.axis 
@@ -999,7 +999,7 @@ alluvial.plot <- function(bsrinf,
 #'
 #' @export
 #' @examples
-#' print('chord.diagram.LR')
+#' print('chordDiagramLR')
 #' data(sdc,package='BulkSignalR')
 #' bsrdm <- prepareDataset(counts = sdc)
 #' bsrdm <- learnParameters(bsrdm, 
@@ -1009,7 +1009,7 @@ alluvial.plot <- function(bsrinf,
 #'          filename = "sdc",
 #'          verbose = TRUE)
 #' bsrinf <- initialInference(bsrdm)
-#' chord.diagram.LR (bsrinf,
+#' chordDiagramLR (bsrinf,
 #'                  path="./",
 #'                  filename="sdc_chord",
 #'                  pw.id.filter="R-HSA-202733",
@@ -1019,7 +1019,7 @@ alluvial.plot <- function(bsrinf,
 #'                  width=5, 
 #'                  height=4.5
 #'    )
-chord.diagram.LR  <- function(bsrinf,path="./",
+chordDiagramLR  <- function(bsrinf,path="./",
     filename="chord",
     pw.id.filter="R-RSA-17821",
     ligand="L1",receptor="R1",
@@ -1029,7 +1029,7 @@ chord.diagram.LR  <- function(bsrinf,path="./",
 
     format <- match.arg(format)
 
-    print("chord.diagram.LR")
+    print("chordDiagramLR")
 
     if (limit >= 30){
        cat("Number of selected interactions is too large",limit,".\n")
@@ -1172,3 +1172,226 @@ chord.diagram.LR  <- function(bsrinf,path="./",
 
 }
 
+
+
+#' Rasterize raw image from filepath 
+#'
+#' @param path.to.file path.to.file
+#'
+#' @return A raster image object
+#'   
+#' @importFrom png readPNG
+#'
+#' @export
+#' @examples
+#' print('rasterizeFromFile')
+#' if (FALSE){
+#'
+#' my.image.as.raster <- rasterizeFromFile(path.to.file)  
+#'
+#' }
+rasterizeFromFile <- function(path.to.file){
+
+    img <- png::readPNG(path.to.file)
+
+    my.image.as.raster <- grDevices::as.raster(img)  
+
+    return(my.image.as.raster)
+} # rasterizeFromFile
+
+
+#' (counter-)clockwise 90 degree rotation
+#'
+#' @param rasterImage raster image
+#' @param degrees degrees of rotation 
+#'
+#' @return A rotated raster image
+#'   
+#' @export
+#' @examples
+#' print('coordsFlip')
+#' if(FALSE){
+#' img <- png::readPNG(path.to.file)
+#' my.image.as.raster <- grDevices::as.raster(path.to.file)  
+#' my.image.rotated <- coordsFlip(my.image.as.raster,degrees=90)
+#' 
+#'  }
+coordsFlip <- function(rasterImage, degrees=90) {
+
+    if(! is.numeric(degrees))
+         stop("Degrees must be numeric.", call. = FALSE)
+
+    if(! degrees %% 90 == 0 )
+         stop("Degrees must be divisible by 90", call. = FALSE)
+
+    s <- sign(degrees)
+    flip <- ifelse(s == 1, 
+        \(x) t(apply(x, 2, rev)), # clockwise
+        \(x) apply(x, 1, rev))    # counter-clockwise
+    n <- abs(degrees / 90)
+    for (i in seq_len(n)) 
+        rasterImage <- flip(rasterImage)
+     grDevices::as.raster(rasterImage)
+}
+# coordsFlip
+
+
+#' Flip over horizontal/vertical axis
+#'
+#' @param rasterImage raster image
+#' @param scale Reverse horizontal(x)/vertical(y) axis 
+#'
+#' @return A flipped raster image
+#'   
+#' @export
+#' @examples
+#' print('scalesReverse')
+#' if(FALSE){
+#' img <- png::readPNG(path.to.file)
+#' my.image.as.raster <- grDevices::as.raster(path.to.file)  
+#' my.image.flipped <- scalesReverse(my.image.as.raster,scale="x")
+#' 
+#'  }
+scalesReverse <- function(rasterImage, scale = "x") {
+    rasterImage <- if (scale == "x") {
+        apply(rasterImage, 2, rev)
+    } else {
+        t(apply(rasterImage, 1, rev))
+    }
+     grDevices::as.raster(rasterImage)
+}
+# scalesReverse
+
+
+#' Print spatial plots
+#'
+#' By default, user will print signal on a 2D plot.
+#' 
+#' User can 
+#' specifiy to plot on the left side,
+#' a reference plot.
+#' Reference plot is the raw image or
+#' image with different colors for
+#' all specified regions in \code{areas}.
+#'
+#' @param v Named vector with id of spots and signal.
+#' @param areas Dataframe with coordinates and signal.
+#' It should contains columns for id,
+#  for the spots, x / y coords 
+#' and a column for the signal you want to visualize.
+#' @param inter.name Interaction name used as title.
+#' @param rev.y  Reverse y-axis.
+#' @param rev.x  Reverse x-axis.
+#' @param ref.plot Logical to know if we plot reference object.
+#' @param image.raster Raster object image.
+#' @param x.col
+#' @param y.col
+#' @param label.col
+#' @param idSpatial.col
+#' @param cut.p Remove cut.p of extreme values
+#' @param low.color "Low" color for gradient.
+#' @param mid.color "Medium" color for gradient.
+#' @param hi.color  "High" color for gradient.
+#' @param title.fs  Fontsize for title.
+#' @param legend.fs Fontsize for legend
+#' @param axis.fs Fontsize for axis.
+#' @param label.fs Fontsize for label.
+#'
+#' @return A ggplot object
+#'   
+#' @export
+#' @examples
+#' @import ggplot2
+#' @import grid
+#' @importFrom gridExtra grid.arrange
+#' print('spatialPlot')
+#' if(FALSE){
+#' img <- png::readPNG(path.to.file)
+#'
+#' spatialPlot(v,
+#'     areas,
+#'     inter.name="L->R",
+#'     image.raster=img)
+#' }
+spatialPlot <- function(v, 
+                         areas, 
+                         inter.name, 
+                         rev.y=FALSE, 
+                         rev.x=FALSE, 
+                         ref.plot=FALSE,
+                         image.raster=NULL,
+                         x.col="array_col", 
+                         y.col="array_row",
+                         label.col="label", 
+                         idSpatial.col="idSpatial",
+                         cut.p=0.01, 
+                         low.color="royalblue3",
+                         mid.color="white", 
+                         hi.color="orange",
+                         title.fs=12, 
+                         legend.fs=10, 
+                         axis.fs=10,
+                         label.fs=12){
+
+   if (cut.p<0 || cut.p>0.1)
+     stop("cut.p must lie in [0;0.1]")
+
+   if (!all(c(x.col, y.col, label.col, idSpatial.col) %in% names(areas)))
+     stop(paste0("One of x.col, y.col, idSpatial.col, or label.col is
+not in ","names(areas)"))
+
+   # put the scores in the right order for display at (x,y) coordinates
+   v <- v[areas[[idSpatial.col]]]
+   w <- .cutExtremeValues(v, cut.p)
+   tissue <- data.frame(x=areas[[x.col]], y=areas[[y.col]],
+                        label=factor(areas[[label.col]]),
+                        score=w)
+
+   if (rev.y){
+     # revert y-axis
+     ymin <- min(tissue$y)
+     ymax <- max(tissue$y)
+     tissue$y <- ymax-tissue$y+ymin
+   }
+
+   if (rev.x){
+     # revert x-axis
+     xmin <- min(tissue$x)
+     xmax <- max(tissue$x)
+     tissue$x <- xmax-tissue$x+xmin
+   }
+
+   # reference tissue areas are required on the side
+   if (ref.plot)
+     if (!is.null(image.raster))
+        ref <- grid::rasterGrob(image.raster)
+     else 
+        ref <- ggplot2::ggplot(data=tissue, ggplot2::aes(x=x, y=y)) +
+     ggplot2::ggtitle("Reference") +
+     ggplot2::geom_point(ggplot2::aes(color=label)) +
+     ggplot2::theme_set( ggplot2::theme_bw(base_size = 10)) +
+     ggplot2::theme(axis.text= ggplot2::element_text(size=axis.fs)) +
+     ggplot2::theme(axis.title= ggplot2::element_text(size=label.fs)) +
+     ggplot2::theme(legend.title= ggplot2::element_text(size=label.fs)) +
+     ggplot2::theme(legend.text= ggplot2::element_text(size=legend.fs)) +
+     ggplot2::theme(plot.title= ggplot2::element_text(size=title.fs))
+
+   # plot L-R scores
+   lr <-  ggplot2::ggplot(data=tissue,  ggplot2::aes(x=x, y=y)) +  
+      ggplot2::ggtitle(inter.name) +
+      ggplot2::geom_point( ggplot2::aes(color=score)) +
+      ggplot2::scale_color_gradient2(low=low.color, mid=mid.color, high=hi.color,
+                           midpoint=0, limits=c(min(w), max(w))) +
+      ggplot2::theme_set( ggplot2::theme_bw(base_size = 10)) +
+      ggplot2::theme(axis.text= ggplot2::element_text(size=axis.fs)) +
+      ggplot2::theme(axis.title= ggplot2::element_text(size=label.fs)) +
+      ggplot2::theme(legend.title= ggplot2::element_text(size=label.fs)) +
+      ggplot2::theme(legend.text= ggplot2::element_text(size=legend.fs)) +
+      ggplot2::theme(plot.title= ggplot2::element_text(size=title.fs))
+
+   if (ref.plot)
+     gridExtra::grid.arrange(ref, lr, ncol=2)
+   else
+     lr
+
+} # spatialPlot
