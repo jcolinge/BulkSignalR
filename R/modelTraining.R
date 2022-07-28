@@ -88,7 +88,7 @@
         grDevices::pdf(file = file.name, width = 4, height = 4,
                        pointsize = 10, useDingbats = FALSE)
         graphics::hist(d, freq=FALSE, main=paste0(title, " / censored normal"),
-                       xlab = "Spearman correlation")
+                       xlab = "Spearman correlation", breaks = 30)
     }
 
     # initial fit with a Gaussian over ]-infty;+infty[]
@@ -119,6 +119,22 @@
         cat("Censored normal standard deviation: ", sigma, "\n", sep="")
     }
     q <- stats::pnorm(1, mu, sigma) - stats::pnorm(-1, mu, sigma)
+    start <- stats::pnorm(-1, mu, sigma)
+    params <- list(mu = mu, sigma = sigma, factor = q,
+                   start = start, distrib = "censored_normal")
+
+    # KS test D statistics
+    x <- seq(-1, 1, by = 0.005)
+    y <- stats::dnorm(x, mu, sigma)/q
+    params$D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
+
+    # Chi2
+    x <- seq(-1, 1, by = 0.05)
+    h <- hist(d, breaks=x, plot=FALSE)
+    hist.rf <- h$counts/length(d)
+    gauss.rf <- .cdfGaussian(h$breaks[-1], params) -
+        .cdfGaussian(h$breaks[-length(h$breaks)], params)
+    params$Chi2 <- sum((hist.rf-gauss.rf)**2)
 
     # control plot
     if (!is.null(file.name)) {
@@ -131,8 +147,8 @@
         # fn <- gsub("pdf$", "txt", file.name)
         # write.table(d, file=fn, row.names = FALSE)
     }
-    list(mu = mu, sigma = sigma, factor = q,
-         start = stats::pnorm(-1, mu, sigma), distrib = "censored_normal")
+
+    params
 
 }  # .getGaussianParam
 
@@ -172,7 +188,7 @@
                        pointsize = 10, useDingbats = FALSE)
         graphics::hist(d, freq=FALSE,
                        main=paste0(title, " / censored mixed normal"),
-                       xlab = "Spearman correlation")
+                       xlab = "Spearman correlation", breaks = 30)
     }
 
     # ML fit of a censored mixed-Gaussian on [-1;1]
@@ -216,6 +232,22 @@
         )
     start <- alpha*stats::pnorm(-1, mu1, sigma1) +
         (1-alpha)*stats::pnorm(-1, mu2, sigma2)
+    params <- list(alpha=alpha, mu1=mu1, sigma1=sigma1, mu2=mu2, sigma2=sigma2,
+                   factor=q, start=start, distrib="censored_mixed_normal")
+
+    # KS test D statistics
+    x <- seq(-1, 1, by = 0.005)
+    y <- alpha*stats::dnorm(x, mu1, sigma1) +
+        (1-alpha)*stats::dnorm(x, mu2, sigma2)/q
+    params$D <- as.numeric(suppressWarnings(stats::ks.test(d, y)$statistic))
+
+    # Chi2
+    x <- seq(-1, 1, by = 0.05)
+    h <- hist(d, breaks=x, plot=FALSE)
+    hist.rf <- h$counts/length(d)
+    mixed.rf <- .cdfMixedGaussian(h$breaks[-1], params) -
+        .cdfMixedGaussian(h$breaks[-length(h$breaks)], params)
+    params$Chi2 <- sum((hist.rf-mixed.rf)**2)
 
     # control plot
     if (!is.null(file.name)) {
@@ -227,8 +259,8 @@
                          col = "blue", bty = "n", pt.cex = 0.5)
         grDevices::dev.off()
     }
-    list(alpha=alpha, mu1=mu1, sigma1=sigma1, mu2=mu2, sigma2=sigma2, factor=q,
-         start=start, distrib="censored_mixed_normal")
+
+    params
 
 }  # .getMixedGaussianParam
 
@@ -247,6 +279,135 @@
     ) / par$factor
 
 } # .cdfMixedGaussian
+
+
+#' Internal function to fit an empirical distribution
+#'
+#' @description Based on stats::ecdf.
+#'
+#' @param d   A vector of values to fit.
+#' @param title     A plot title.
+#' @param file.name   The file name of a PDF file.
+#'
+#' @return A list with the step function implementing the CDF of
+#'   the empirical distribution (\code{empirCDF}).
+#'
+#'   If \code{file.name} is provided, a control plot is generated in a PDF with
+#'   a data histogram and the fitted Gaussian. \code{title} is used to give this
+#'   plot a main title.
+.getEmpiricalParam <- function(d, title, verbose = FALSE, file.name = NULL) {
+
+    if (!is.null(file.name)) {
+        grDevices::pdf(file = file.name, width = 4, height = 4,
+                       pointsize = 10, useDingbats = FALSE)
+        graphics::hist(d, freq=FALSE, main=paste0(title, " / empirical"),
+                       xlab = "Spearman correlation", breaks=30)
+    }
+
+    empir <- stats::ecdf(d)
+
+    # control plot
+    if (!is.null(file.name)) {
+        step <- 0.005
+        x <- seq(-1, 1, by = step)
+        cd <- empir(x)
+        n <- length(x)
+        left <- cd[-c(n-1,n)]
+        right <- cd[-c(1,2)]
+        dens <- c(0, (right-left)/2/step, 0)
+        graphics::lines(x = x, y = dens, col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
+                         col = "blue", bty = "n", pt.cex = 0.5)
+        grDevices::dev.off()
+    }
+
+    list(empirCDF = empir, distrib = "empirical")
+
+}  # .getEmpiricalParam
+
+
+#' Internal function to compute an empirical CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the step function implementing the CDF.
+#'
+#' @return A vector of probabilities P(X<x|par).
+.cdfEmpirical <- function(x, par){
+    par$empirCDF(x)
+
+} # .cdfEmpirical
+
+
+#' Internal function to fit a Gaussian kernel-based empirical distribution
+#'
+#' @description Based on stats::density.
+#'
+#' @param d   A vector of values to fit.
+#' @param title     A plot title.
+#' @param file.name   The file name of a PDF file.
+#' @param n  The number of grid points for density FFT
+#'
+#' @return A list with the step function implementing the CDF of
+#'   the empirical distribution (\code{kernelCDF}).
+#'
+#'   If \code{file.name} is provided, a control plot is generated in a PDF with
+#'   a data histogram and the fitted Gaussian. \code{title} is used to give this
+#'   plot a main title.
+.getKernelEmpiricalParam <- function(d, title, verbose = FALSE,
+                                     file.name = NULL, n=512) {
+
+    if (!is.null(file.name)) {
+        grDevices::pdf(file = file.name, width = 4, height = 4,
+                       pointsize = 10, useDingbats = FALSE)
+        graphics::hist(d, freq=FALSE, main=paste0(title, " / kernel empirical"),
+                       xlab = "Spearman correlation", breaks=30)
+    }
+
+    df <- stats::density(d, from=-1, to=1, n=n)
+    cd <- cumsum(df$y)
+    cd <- cd/cd[n]
+    params <- list(kernelCDF = stepfun(df$x, c(0, cd)),
+                   distrib = "kernel_empirical")
+
+    # KS test D statistics
+    params$D <- as.numeric(suppressWarnings(stats::ks.test(d, df$y)$statistic))
+
+    # Chi2
+    x <- seq(-1, 1, by = 0.05)
+    h <- hist(d, breaks=x, plot=FALSE)
+    hist.rf <- h$counts/length(d)
+    kernel.rf <- .cdfKernelEmpirical(h$breaks[-1], params) -
+        .cdfKernelEmpirical(h$breaks[-length(h$breaks)], params)
+    params$Chi2 <- sum((hist.rf-kernel.rf)**2)
+
+    # control plot
+    if (!is.null(file.name)) {
+        # left <- cd[-c(n-1,n)]
+        # right <- cd[-c(1,2)]
+        # step <- 1/(n/2)
+        # dens <- c(0, (right-left)/2/step, 0)
+        # graphics::lines(x = df$x, y = dens, col = "blue", type = "l")
+        graphics::lines(df, col = "blue", type = "l")
+        graphics::legend(x = "topright", lty = 1, legend = "Model",
+                         col = "blue", bty = "n", pt.cex = 0.5)
+        grDevices::dev.off()
+    }
+
+    params
+
+}  # .getKernelEmpiricalParam
+
+
+#' Internal function to compute a Gaussian kernel-based empirical CDF
+#'
+#' @param x   A vector of observed values.
+#' @param par A list containing the step function implementing the CDF.
+#'
+#' @return A vector of probabilities P(X<x|par).
+.cdfKernelEmpirical <- function(x, par){
+    par$kernelCDF(x)
+
+} # .cdfKernelEmpirical
 
 
 #' Internal function to fit a censored (alpha-) stable distribution
@@ -271,7 +432,7 @@
                        pointsize = 10, useDingbats = FALSE)
         graphics::hist(d, freq=FALSE,
                        main=paste0(title, " / censored stable"),
-                       xlab = "Spearman correlation")
+                       breaks = 30, xlab = "Spearman correlation")
     }
 
     # ML fit of a censored stable on [-1;1]
@@ -287,7 +448,7 @@
     par.0 <- c(1.5, 0.5, sqrt(stats::sd(d)), mean(d))
     if (verbose)
         cat(paste0("Starting stable distribution parameter estimation. ",
-                   "This can take minutes...\n"))
+                   "This can take a few dozens of minutes...\n"))
     res <- stats::optim(par.0, stableLL,
                         control=list(reltol=1e-5, maxit=800,
                                      trace=ifelse(verbose,1,0)))

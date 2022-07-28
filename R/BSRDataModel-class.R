@@ -61,7 +61,7 @@ setMethod("show", "BSRDataModel",
         cat("Normalization method: ", object@normalization, "\n", sep="")
         cat("Organism : ", object@initial.organism,"\n", sep="")
         cat("Statistical model parameters:\n")
-        print(object@param)
+        str(object@param)
         cat("Expression data:\n")
         if (ncol(object@ncounts) > 10)
             print(as.data.frame(object@ncounts[,1:10])[5,])
@@ -244,6 +244,20 @@ if (!isGeneric("learnParameters")) {
 #'   and Reactome. The minimum pathway size is used to avoid overspecific,
 #'   noninformative results.
 #'
+#'   BulkSignalR approach relies on modeling (Spearman) correlations and
+#'   different models of null distributions are available for this purpose
+#'   (parameter \code{null.model}). By default, the "automatic" option is
+#'   selected meaning that censored normal and mixed normal as well as
+#'   an empirical model based on Gaussian kernels (R \code{density()} function)
+#'   are compared to pick the one closest to the data. Preference is given
+#'   to normal and then mixture of normal over the empirical version for
+#'   comparable quality of fit. It is also to bypass the automatic selection.
+#'   Fitting of an alpha-stable distribution is quite time consuming as the
+#'   computation of its PDF is compute-intensive. Finally, in the automaic
+#'   selection mode, the choice of the actual model will be done based on
+#'   the L-R null assuming a similar shape for the R-T null (with
+#'   different parameters though, unless \code{quick} was set to \code{TRUE}).
+#'
 #' @return A BSRDataModel with trained model parameters
 #'
 #' @export
@@ -267,7 +281,8 @@ if (!isGeneric("learnParameters")) {
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
       max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = FALSE,
-      null.model = c("mixedNormal","normal","stable"),filename = "distribution",
+      null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical",
+                     "empirical", "stable"),filename = "distribution",
       seed = 123) {
 
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
@@ -297,8 +312,14 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
         trainModel <- .getGaussianParam
     else if (null.model == "mixedNormal")
         trainModel <- .getMixedGaussianParam
+    else if (null.model == "kernelEmpirical")
+        trainModel <- .getKernelEmpiricalParam
+    else if (null.model == "empirical")
+        trainModel <- .getEmpiricalParam
     else if (null.model == "stable")
         trainModel <- .getAlphaStableParam
+    else if (null.model == "automatic")
+        trainModel <- NULL
     else
         stop("No valid null model specified")
 
@@ -316,14 +337,59 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
         for (i in 2:length(ds.LR.null)) rc <- c(rc, ds.LR.null[[i]]$corr)
     obj@param$LR.0$n <- length(rc)
 
-    # Gaussian model
+    # Null distribution model
     if (!is.null(plot.folder))
         file.name <- paste0(plot.folder, "/",filename,"_LR-null.pdf")
     else
         file.name <- NULL
 
+    if (is.null(trainModel)){
+        # automatic selection of the model
+        np <- try(.getGaussianParam(rc, "LR correlation (null)"), silent=TRUE)
+        if (inherits(np, "try-error"))
+            np <- NULL
+        mp <- try(.getMixedGaussianParam(rc, "LR correlation (null)"),
+                  silent=TRUE)
+        if (inherits(mp, "try-error"))
+            mp <- NULL
+        kp <- .getKernelEmpiricalParam(rc, "LR correlation (null)")
+        if (verbose){
+            cat("Automatic null model choice:\n")
+            if (is.null(np))
+                cat("  Censored normal estimation did not converge\n")
+            else
+                cat("  Censored normal D=", np$D,
+                    ", Chi2=", np$Chi2, "\n", sep="")
+            if (is.null(mp))
+                cat("  Censored Mixture of normals estimation did not converge\n")
+            else
+                cat("  Censored mixture D=", mp$D,
+                    ", Chi2=", mp$Chi2, "\n", sep="")
+            cat("  Gaussian kernel empirical D=", kp$D,
+                ", Chi2=", kp$Chi2, "\n", sep="")
+        }
+        npchi <- ifelse(is.null(np), 100, sqrt(np$Chi2))
+        mpchi <- ifelse(is.null(mp), 100, sqrt(mp$Chi2))
+        kpchi <- sqrt(kp$Chi2)
+        if ((npchi < 1.25*mpchi) && (npchi < 2*kpchi)){
+            trainModel <- .getGaussianParam
+            if (verbose)
+                cat("  ==> select censored normal\n")
+        }
+        else if (mpchi < 2*kpchi){
+            trainModel <- .getMixedGaussianParam
+            if (verbose)
+                cat("  ==> select censored mixture of 2 normals\n")
+        }
+        else{
+            trainModel <- .getKernelEmpiricalParam
+            if (verbose)
+                cat("  ==> select Gaussian kernel-based empirical\n")
+        }
+    }
+    # actual training with the chosen model
     gp <- trainModel(rc, "LR correlation (null)", verbose = verbose,
-                            file.name = file.name)
+                     file.name = file.name)
     obj@param$LR.0$model <- gp
 
     # RT correlation null ------------------------------------
@@ -357,14 +423,16 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
             corr <- as.numeric(strsplit(above[i], split = ";")[[1]])
             r.corrs <- c(r.corrs, corr)
         }
+        if (null.model == "stable")
+            # sub-sample randomized R-T correlations to limit compute time
+            r.corrs <- sample(r.corrs, obj@param$LR.0$n)
         obj@param$RT.0$n <- length(r.corrs)
 
-        # Gaussian model
+        # fit null model
         if (!is.null(plot.folder))
             file.name <- paste0(plot.folder,  "/",filename,"_RT-null.pdf")
         else
             file.name <- NULL
-
         gp <- trainModel(r.corrs, "RT correlation (null)",
                                 verbose = verbose, file.name = file.name)
         obj@param$RT.0$model <- gp
@@ -547,7 +615,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' whose z-score averages might hide actual activity).
 #' @param rownames.LRP Logical. If TRUE, Ligand Receptor and Pathway
 #  names are concatened in the rownames. Otherwise you got Pathway
-#  name only when name.by.pathway is TRUE. 
+#  name only when name.by.pathway is TRUE.
 #' @return A matrix containing the scores of each ligand-receptor gene
 #' signature in each sample.
 #'
@@ -617,13 +685,13 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
     pwn <- foreach::foreach(i=seq_len(length(pathways)), .combine=c) %do% {
 
         if (name.by.pathway){
-            
+
             if(rownames.LRP){
-            
+
               paste0(paste(ligands[[i]], collapse=" / ") ," | ",
-                    paste(receptors[[i]], collapse=" / ")," | ",pathways[[i]]) 
+                    paste(receptors[[i]], collapse=" / ")," | ",pathways[[i]])
              } else { pathways[[i]] }
-           
+
         }
         else if (!name.by.pathway){
             paste0(paste(ligands[[i]], collapse="/") ," -> ",
