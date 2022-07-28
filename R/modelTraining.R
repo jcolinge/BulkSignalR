@@ -287,8 +287,9 @@
 #'
 #' @param d   A vector of values to fit.
 #' @param title     A plot title.
+#' @param verbose   Provide details on computations.
 #' @param file.name   The file name of a PDF file.
-#'
+
 #' @return A list with the step function implementing the CDF of
 #'   the empirical distribution (\code{empirCDF}).
 #'
@@ -344,6 +345,7 @@
 #'
 #' @param d   A vector of values to fit.
 #' @param title     A plot title.
+#' @param verbose   Provide details on computations.
 #' @param file.name   The file name of a PDF file.
 #' @param n  The number of grid points for density FFT
 #'
