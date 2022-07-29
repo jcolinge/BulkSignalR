@@ -199,7 +199,7 @@ by best q-value before saving them to a file.
 
 ```{r BSRInferenceTfile, eval=FALSE}
 write.table(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),],
-            "../man/figures/LR.tsv",
+            "../man/figures/sdc_LR.tsv",
             row.names = FALSE,
             sep = "\t",
             quote = FALSE)
@@ -281,7 +281,7 @@ inside a heatmap as shown below.
 
 ###  Scoring by ligand-receptor
 
-```{r scoringLR  ,cache=TRUE,results=FALSE}
+```{r scoringLR  ,cache=TRUE,results=FALSE,eval=FALSE}
 
      bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP, qval.thres=0.001)
 
@@ -305,11 +305,11 @@ inside a heatmap as shown below.
     # quote = FALSE)
 ```
 
-![Heatmap.scoreLR](../man/figures/sdc_scoresLR.svg)
+![Heatmap.scoreLR](../man/figures/sdc_scoresLR_clean.png)
 
 ###  Scoring by pathway
 
-```{r scoringPathway, cache=TRUE,results=FALSE}    
+```{r scoringPathway, cache=TRUE,results=FALSE,eval=FALSE}    
      bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP,qval.thres=0.001)
      
      scoresPathway <- scoreLRGeneSignatures(bsrdm,bsrsig.redPBP,name.by.pathway=TRUE)
@@ -354,7 +354,7 @@ expression of Ligands (Pink), Receptors (Green) and Targets (Blue).
 On top, user can see the original scoring computed before 
 by `scoreLRGeneSignatures` for the given pathway.
 
-```{r HeatmapRTL ,results=FALSE}   
+```{r HeatmapRTL ,results=FALSE,,eval=FALSE}   
 pathway1 <- "Elastic fibre formation"
 signatureHeatmaps(
         pathway = pathway1,
@@ -437,7 +437,7 @@ Ligand are in grey, whereas Receptors are in green.
 You can highlight in red one specific interaction by passing values 
 of a LR pair as follows  `ligand="COL18A1", receptor="ITGA3"`.  
 
-```{r Chordiagram,results=FALSE} 
+```{r Chordiagram,results=FALSE,eval=FALSE} 
 chordDiagramLR (bsrinf,
                   path = "../man/figures/",
                   filename = "sdc_chord",
@@ -450,7 +450,7 @@ chordDiagramLR (bsrinf,
     )
 ```
 
-![id8](../man/figures/sdc_chord.svg)
+![id8](../man/figures/sdc_chord_clean.png)
 
 # Network analysis
 
@@ -556,7 +556,7 @@ computing signature and visualization.
 
 <br/>
 
-```{r mouse , cache=TRUE,results=FALSE}
+```{r mouse , cache=TRUE,results=FALSE,eval=FALSE}
 data(bodyMap.mouse)
 
 ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
@@ -573,7 +573,7 @@ bsrdm <- learnParameters(bsrdm,  quick = FALSE,
            plot.folder="../man/figures/",filename = "bodyMap.mouse")
  
 bsrinf  <- initialInference(bsrdm)
- 
+
 bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
 
 # For example, if you want to explore LR interactions
@@ -582,7 +582,8 @@ bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
 # bsrinf.redBP <- reduceToBestPathway(bsrinf)  
 # bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP, qval.thres=0.001)
 # scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,name.by.pathway=FALSE)
-# simpleHeatmap(scoresLR[1:20,], file="sdc_scoreLR.pdf", column.names=TRUE, width=9, height=5, pointsize=8)
+# simpleHeatmap(scoresLR[1:20,], file="sdc_scoreLR.pdf", column.names=TRUE,
+# width=9, height=5, pointsize=8)
 
 ```
 
