@@ -130,7 +130,7 @@
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, plot=FALSE)
+    h <- graphics::hist(d, breaks=x, plot=FALSE)
     hist.rf <- h$counts/length(d)
     gauss.rf <- .cdfGaussian(h$breaks[-1], params) -
         .cdfGaussian(h$breaks[-length(h$breaks)], params)
@@ -243,7 +243,7 @@
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, plot=FALSE)
+    h <- graphics::hist(d, breaks=x, plot=FALSE)
     hist.rf <- h$counts/length(d)
     mixed.rf <- .cdfMixedGaussian(h$breaks[-1], params) -
         .cdfMixedGaussian(h$breaks[-length(h$breaks)], params)
@@ -368,7 +368,7 @@
     df <- stats::density(d, from=-1, to=1, n=n)
     cd <- cumsum(df$y)
     cd <- cd/cd[n]
-    params <- list(kernelCDF = stepfun(df$x, c(0, cd)),
+    params <- list(kernelCDF = stats::stepfun(df$x, c(0, cd)),
                    distrib = "kernel_empirical")
 
     # KS test D statistics
@@ -376,7 +376,7 @@
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, plot=FALSE)
+    h <- graphics::hist(d, breaks=x, plot=FALSE)
     hist.rf <- h$counts/length(d)
     kernel.rf <- .cdfKernelEmpirical(h$breaks[-1], params) -
         .cdfKernelEmpirical(h$breaks[-length(h$breaks)], params)

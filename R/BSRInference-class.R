@@ -70,7 +70,7 @@ setMethod("show", "BSRInference",
                print(as.data.frame(object@LRinter[order(object@LRinter$qval),
                         c("L", "R", "pval", "qval", "pw.id", "pw.name"),]))[5,]
               cat("Inference parameters:\n")
-              str(object@inf.param)
+              utils::str(object@inf.param)
           }
 )
 
