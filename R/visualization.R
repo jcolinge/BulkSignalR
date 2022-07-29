@@ -1302,6 +1302,7 @@ scalesReverse <- function(rasterImage, scale = "x") {
 #' @import ggplot2
 #' @import grid
 #' @importFrom gridExtra grid.arrange
+#' @importFrom scales rescale
 #' @export
 #' @examples
 #' print('spatialPlot')
@@ -1379,12 +1380,12 @@ not in ","names(areas)"))
      ggplot2::theme(legend.text= ggplot2::element_text(size=legend.fs)) +
      ggplot2::theme(plot.title= ggplot2::element_text(size=title.fs))
 
+
    # plot L-R scores
    lr <-  ggplot2::ggplot(data=tissue,  ggplot2::aes(x=x, y=y)) +  
       ggplot2::ggtitle(inter.name) +
-      ggplot2::geom_point( ggplot2::aes(color=score)) +
-      ggplot2::scale_color_gradient2(low=low.color, mid=mid.color, high=hi.color,
-                           midpoint=0, limits=c(min(w), max(w))) +
+      ggplot2::scale_color_gradientn(colors=c(low.color, mid.color, hi.color),
+            values=scales::rescale(1.01*c(min(w), 0, 1.01*max(w)), c(0, 1))) +
       ggplot2::theme_set( ggplot2::theme_bw(base_size = 10)) +
       ggplot2::theme(axis.text= ggplot2::element_text(size=axis.fs)) +
       ggplot2::theme(axis.title= ggplot2::element_text(size=label.fs)) +
