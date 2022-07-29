@@ -16,6 +16,8 @@ available from Bioconductor [here](https://www.bioconductor.org/packages/release
 is specific to bulk data sets. Different visualization and data
 summary functions are proposed to help navigating prediction results.
 
+<img   src="man/figures/workflow.png" align="center" />
+
 
 ## Installation
 
