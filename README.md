@@ -9,7 +9,7 @@
 ## Overview
 
 Inference of ligand-receptor (LR) interactions from `bulk`
-(transcriptomic or proteomic) data or spatial Transcriptomics.
+(transcriptomic or proteomic) data or `spatial transcriptomics`.
  **BulkSignalR** bases its inferences
 on the LRdb database included in our other package, **SingleCellSignalR**
 available from Bioconductor [here](https://www.bioconductor.org/packages/release/bioc/html/SingleCellSignalR.html). It relies on a statistical model that
@@ -24,7 +24,7 @@ summary functions are proposed to help navigating prediction results.
 # The easiest way to get BulkSignalR is to install :
 # Not deployed under Bioconductor yet.
 # install.packages("BiocManager")
-# BiocManager::install("SPOTlight")
+# BiocManager::install("BulkSignalR")
 
 # Or the development version from GitHub:
 # install.packages("devtools")
