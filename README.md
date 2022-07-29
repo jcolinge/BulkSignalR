@@ -14,10 +14,13 @@ Inference of ligand-receptor (LR) interactions from `bulk`
 on the LRdb database included in our other package, **SingleCellSignalR**
 available from Bioconductor [here](https://www.bioconductor.org/packages/release/bioc/html/SingleCellSignalR.html). It relies on a statistical model that
 is specific to bulk data sets. Different visualization and data
-summary functions are proposed to help navigating prediction results.
-</br>
+summary functions are proposed to help navigating prediction results.  
+ <br/> 
+  
 <img   src="man/figures/workflow.png" align="center" width="85%" height="85%" />
-</br>
+  
+  
+<br/>
 
 ## Installation
 
