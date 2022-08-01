@@ -1263,46 +1263,40 @@ scalesReverse <- function(rasterImage, scale = "x") {
 # scalesReverse
 
 
-#' Print spatial plots
+#' L-R interaction score spatial display
 #'
-#' By default, user will print signal on a 2D plot.
-#' 
-#' User can 
-#' specifiy to plot on the left side,
-#' a reference plot.
-#' Reference plot is the raw image or
-#' image with different colors for
-#' all specified regions in \code{areas}.
+#' Generate a plot with scores at the spatial coordinates of the corresponding
+#' sample locations. Not limited to BulkSignalR gene signature scores.
 #'
-#' @param v Named vector with id of spots and signal.
-#' @param areas Dataframe with coordinates and signal.
-#' It should contains columns for id,
-#  for the spots, x / y coords 
-#' and a column for the signal you want to visualize.
-#' @param inter.name Interaction name used as title.
-#' @param rev.y  Reverse y-axis.
-#' @param rev.x  Reverse x-axis.
-#' @param ref.plot Logical to know if we plot reference object.
-#' @param image.raster Raster object image.
-#' @param x.col x coordinate
-#' @param y.col y coordinate
-#' @param label.col Labels
-#' @param idSpatial.col Spot ids
-#' @param cut.p Remove cut.p of extreme values
-#' @param low.color "Low" color for gradient.
-#' @param mid.color "Medium" color for gradient.
-#' @param hi.color  "High" color for gradient.
-#' @param title.fs  Fontsize for title.
-#' @param legend.fs Fontsize for legend
-#' @param axis.fs Fontsize for axis.
-#' @param label.fs Fontsize for label.
-#'
-#' @return A ggplot object
-#'   
-#' @import ggplot2
-#' @import grid
-#' @importFrom gridExtra grid.arrange
-#' @importFrom scales rescale
+#' @param v  A named vector containing the scores, names must be
+#' the IDs of each location.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations as well as the unique IDs of spatial locations.
+#' In case \code{ref.plot} is set to TRUE,
+#' a label column is required additionally.
+#' @param inter.name  Interaction name to display as plot title.
+#' @param rev.y  A Boolean indicating whether low y coordinates should be
+#' at the top of the plot.
+#' @param ref.plot  A Boolean indicating whether a reference map of the tissue
+#' with area labels should be plot aside.
+#' @param ref.plot.only  A Boolean indicating that only the reference plot
+#' should be output.
+#' @param image.raster  Raster object image to plot raw tissue image as ref.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
+#' @param cut.p  Proportion of top and bottom values for thresholding.
+#' @param low.color  Color for low score values.
+#' @param mid.color  Color for score = 0.
+#' @param high.color  Color for high score values.
+#' @param title.fs Title font size.
+#' @param legend.fs Legend items font size.
+#' @param axis.fs Axis ticks font size.
+#' @param label.fs Legend titles and axis names font size.
+#' @param dot.size Dot size.
+#' @return A single (scores) or side-by-side (reference tissue & scores) plot.
 #' @export
 #' @examples
 #' print('spatialPlot')
@@ -1314,88 +1308,499 @@ scalesReverse <- function(rasterImage, scale = "x") {
 #'     inter.name="L->R",
 #'     image.raster=img)
 #' }
-spatialPlot <- function(v, 
-                         areas, 
-                         inter.name, 
-                         rev.y=FALSE, 
-                         rev.x=FALSE, 
-                         ref.plot=FALSE,
-                         image.raster=NULL,
-                         x.col="array_col", 
-                         y.col="array_row",
-                         label.col="label", 
-                         idSpatial.col="idSpatial",
-                         cut.p=0.01, 
-                         low.color="royalblue3",
-                         mid.color="white", 
-                         hi.color="orange",
-                         title.fs=12, 
-                         legend.fs=10, 
-                         axis.fs=10,
-                         label.fs=12){
+#' @import ggplot2
+#' @import grid
+#' @importFrom gridExtra grid.arrange
+#' @importFrom scales rescale
+spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
+                        ref.plot.only=FALSE, image.raster=NULL,
+                        x.col="array_col", y.col="array_row",
+                        label.col="label", idSpatial.col="idSpatial",
+                        cut.p=0.01, low.color="royalblue3",
+                        mid.color="white", high.color="orange",
+                        title.fs=12, legend.fs=10, axis.fs=10,
+                        label.fs=12, dot.size=0.5){
 
-   if (cut.p<0 || cut.p>0.1)
-     stop("cut.p must lie in [0;0.1]")
+   x <- y <- label <- score <- NULL
 
-   if (!all(c(x.col, y.col, label.col, idSpatial.col) %in% names(areas)))
-     stop(paste0("One of x.col, y.col, idSpatial.col, or label.col is
-not in ","names(areas)"))
+  if (cut.p<0 || cut.p>0.1)
+    stop("cut.p must lie in [0;0.1]")
 
-   # put the scores in the right order for display at (x,y) coordinates
-   v <- v[areas[[idSpatial.col]]]
-   w <- .cutExtremeValues(v, cut.p)
+  if (!all(c(x.col, y.col, label.col, idSpatial.col) %in% names(areas)))
+    stop(paste0("One of x.col, y.col, idSpatial.col, or label.col is not in ",
+                "names(areas)"))
 
-    x <- y <- label <- score <- NULL
+  # put the scores in the right order for display at (x,y) coordinates
+  v <- as.numeric(v[areas[[idSpatial.col]]])
+  w <- .cutExtremeValues(v, cut.p)
+  if (ref.plot || ref.plot.only)
+    # include the labels
+    tissue <- data.frame(x=areas[[x.col]], y=areas[[y.col]],
+                         label=factor(areas[[label.col]]),
+                         score=w)
+  else
+    # no label needed
+    tissue <- data.frame(x=areas[[x.col]], y=areas[[y.col]],
+                         score=w)
 
-   tissue <- data.frame(x=areas[[x.col]], y=areas[[y.col]],
-                        label=factor(areas[[label.col]]),
-                        score=w)
+  if (rev.y){
+    # revert y-axis
+    ymin <- min(tissue$y)
+    ymax <- max(tissue$y)
+    tissue$y <- ymax-tissue$y+ymin
+  }
 
-   if (rev.y){
-     # revert y-axis
-     ymin <- min(tissue$y)
-     ymax <- max(tissue$y)
-     tissue$y <- ymax-tissue$y+ymin
-   }
-
-   if (rev.x){
-     # revert x-axis
-     xmin <- min(tissue$x)
-     xmax <- max(tissue$x)
-     tissue$x <- xmax-tissue$x+xmin
-   }
-
-   # reference tissue areas are required on the side
-   if (ref.plot)
-     if (!is.null(image.raster))
-        ref <- grid::rasterGrob(image.raster)
-     else 
+  # reference tissue areas are required on the side
+  if (ref.plot || ref.plot.only){
+      if (is.null(image.raster))
         ref <- ggplot2::ggplot(data=tissue, ggplot2::aes(x=x, y=y)) +
-     ggplot2::ggtitle("Reference") +
-     ggplot2::geom_point(ggplot2::aes(color=label)) +
-     ggplot2::theme_set( ggplot2::theme_bw(base_size = 10)) +
-     ggplot2::theme(axis.text= ggplot2::element_text(size=axis.fs)) +
-     ggplot2::theme(axis.title= ggplot2::element_text(size=label.fs)) +
-     ggplot2::theme(legend.title= ggplot2::element_text(size=label.fs)) +
-     ggplot2::theme(legend.text= ggplot2::element_text(size=legend.fs)) +
-     ggplot2::theme(plot.title= ggplot2::element_text(size=title.fs))
+        ggplot2::ggtitle("Reference tissue") +
+        ggplot2::geom_point(ggplot2::aes(color=label), size=dot.size) +
+        ggplot2::theme_set(ggplot2::theme_bw(base_size = 10)) +
+        ggplot2::theme(axis.text=ggplot2::element_text(size=axis.fs)) +
+        ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
+        ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
+        ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs)) +
+        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs))
+      
+      else {ref <- grid::rasterGrob(image.raster)}
+     
+  }
 
+  if (ref.plot.only){
+    # do not plot L-R scores
+    lr <- ref
+    if (!is.null(image.raster))
+        lr <- image.raster
+    ref.plot <- FALSE
+  }
+  else{
+    # plot L-R scores
+    if (min(w) >= 0 || max(w) <= 0)
+      # single gradient
+      lr <- ggplot2::ggplot(data=tissue, ggplot2::aes(x=x, y=y)) +
+        ggplot2::ggtitle(inter.name) +
+        ggplot2::geom_point(ggplot2::aes(color=score), size=dot.size) +
+        ggplot2::scale_color_gradient(low=low.color, high=high.color) +
+        ggplot2::theme_set(ggplot2::theme_bw(base_size=10)) +
+        ggplot2::theme(axis.text=ggplot2::element_text(size=axis.fs)) +
+        ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
+        ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
+        ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs)) +
+        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs))
+    else
+      # dual gradient
+      lr <- ggplot2::ggplot(data=tissue, ggplot2::aes(x=x, y=y)) +
+        ggplot2::ggtitle(inter.name) +
+        ggplot2::geom_point(ggplot2::aes(color=score), size=dot.size) +
+        ggplot2::scale_color_gradientn(colors=c(low.color, mid.color, high.color),
+values=scales::rescale(c(min(w)-1e-6, 0, max(w)+1e-6), c(0, 1))) +
+        ggplot2::theme_set(ggplot2::theme_bw(base_size=10)) +
+        ggplot2::theme(axis.text=ggplot2::element_text(size=axis.fs)) +
+        ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
+        ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
+        ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs)) +
+        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs))
+  }
 
-   # plot L-R scores
-   lr <-  ggplot2::ggplot(data=tissue,  ggplot2::aes(x=x, y=y)) +  
-      ggplot2::ggtitle(inter.name) +
-      ggplot2::scale_color_gradientn(colors=c(low.color, mid.color, hi.color),
-            values=scales::rescale(1.01*c(min(w), 0, 1.01*max(w)), c(0, 1))) +
-      ggplot2::theme_set( ggplot2::theme_bw(base_size = 10)) +
-      ggplot2::theme(axis.text= ggplot2::element_text(size=axis.fs)) +
-      ggplot2::theme(axis.title= ggplot2::element_text(size=label.fs)) +
-      ggplot2::theme(legend.title= ggplot2::element_text(size=label.fs)) +
-      ggplot2::theme(legend.text= ggplot2::element_text(size=legend.fs)) +
-      ggplot2::theme(plot.title= ggplot2::element_text(size=title.fs))
-
-   if (ref.plot)
-     gridExtra::grid.arrange(ref, lr, ncol=2)
-   else
-     lr
+  if (ref.plot)
+    gridExtra::grid.arrange(ref, lr, ncol=2)
+  else {
+    if(!is.null(image.raster))
+        plot(lr)
+    if (is.null(image.raster))
+        lr
+    }
 
 } # spatialPlot
+
+
+#' Generate L-R interaction score spatial plots in a folder
+#'
+#' Generate a series of individual spatial score plots in a folder.
+#' Not limited to BulkSignalR gene signature scores.
+#'
+#' @param scores  A matrix of scores, one L-R interaction per row and
+#' spatial locations in the columns. This matrix is typically obtained
+#' from BulkSignalR functions \code{scoreLRGeneSignatures} or \code{scScoring}.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations as well as the unique IDs of spatial locations.
+#' In case \code{ref.plot} is set to TRUE,
+#' a label column is required additionally.
+#' @param plot.folder  The folder name in which the plot files will be written.
+#' @param width  The width of each individual plot.
+#' @param height  The height of each individual plot.
+#' @param pointsize  PDF font point size.
+#' @param rev.y  A Boolean indicating whether low y coordinates should be
+#' at the top of the plot.
+#' @param ref.plot  A Boolean indicating whether a reference map of the tissue
+#' with area labels should be plot aside.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
+#' @param cut.p  Proportion of top and bottom values for thresholding.
+#' @param low.color  Color for low score values.
+#' @param mid.color  Color for score = 0.
+#' @param high.color  Color for high score values.
+#' @param title.fs Title font size.
+#' @param legend.fs Legend items font size.
+#' @param axis.fs Axis ticks font size.
+#' @param label.fs Legend titles and axis names font size.
+#' @param dot.size Dot size.
+#' @return A set of PDF files are created in the provided folder.
+#' @export
+#' @examples
+#' print('generateSpatialPlots')
+#' if(FALSE){
+#'
+#' generateSpatialPlots(scores, areas, plot.folder)
+#'
+#' }
+generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
+                                 pointsize=8, rev.y=TRUE, ref.plot=TRUE,
+                                 x.col="array_col", y.col="array_row",
+                                 label.col="label", idSpatial.col="idSpatial",
+                                 cut.p=0.01, low.color="royalblue3",
+                                 mid.color="white", high.color="orange",
+                                 title.fs=12, legend.fs=10, axis.fs=10,
+                                 label.fs=12, dot.size=0.5){
+
+  for (i in seq_len(nrow(scores))){
+    inter <- gsub("\\}","",gsub("\\{","",rownames(scores)[i]))
+    fn <- gsub(" +/ +","-",inter,perl=TRUE)
+
+    grDevices::pdf(paste0(plot.folder, "/interaction-plot-", fn), width=width,
+        height=height, useDingbats=FALSE, pointsize=pointsize)
+    spatialPlot(scores[i, areas[[idSpatial.col]]], areas, inter,
+                rev.y=rev.y, ref.plot=ref.plot,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color, mid.color=mid.color,
+                high.color=high.color, title.fs=title.fs,
+                legend.fs=legend.fs, axis.fs=axis.fs, label.fs=label.fs,
+                dot.size=dot.size)
+    grDevices::dev.off()
+  }
+
+} # generateSpatialPlots
+
+
+#' Generate a visual index of spatial score distributions
+#'
+#' Generate an index made of series of small individual spatial score plots
+#' in a PDF. Not limited to BulkSignalR gene signature scores.
+#'
+#' @param scores  A matrix of scores, one L-R interaction per row and
+#' spatial locations in the columns. This matrix is typically obtained
+#' from BulkSignalR functions \code{scoreLRGeneSignatures} or \code{scScoring}.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations, the unique IDs of spatial locations, and
+#' a tissue label column.
+#' @param out.file File name for the output PDF.
+#' @param dot.size Dot size.
+#' @param base.h  Width of each plot.
+#' @param base.v  Height of each plot.
+#' @param ratio the vertical/horizontal ratio.
+#' @return A PDF file is created that contains the index.
+#' @export
+#' @examples
+#' print('spatialIndexPlot')
+#' if(FALSE){
+#'
+#' spatialIndexPlot(scores, areas, out.file)
+#'
+#' }
+#' @importFrom gridExtra grid.arrange
+spatialIndexPlot <- function(scores, areas, out.file,
+                             dot.size=0.25, ratio=1.25,
+                             base.v=2.5, base.h=3){
+
+  # one reference plot at the beginning
+  plots <- list(spatialPlot(scores[1,], areas, "",
+                            ref.plot.only=TRUE, dot.size=dot.size))
+
+  # actual plots
+  for (i in seq_len(nrow(scores))){
+    inter <- gsub("\\}", "", gsub("\\{", "", rownames(scores)[i]))
+    plots <- c(plots, list(
+      spatialPlot(scores[i,], areas, inter,
+                  ref.plot=FALSE, dot.size=dot.size)
+    ))
+  }
+
+  # file output at matrix dimension computation
+  m <- length(plots)
+  n <-  round(sqrt(m/ratio*base.v/base.h))
+  l <- m %/% n
+  if (l*n < m)
+    l <- l+1
+  grDevices::pdf(out.file, width=n*base.h, height=l*base.v, useDingbats=FALSE, pointsize=6)
+  gridExtra::grid.arrange(grobs=plots, ncol=n, nrow=l)
+  grDevices::dev.off()
+
+} # spatialIndexPlot
+
+
+#' Statistical association of scores with area labels
+#'
+#' Compute the statistical association of L-R interaction score spatial
+#' distributions with tissue area labels.
+#' Not limited to BulkSignalR gene signature scores.
+#'
+#' @param scores  A matrix of scores, one L-R interaction per row and
+#' spatial locations in the columns. This matrix is typically obtained
+#' from BulkSignalR functions \code{scoreLRGeneSignatures} or \code{scScoring}.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations, the unique IDs of spatial locations, and
+#' a label column.
+#' @param test  The chosen statistical test, parametric (normal) or
+#' nonparametric (see also details below).
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
+#' @param fdr.proc  Multiple hypothesis correction procedure, see
+#' \code{multtest}.
+#' @return A data.frame with the names of the interactions, the value of the
+#' chosen statistics, and the corresponding Q-value. In case the
+#' nonparametric Kruskal-Wallis test is chosen, additional columns are provided
+#' testing each label for significantly larger scores (Kruskal-Wallis is global
+#' and only says whether one or several labels show a bias). Individual
+#' labels are tested with Wilcoxon and two columns are added *per* label,
+#' one for the statistics and one for a Bonferroni-corrected P-value over
+#' all the labels.
+#'
+#' In case the parametric model is chosen, a linear model followed by ANOVA
+#' are used for the global association test. Individual labels are tested
+#' with T-tests (Bonferroni-corrected).
+#' @export
+#' @examples
+#' print('spatialAssociation')
+#' if(FALSE){
+#'
+#' spatialAssociation(scores, areas)
+#'
+#' }
+#' @import multtest
+#' @importFrom foreach %do%
+spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
+                               label.col="label", idSpatial.col="idSpatial",
+                               fdr.proc=c("BH", "Bonferroni",
+                               "Holm", "Hochberg", "SidakSS", "SidakSD", "BY",
+                               "ABH", "TSBH")){
+
+  test <- match.arg(test)
+  fdr.proc <- match.arg(fdr.proc)
+  if (!(label.col %in% names(areas)))
+    stop("label.col is not in names(areas)")
+
+  labels <- factor(areas[[label.col]])
+  ul <- unique(labels)
+  n <- length(ul)
+  i <- lab <- NULL
+  res <- foreach::foreach(i=seq_len(nrow(scores)), .combine=rbind) %do% {
+    inter <- gsub("\\}","",gsub("\\{","",rownames(scores)[i]))
+    v <- scores[i, areas[[idSpatial.col]]]
+    if (test == "Kruskal-Wallis"){
+      kw <- stats::kruskal.test(v,labels)
+
+      # specific associations with each label
+      pvals <- foreach::foreach(lab=ul, .combine=c) %do% {
+        wt <- stats::wilcox.test(x=v[labels==lab], y=v[labels!=lab],
+                          alternative="greater")
+        list(min(c(wt$p.value*n, 1))) # Bonferroni correction
+      }
+      names(pvals) <- ul
+
+      cbind(data.frame(interaction=inter, pval=kw$p.value, H=kw$statistic,
+                       stringsAsFactors=FALSE),
+            pvals)
+    }
+    else{
+      # ANOVA
+      df <- data.frame(score=v, label=labels)
+      my.lm <- stats::lm(score ~ label, data=df)
+      ano <- stats::anova(my.lm)
+
+      # specific associations with each label
+      pvals <- foreach::foreach(lab=ul, .combine=c) %do% {
+        tt <- stats::t.test(x=v[labels==lab], y=v[labels!=lab],
+                                 alternative="greater")
+        list(min(c(tt$p.value*n, 1))) # Bonferroni correction
+      }
+      names(pvals) <- ul
+
+      cbind(data.frame(interaction=inter, pval=ano$`Pr(>F)`[1],
+                       F=ano$`F value`[1], stringsAsFactors=FALSE),
+            pvals)
+    }
+  }
+
+  # multiple hypothesis correction on the global association P-values
+  rawp <- res$pval
+  adj <- multtest::mt.rawp2adjp(rawp, fdr.proc)
+  res$qval <- adj$adjp[order(adj$index), fdr.proc]
+
+  rownames(res) <- res$interaction
+ 
+  label.index.stop <- ncol(res)-1
+  res[, c(1:3, ncol(res), 4:label.index.stop)] # put label columns at the end
+
+} # spatialAssociation
+
+
+#' Heatmap plot of association of scores with area labels
+#'
+#' Plot a heatmap featuring Q-values of statistical association between
+#' L-R interaction score spatial distributions and tissue area labels.
+#'
+#' @param associations  A statistical association data.frame generated
+#' by the function \code{spatialAssociation}.
+#' @param qval.thres  The maximum Q-value to consider in the plot (a
+#' L-R interaction must associate with one label at least with a Q-value
+#' smaller or equal to this threshold).
+#' @param  colors  A function returning a color for a given value such as
+#' generated by \code{circlize::colorRamp2}.
+#' @return Display a heatmap linking L-R interactions to labels.
+#' @export
+#' @examples
+#' print('spatialAssociationPlot')
+#' if(FALSE){
+#'
+#' spatialAssociationPlot(associations)
+#'
+#' }
+#' @import ComplexHeatmap
+#' @importFrom circlize colorRamp2
+spatialAssociationPlot <- function(associations, qval.thres=0.01, colors=NULL){
+
+  # transform and filter data
+  mat <- data.matrix(associations[, -(1:4)])
+  mat[mat == 0] <- min(mat[mat > 0])
+  mat <- -log10(mat)
+  thres <- -log10(qval.thres)
+  good <- apply(mat, 1, max) >= thres
+  mat <- mat[good, ]
+
+  if (is.null(colors))
+    # create a color scale
+    colscale <- circlize::colorRamp2(breaks=c(0, thres-1e-10,
+                                    seq(thres, max(mat), length.out=10)),
+                           colors=c("lightgray", "lightgray",
+                                    grDevices::hcl.colors(10, "Viridis")))
+  else
+    colscale <- colors
+
+  # plot heatmap
+  di.lab <- stats::dist(t(mat))
+  hc.lab <- stats::hclust(di.lab, method="ward.D")
+  dend.lab <- stats::as.dendrogram(hc.lab)
+  di.int <- stats::dist(mat)
+  hc.int <- stats::hclust(di.int, method="ward.D")
+  dend.int <- stats::as.dendrogram(hc.int)
+  ComplexHeatmap::Heatmap(mat, col=colscale, cluster_rows=dend.int,
+          cluster_columns=dend.lab, show_row_dend=FALSE,
+          show_column_dend=FALSE)
+
+} # spatialAssociationPlot
+
+
+#' 2D-projection of spatial score distributions
+#'
+#' Use PCA or t-SNE to obtain a 2D-projection of a set of spatial scores.
+#' This plot summarizes the diversity of patterns occuring in a spatial
+#' dataset. Use the function \code{spatialIndexPlot} to create a large
+#' visual index of many spatial distributions.
+#' Not limited to BulkSignalR gene signature scores.
+#'
+#' @param scores  A matrix of scores, one L-R interaction per row and
+#' spatial locations in the columns. This matrix is typically obtained
+#' from BulkSignalR functions \code{scoreLRGeneSignatures} or \code{scScoring}.
+#' @param associations  A statistical association data.frame generated
+#' by the function \code{spatialAssociation}.
+#' @param proj  Projection method : 'PCA' or 'tSNE' are available arguements.
+#' @param qval.thres  The maximum Q-value to consider in the plot (a
+#' L-R interaction must associate with one label at least with a Q-value
+#' smaller or equal to this threshold).
+#' @param with.names  A Boolean indicating whether L-R names should be plotted.
+#' @param text.fs Point label font size in case \code{with.names} is TRUE.
+#' @param legend.fs Legend items font size.
+#' @param axis.fs Axis ticks font size.
+#' @param label.fs Legend titles and axis names font size.
+#' @param dot.size Dot size.
+#' @return Display a 2D-projection of the score spatial distributions.
+#' @export
+#' @examples
+#' print('spatialDiversityPlot')
+#' if(FALSE){
+#'
+#' spatialDiversityPlot(scores,associations)
+#'
+#' }
+#' @importFrom foreach %do%
+#' @importFrom Rtsne Rtsne
+#' @importFrom ggrepel geom_text_repel
+#' @import ggplot2
+spatialDiversityPlot <- function(scores, associations, proj=c("PCA","tSNE"),
+                                 qval.thres=0.01, with.names=FALSE,
+                                 text.fs=2.5, legend.fs=10, axis.fs=10,
+                                 label.fs=12, dot.size=1){
+
+  i <- PC1 <- PC2 <- name <- label <- tSNE1 <- tSNE2 <- NULL
+
+  proj <- match.arg(proj)
+
+  # find the strongest association for each L-R interaction
+  labels <- names(associations)[-(1:4)]
+  cols <- stats::setNames(c(grDevices::rainbow(length(labels), s=0.5), "lightgray"),
+                          c(labels, "non_signif"))
+
+  best.label <- foreach::foreach(i=seq_len(nrow(associations)),
+                                 .combine=c) %do% {
+    qvals <- as.numeric(associations[i, -(1:4)])
+    if (min(qvals) > qval.thres)
+      "non_signif"
+    else
+      labels[which.min(qvals)]
+  }
+
+  # the plot itself
+  if (proj == "PCA"){
+    pca <- stats::prcomp(scores, scale.=TRUE)
+    dat <- data.frame(PC1=pca$x[,1], PC2=pca$x[,2], label=best.label, name=rownames(scores))
+    if (with.names)
+      p <- ggplot2::ggplot(data=dat, ggplot2::aes(x=PC1, y=PC2, label=name)) +
+      ggrepel::geom_text_repel(size=text.fs,max.overlaps = Inf) +
+      ggplot2::geom_point(ggplot2::aes(color=label), size=dot.size)
+    else
+      p <- ggplot2::ggplot(data=dat, ggplot2::aes(x=PC1, y=PC2)) +
+      ggplot2::geom_point(ggplot2::aes(color=label), size=dot.size)
+
+    p <- p + ggplot2::theme_set(ggplot2::theme_bw(base_size = 10)) +
+      ggplot2::theme(axis.text=ggplot2::element_text(size=axis.fs)) +
+      ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
+      ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
+      ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs))
+    p
+  }
+  else{
+    tsne <- Rtsne::Rtsne(scores, perplexity=10)
+    dat <- data.frame(tSNE1=tsne$Y[,1], tSNE2=tsne$Y[,2], label=best.label, name=rownames(scores))
+    if (with.names)
+      p <- ggplot2::ggplot(data=dat, ggplot2::aes(x=tSNE1, y=tSNE2, label=name)) +
+      ggrepel::geom_text_repel(size=text.fs) +
+      ggplot2::geom_point(ggplot2::aes(color=label), size=dot.size)
+    else
+      p <- ggplot2::ggplot(data=dat, ggplot2::aes(x=tSNE1, y=tSNE2)) +
+      ggplot2::geom_point(ggplot2::aes(color=label), size=dot.size)
+
+    p <- p + ggplot2::theme_set(ggplot2::theme_bw(base_size = 10)) +
+      ggplot2::theme(axis.text=ggplot2::element_text(size=axis.fs)) +
+      ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
+      ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
+      ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs))
+    p
+  }
+
+} # spatialDiversityPlot
