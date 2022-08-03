@@ -11,13 +11,24 @@
 #' @return An \code{igraph} object featuring the ligand-receptor network.
 #' Default colors and node sizes are assigned,
 #' which can be changed afterwards if necessary.
+#' @import igraph
 #' @export
 #' @examples
-#' \dontrun{
+#' print('getLRNetwork')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
 #' gLR <- getLRNetwork(bsrinf, qval.thres=1e-4)
-#' plot(gLR)
-#' write.graph(gLR, file="SDC-LR-network.graphml", format="graphml")
-#' }
+#' # plot(gLR)
+#' # write.graph(gLR, file="SDC-LR-network.graphml", format="graphml")
+#' 
+#' @importFrom methods is
 getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                          node.size=5, red.pairs=NULL){
 
@@ -187,10 +198,31 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' The construction of shortest paths from the receptors to those selected
 #' targets adds other genes, which were either some targets with too low
 #' correlation or genes along the shortest paths to reach the selected targets.
+#' @import igraph
+#' @importFrom methods is
 #' @export
 #' @examples
-#' \dontrun{
-#' }
+#' print('getLRIntracellNetwork')
+#' data(sdc,package='BulkSignalR')
+#' bsrdm <- prepareDataset(counts = sdc)
+#' bsrdm <- learnParameters(bsrdm, 
+#'          null.model = "normal",
+#'          quick = FALSE, 
+#'          plot.folder = "./",
+#'          filename = "sdc",
+#'          verbose = TRUE)
+#' bsrinf <- initialInference(bsrdm)
+#' bsrinf.redBP <- reduceToBestPathway(bsrinf)
+#'
+#' pairs <- LRinter(bsrinf.redBP)
+#' top   <- unique(pairs[pairs$pval<1e-20,c("pw.id","pw.name")])
+#'
+#' gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=0.01,
+#'                                      restrict.pw=top$pw.id)
+#'
+#' # write.graph(gLRintra, file="SDC-LR-intracellular-network.reduced.graphml",
+#'           # format="graphml")
+#'
 getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                                   min.cor=0.25, restrict.pw=NULL,
                                   node.size=5){

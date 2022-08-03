@@ -8,8 +8,8 @@
   pairs,
   param,
   rank.p = 0.75,
-  fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY",
-    "ABH", "TSBH")
+  fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY", "ABH",
+    "TSBH")
 )
 }
 \arguments{

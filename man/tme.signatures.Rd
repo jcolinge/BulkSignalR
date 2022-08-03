@@ -6,10 +6,10 @@
 \title{Tumor microenvironment gene signatures}
 \format{
 A data frame with 209 rows and 2 variables: \describe{
-  \item{gene}{HUGO gene symbol} \item{signature}{cell population name}git }
+  \item{gene}{HUGO gene symbol} \item{signature}{cell population name} }
 }
 \source{
-Becht et al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
+Becht & al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
 }
 \usage{
 data(tme.signatures)

@@ -22,22 +22,28 @@ Imports:
     rlang,
     methods,
     doParallel,
-    ggplot2,
     ggalluvial,
-    orthogene,
+    ggplot2,
+    gridExtra,
+    png,
+    Rtsne,
+    ggrepel,
     foreach,
     multtest,
     igraph,
     SingleCellSignalR,
-    stringr,
+    orthogene,
     stabledist,
-    circlize,
+    circlize (>= 0.4.14),
     ComplexHeatmap (>= 2.0.0),
-    stats
+    stats,
+    scales
 Suggests: 
     grid,
     knitr,
+    dplyr,
+    kableExtra,
     markdown,
     rmarkdown
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr

@@ -6,6 +6,11 @@
 \usage{
 \S4method{receptors}{BSRInference}(x) <- value
 }
+\arguments{
+\item{x}{BRSInference object}
+
+\item{value}{value to be set for BRSInference}
+}
 \description{
 receptors setter (internal use only)
 }

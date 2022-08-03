@@ -1,0 +1,26 @@
+{
+    "id": "F398A5AB",
+    "path": "~/BulkSignalR/R/BSRDataModel-class.R",
+    "project_path": "R/BSRDataModel-class.R",
+    "type": "r_source",
+    "hash": "4199767636",
+    "contents": "",
+    "dirty": false,
+    "created": 1657887812360.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "515,0",
+        "scrollLine": "492"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1658646512,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1658646512854,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -130,7 +130,7 @@
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, plot=FALSE)
+    h <- graphics::hist(d, breaks=x, plot=FALSE)
     hist.rf <- h$counts/length(d)
     gauss.rf <- .cdfGaussian(h$breaks[-1], params) -
         .cdfGaussian(h$breaks[-length(h$breaks)], params)
@@ -208,7 +208,7 @@
         ) + length(d)*log(q)
     }
     mu <- mean(d)
-    sigma <- sd(d)
+    sigma <- stats::sd(d)
     par.0 <- c(0.7, mu-0.1, 0.75*sigma, mu+0.1, 3*sigma)
     lo.bound <- c(0.5, mu-0.5, 0.5*sigma, mu-0.2, 2*sigma)
     hi.bound <- c(1.0, mu+0.2, 1.5*sigma, mu+0.4, 10*sigma)
@@ -243,7 +243,7 @@
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, plot=FALSE)
+    h <- graphics::hist(d, breaks=x, plot=FALSE)
     hist.rf <- h$counts/length(d)
     mixed.rf <- .cdfMixedGaussian(h$breaks[-1], params) -
         .cdfMixedGaussian(h$breaks[-length(h$breaks)], params)
@@ -287,8 +287,9 @@
 #'
 #' @param d   A vector of values to fit.
 #' @param title     A plot title.
+#' @param verbose   Provide details on computations.
 #' @param file.name   The file name of a PDF file.
-#'
+
 #' @return A list with the step function implementing the CDF of
 #'   the empirical distribution (\code{empirCDF}).
 #'
@@ -344,6 +345,7 @@
 #'
 #' @param d   A vector of values to fit.
 #' @param title     A plot title.
+#' @param verbose   Provide details on computations.
 #' @param file.name   The file name of a PDF file.
 #' @param n  The number of grid points for density FFT
 #'
@@ -366,7 +368,7 @@
     df <- stats::density(d, from=-1, to=1, n=n)
     cd <- cumsum(df$y)
     cd <- cd/cd[n]
-    params <- list(kernelCDF = stepfun(df$x, c(0, cd)),
+    params <- list(kernelCDF = stats::stepfun(df$x, c(0, cd)),
                    distrib = "kernel_empirical")
 
     # KS test D statistics
@@ -374,7 +376,7 @@
 
     # Chi2
     x <- seq(-1, 1, by = 0.05)
-    h <- hist(d, breaks=x, plot=FALSE)
+    h <- graphics::hist(d, breaks=x, plot=FALSE)
     hist.rf <- h$counts/length(d)
     kernel.rf <- .cdfKernelEmpirical(h$breaks[-1], params) -
         .cdfKernelEmpirical(h$breaks[-length(h$breaks)], params)
@@ -445,7 +447,7 @@
                                  gamma=(par[3])**2, delta=par[4], log=TRUE)
              ) + length(d)*log(q)
     }
-    par.0 <- c(1.5, 0.5, sqrt(sd(d)), mean(d))
+    par.0 <- c(1.5, 0.5, sqrt(stats::sd(d)), mean(d))
     if (verbose)
         cat(paste0("Starting stable distribution parameter estimation. ",
                    "This can take a few dozens of minutes...\n"))

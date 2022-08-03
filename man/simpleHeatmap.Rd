@@ -8,7 +8,8 @@ simpleHeatmap(
   mat.c,
   width,
   height,
-  file.name = NULL,
+  path = "./",
+  filename = "simpleHeatmap",
   dend.row = NULL,
   dend.spl = NULL,
   cols = NULL,
@@ -18,7 +19,11 @@ simpleHeatmap(
   n.row.clust = 0,
   gap.size = 0.5,
   cut.p = 0.01,
-  row.names = TRUE
+  row.names = TRUE,
+  column.names = TRUE,
+  hcl_palette = NULL,
+  reverse = FALSE,
+  format = c("svg", "png", "pdf")
 )
 }
 \arguments{
@@ -29,7 +34,9 @@ simpleHeatmap(
 
 \item{height}{PDF height.}
 
-\item{file.name}{A PDF file name.}
+\item{path}{directory where to plot file.}
+
+\item{filename}{file name.}
 
 \item{dend.row}{A precomputed row dendrogram.}
 
@@ -49,13 +56,26 @@ simpleHeatmap(
 
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
 
-\item{row.names}{A logical to turn on/off the display of row (gene)
-names.}
+\item{row.names}{A logical to turn on/off the display}
+
+\item{column.names}{A logical to turn on/off the display
+of column (sample) names.}
+
+\item{hcl_palette}{support for HCL colormaps in ComplexHeatmap
+using color mapping function with circlize::colorRamp2().
+palettes are listed in grDevides::hcl.pals().
+of row (gene) names.}
+
+\item{reverse}{A logicial to reverse or not colors in hclpalette.}
+
+\item{format}{File format svg (default)/png/pdf}
 }
 \value{
 A heatmap. Since heatmap plotting tend to be slow on the screen,
 it is advisable to provide a
 PDF file name and plot in a file (much faster).
+
+If hcl_palette is set. colors parameter won't be used. 
 
 Extreme values (top and bottom) can be replaced by global quantiles at
 \code{cut.p} and \code{1-cut.p}
@@ -72,6 +92,28 @@ Generate a PDF file with a heatmap representing ligand-receptor gene
 signature scores.
 }
 \examples{
-\dontrun{
-}
+print('simpleHeatmap')
+data(sdc,package='BulkSignalR')
+bsrdm <- prepareDataset(counts = sdc)
+bsrdm <- learnParameters(bsrdm, 
+         null.model = "normal",
+         quick = FALSE, 
+         plot.folder = "./",
+         filename = "sdc",
+         verbose = TRUE)
+bsrinf <- initialInference(bsrdm)
+bsrinf.redBP <- reduceToBestPathway(bsrinf) 
+bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP,
+qval.thres=0.001)
+
+scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,
+                       name.by.pathway=FALSE)
+simpleHeatmap(scoresLR[1:20,], 
+                  path = "./",
+                  filename = "sdc_scoresLR",
+                  column.names = TRUE, 
+                  height = 5, width = 9,
+                  pointsize = 10,
+                  hcl_palette = "Cividis"                   
+                  )
 }

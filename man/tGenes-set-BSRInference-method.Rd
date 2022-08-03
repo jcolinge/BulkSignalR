@@ -6,6 +6,11 @@
 \usage{
 \S4method{tGenes}{BSRInference}(x) <- value
 }
+\arguments{
+\item{x}{BSRInferance object}
+
+\item{value}{value to be set BSRInferance}
+}
 \description{
 Target genes setter (internal use only)
 }

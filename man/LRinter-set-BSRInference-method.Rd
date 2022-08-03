@@ -6,6 +6,11 @@
 \usage{
 \S4method{LRinter}{BSRInference}(x) <- value
 }
+\arguments{
+\item{x}{BSRInference object}
+
+\item{value}{value to be set to BSRInference}
+}
 \description{
 LRinter setter (internal use only)
 }

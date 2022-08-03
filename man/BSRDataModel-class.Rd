@@ -21,13 +21,16 @@ official gene symbols.}
 
 \item{\code{param}}{List containing the statistical model parameters.}
 
-\item{\code{organismDefinition}}{Organism}
+\item{\code{initial.organism}}{Organism}
+
+\item{\code{initial.orthologs}}{List of ortholog genes for which human
+analog exists for the organism of study.}
 }}
 
 \examples{
 new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
-                                   dimnames=list(c("A","B"), c("C","D"))),
-                    log.transformed=TRUE,
-                    normalization="TC",species="hsapiens")
+      dimnames=list(c("A","B"), c("C","D"))),
+      log.transformed=TRUE,
+      normalization="TC")
 
 }

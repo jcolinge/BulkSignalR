@@ -6,6 +6,11 @@
 \usage{
 \S4method{tgCorr}{BSRInference}(x) <- value
 }
+\arguments{
+\item{x}{BSRInference object}
+
+\item{value}{value to be set for bsrinf}
+}
 \description{
 Target gene correlations setter (internal use only)
 }

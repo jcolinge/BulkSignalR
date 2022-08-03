@@ -6,6 +6,11 @@
 \usage{
 \S4method{ligands}{BSRInference}(x) <- value
 }
+\arguments{
+\item{x}{BRSInference object}
+
+\item{value}{Value to be set for bsrinf}
+}
 \description{
 ligands setter (internal use only)
 }

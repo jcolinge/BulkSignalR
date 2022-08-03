@@ -33,9 +33,18 @@ which can be changed afterwards if necessary.
 Generate a ligand-receptor network from a ligand-receptor table.
 }
 \examples{
-\dontrun{
+print('getLRNetwork')
+data(sdc,package='BulkSignalR')
+bsrdm <- prepareDataset(counts = sdc)
+bsrdm <- learnParameters(bsrdm, 
+         null.model = "normal",
+         quick = FALSE, 
+         plot.folder = "./",
+         filename = "sdc",
+         verbose = TRUE)
+bsrinf <- initialInference(bsrdm)
 gLR <- getLRNetwork(bsrinf, qval.thres=1e-4)
-plot(gLR)
-write.graph(gLR, file="SDC-LR-network.graphml", format="graphml")
-}
+# plot(gLR)
+# write.graph(gLR, file="SDC-LR-network.graphml", format="graphml")
+
 }

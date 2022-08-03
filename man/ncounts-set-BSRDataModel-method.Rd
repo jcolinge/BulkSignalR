@@ -6,6 +6,11 @@
 \usage{
 \S4method{ncounts}{BSRDataModel}(x) <- value
 }
+\arguments{
+\item{x}{object BSRDataModel}
+
+\item{value}{valut to be set for BSRDataModel}
+}
 \description{
 Normalized count matrix setter (internal use only)
 }

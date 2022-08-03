@@ -11,24 +11,38 @@ scoreSignatures(ds, ref.signatures, robust = FALSE)
 
 \item{ref.signatures}{Gene signatures.}
 
-\item{robust}{A logical indicating that z-scores should be computed
-with median and MAD instead of mean and standard deviation.}
+\item{robust}{A logical indicating that z-scores 
+should be computed with median and MAD 
+instead of mean and standard deviation.}
 }
 \value{
-A matrix containing the scores of each gene signature in each sample.
+A matrix containing the scores of 
+each gene signature in each sample.
 Note that ligand-receptor gene
-signature scores should be computed with \code{\link{scoreLRGeneSignatures}}
+signature scores should be computed with 
+\code{"\link[=BSRDataModel-class]{scoreLRGeneSignatures}"}
 instead.
 }
 \description{
-Scores generic gene signatures over the samples of a BSRDataModel object.
+Scores generic gene signatures over the 
+samples of a BSRDataModel object.
 }
 \details{
-This function relies on a simple average of gene z-scores
-over each signature. It is no replacement for mode advanced methods
-such as CYBERSORT or BisqueRNA. It is provided for convenience.
+This function relies on 
+a simple average of gene z-scores over each signature.
+It is no replacement for mode advanced methods
+such as CYBERSORT or BisqueRNA. 
+It is provided for convenience.
 }
 \examples{
-\dontrun{
-}
+data(sdc,package='BulkSignalR')
+bsrdm <- prepareDataset(counts = sdc)
+bsrdm <- learnParameters(bsrdm, 
+         null.model = "normal",
+         quick = FALSE, 
+         plot.folder = "./",
+         filename = "sdc",
+         verbose = TRUE)
+data(immune.signatures, package="BulkSignalR")
+imm.scores <- scoreSignatures(bsrdm, immune.signatures)
 }

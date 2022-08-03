@@ -4,13 +4,15 @@
 \alias{.buildPermutatedCountMatrix}
 \title{Internal function to generate a randomized expression matrix}
 \usage{
-.buildPermutatedCountMatrix(ncounts, pind)
+.buildPermutatedCountMatrix(ncounts, pind, seed)
 }
 \arguments{
 \item{ncounts}{A matrix of normalized read counts.}
 
 \item{pind}{Permutation indices such as returned by
 \code{\link{.buildPermutationIndices}}.}
+
+\item{seed}{Seed to reproduce exact same sampling.}
 }
 \value{
 \code{ncount} with shuffled row names (gene symbols). Shuffling is

@@ -8,7 +8,7 @@ getLRIntracellNetwork(
   bsrinf,
   pval.thres = NULL,
   qval.thres = NULL,
-  min.cor = 0.3,
+  min.cor = 0.25,
   restrict.pw = NULL,
   node.size = 5
 )
@@ -45,6 +45,25 @@ the shortest paths from the receptors to correlated
 target genes following Reactome and KEGG pathways.
 }
 \examples{
-\dontrun{
-}
+print('getLRIntracellNetwork')
+data(sdc,package='BulkSignalR')
+bsrdm <- prepareDataset(counts = sdc)
+bsrdm <- learnParameters(bsrdm, 
+         null.model = "normal",
+         quick = FALSE, 
+         plot.folder = "./",
+         filename = "sdc",
+         verbose = TRUE)
+bsrinf <- initialInference(bsrdm)
+bsrinf.redBP <- reduceToBestPathway(bsrinf)
+
+pairs <- LRinter(bsrinf.redBP)
+top   <- unique(pairs[pairs$pval<1e-20,c("pw.id","pw.name")])
+
+gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=0.01,
+                                     restrict.pw=top$pw.id)
+
+# write.graph(gLRintra, file="SDC-LR-intracellular-network.reduced.graphml",
+          # format="graphml")
+
 }

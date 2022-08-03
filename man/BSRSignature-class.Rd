@@ -19,9 +19,11 @@ their reduced versions.
 \item{\code{t.genes}}{A list of target genes, one entry per LR interaction.}
 
 \item{\code{pathways}}{An atomic vector of pathway names, one per interaction.}
+
+\item{\code{tg.corr}}{A list of target genes correlation.}
 }}
 
 \examples{
-new("BSRSignatures")
+new("BSRSignature")
 
 }

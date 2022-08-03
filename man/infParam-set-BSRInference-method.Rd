@@ -6,6 +6,11 @@
 \usage{
 \S4method{infParam}{BSRInference}(x) <- value
 }
+\arguments{
+\item{x}{BRSInferecence object.}
+
+\item{value}{value to be set.}
+}
 \description{
 Inference parameters setter (internal use only)
 }

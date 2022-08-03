@@ -24,7 +24,7 @@ dualHeatmap(
 }
 \arguments{
 \item{mat.c}{A matrix with the signature scores such as output by
-\code{\link{scoreLRGeneSignatures}}.}
+\code{"\link[=BSRInference-class]{scoreLRGeneSignatures}"}}
 
 \item{mat.e}{A second matrix to feature below mat.c.}
 
@@ -80,6 +80,27 @@ while the bottom heatmap represents the second, user-chosen data set to
 feature along with gene signatures.
 }
 \examples{
-\dontrun{
-}
+print('simpleHeatmap')
+data(sdc,package='BulkSignalR')
+bsrdm <- prepareDataset(counts = sdc)
+bsrdm <- learnParameters(bsrdm, 
+         null.model = "normal",
+         quick = FALSE, 
+         plot.folder = "./",
+         filename = "sdc",
+         verbose = TRUE)
+bsrinf <- initialInference(bsrdm)
+bsrinf.redP <- reduceToPathway(bsrinf) 
+bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP) 
+bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP,
+qval.thres=0.001)
+
+scoresPathway <- scoreLRGeneSignatures(bsrdm,
+               bsrsig.redPBP,name.by.pathway=TRUE)
+
+data(immune.signatures, package="BulkSignalR")
+imm.scores <- scoreSignatures(bsrdm, immune.signatures)
+dualHeatmap(scoresPathway, imm.scores, width=6, height=9,
+           file="SDC-LR-dualheatmap.pdf",
+pointsize=4, vert.p=0.85)
 }

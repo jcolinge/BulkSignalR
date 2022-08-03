@@ -43,11 +43,14 @@ already log2-transformed, e.g., some microarray data.}
 \code{count} row names after eliminating the rows containing too many
 zeros according to \code{min.count} and \code{prop}.}
 
+\item{species}{The dataset belongs to this organism.}
+
+\item{conversion.dict}{Optional : Table correspondance gene symbols
+Human - Non Human organism}
+
 \item{UQ.pc}{Percentile for upper-quartile normalization, number
 between 0 and 1 (in case the default 0.75 - hence the name - is not
 appropriate).}
-
-\item{organism}{Organism}
 }
 \value{
 A BSRModelData object with empty model parameters.

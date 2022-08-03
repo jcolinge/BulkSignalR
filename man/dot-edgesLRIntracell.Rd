@@ -11,8 +11,7 @@
   tg.corr,
   id.col,
   gene.col,
-  min.cor = 0.3,
-  signed = FALSE
+  min.cor = 0.25
 )
 }
 \arguments{
@@ -31,9 +30,7 @@ output by \code{tgCorr(BSRInference)}.}
 
 \item{gene.col}{Column index or name in \code{pw} for the gene symbols.}
 
-\item{min.cor}{Minimum correlation required for the target genes.}
-
-\item{signed}{A logical indicating whether \code{min.cor} is imposed
+\item{min.cor}{Minimum correlation required for the target genes.
 to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).}
 }
 \value{

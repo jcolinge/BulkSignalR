@@ -25,6 +25,8 @@
 #' @param min.LR.found  The minimum number of ligands or receptors found in
 #'   \code{count} row names after eliminating the rows containing too many
 #'   zeros according to \code{min.count} and \code{prop}.
+#' @param conversion.dict  Optional : Table correspondance gene symbols
+#' Human - Non Human organism
 #'
 #' @return A BSRModelData object with empty model parameters.
 #'
@@ -187,6 +189,10 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
 #' @export
 #' @examples
 #' print('findOrthoGenes')
+#' data(bodyMap.mouse)
+#' ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
+#'                                     from_values = rownames(bodyMap.mouse))
+#'
 findOrthoGenes<- function(from_organism ="mmusculus",
         from_values=c("TP53"),
         method = c("gprofiler","homologene","babelgene")) {
@@ -195,7 +201,7 @@ findOrthoGenes<- function(from_organism ="mmusculus",
         if (!method  %in% c("gprofiler","homologene","babelgene"))
                 stop("Method selected should be gprofiler,homologene or babelgene")
 
-          orthologs_dictionnary <- orthogene::convert_orthologs(gene_df = from_values,
+          orthologs_dictionary <- orthogene::convert_orthologs(gene_df = from_values,
                                         gene_input = "rownames", 
                                         gene_output = "rownames", 
                                         input_species = from_organism,
@@ -204,62 +210,70 @@ findOrthoGenes<- function(from_organism ="mmusculus",
                                         method = method,
                                         verbose = FALSE) 
            
-          orthologs_dictionnary$index <- NULL  
-          names(orthologs_dictionnary)[1] <- paste("Gene.name")
+          orthologs_dictionary$index <- NULL  
+          names(orthologs_dictionary)[1] <- paste("Gene.name")
     
-    print(head(orthologs_dictionnary,10))
-    cat("Dictionnary Size: ", 
-        dim(orthologs_dictionnary)[1],
+    cat("Dictionary Size: ", 
+        dim(orthologs_dictionary)[1],
          " genes \n", sep="") 
 
     nL <- length(intersect(
         SingleCellSignalR::LRdb$ligand,
-        rownames(orthologs_dictionnary)) )
+        rownames(orthologs_dictionary)) )
     cat("-> ",nL, " : Ligands \n", sep="") 
 
     nR <- length(intersect(
         SingleCellSignalR::LRdb$receptor,
-        rownames(orthologs_dictionnary))) 
+        rownames(orthologs_dictionary))) 
     cat("-> ", nR, " : Receptors \n", sep="") 
       
-    orthologs_dictionnary
+    orthologs_dictionary
 
 
 } #findOrthoGenes 
 
 
 #' @title Transpose to Human Gene Names
+#'
 #' @description By default, BulkSignalR is designed to work with Homo Sapiens.
 #' In order to work with other species, gene names need to be first converted
 #' to Human following an orthology mapping process.
 #' @param counts     A table or matrix of read counts.
-#' @param dictionnary   A dataframe where first column belong to 
-#  organism of study & rownames are the human gene names.
+#' @param dictionary   A dataframe where first column belong to 
+#'  organism of study & rownames are the human gene names.
 #'
 #' @return Return a counts matrix transposed for Human.
 #'
 #' @export
 #' @examples
 #' print('convertToHuman')
-convertToHuman <- function(counts,dictionnary=data.frame(Gene.name="A",row.names = "B")) {
+#' data(bodyMap.mouse)
+#' 
+#' ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
+#'                                     from_values = rownames(bodyMap.mouse))
+#' 
+#' matrix.expression.human <- convertToHuman(counts = bodyMap.mouse,   
+#' dictionary = ortholog.dict)
+#'
+convertToHuman <- function(counts,dictionary=data.frame(Gene.name="A",row.names = "B")) {
 
           # Should test counts have rownames.
           if(all(row.names(counts)==seq(1, nrow(counts))))
             stop("Rownames should be set as human gene names for counts.", call. = FALSE)
-         if(all(row.names(dictionnary)==seq(1, nrow(dictionnary))))
-            stop("Rownames should be set ashuman gene names dictionnary.", call. = FALSE)
-          if(dim(dictionnary)[2]!=1)
-            stop("Unique column must be set for dictionnary.", call. = FALSE)
+         if(all(row.names(dictionary)==seq(1, nrow(dictionary))))
+            stop("Rownames should be set ashuman gene names dictionary.", call. = FALSE)
+          if(dim(dictionary)[2]!=1)
+            stop("Unique column must be set for dictionary.", call. = FALSE)
          if(! all(apply(counts, 2, function(x) is.numeric(x)))) 
             stop("Some variables are not defined as numerics.", call. = FALSE)
 
-          # Transform Matrice using orthologs_dictionnary
+          # Transform Matrice using orthologs_dictionary
           counts$Gene.name  <- rownames(counts)
-          dictionnary$human.gene.name  <- rownames(dictionnary) 
+          dictionary$human.gene.name  <- rownames(dictionary) 
       
           counts$id <- 1:nrow(counts) 
 
-          counts.transposed <- merge(counts,dictionnary, by.x='Gene.name',all=FALSE,sort=FALSE)
+          counts.transposed <- merge(counts,dictionary, by.x='Gene.name',all=FALSE,sort=FALSE)
           counts.transposed <- counts.transposed[order(counts.transposed$id), ]
           counts.transposed$id <- NULL
 
