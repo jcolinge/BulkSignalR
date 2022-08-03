@@ -395,7 +395,13 @@
                         stringsAsFactors=FALSE))
         }
     }
+    
+    # avoid the impossible
+    key <- paste(res$L, res$R, res$pw.id, sep="||")
+    bad <- duplicated(key)
+    res <- res[!bad,]
 
+    # multiple hypothesis correction
     rawp <- res$pval
     adj <- multtest::mt.rawp2adjp(rawp,fdr.proc)
     res$qval <- adj$adjp[order(adj$index),fdr.proc]
