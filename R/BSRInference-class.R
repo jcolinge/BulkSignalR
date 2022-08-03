@@ -239,6 +239,8 @@ if (!isGeneric("rescoreInference")) {
 #' A method to re-score an existing BSRInference object
 #' (P- and Q-value estimations).
 #'
+#' @param param         The matching BulkSignalRDataModel parameters
+#'                      (can be obtained with the accessor \code{param})
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #'   considered target genes.
 #' @param fdr.proc      The procedure for adjusting P-values according to
@@ -247,11 +249,11 @@ if (!isGeneric("rescoreInference")) {
 #' @details A BSRInference object should be created by calling
 #' \code{\link{initialInference}}. Parameters controlling the estimation
 #' of the statistical significance of the ligand/receptor/pathway triples
-#' are provided at the time of calling the latter method.
+#' (\code{param}) are provided at the time of calling the latter method.
 #'
 #' Nonetheless, it
 #' might be useful to change the initially-provided parameters, in
-#' which case this method should be called.
+#' which case this method should not be called.
 #'
 #' @return A BSRInference object.
 #'
