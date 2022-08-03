@@ -2,7 +2,7 @@ library(methods)
 
 #' BulkSignalR Data Model Object
 #'
-#' An S4 class to represent expression data used for inferring
+#' An S4 class to represent the expression data used for inferring
 #' ligand-receptor interactions.
 #'
 #' @slot ncounts   Normalized read count matrix. Row names must be set to HUGO
@@ -11,9 +11,9 @@ library(methods)
 #' \code{ncounts} were log2-transformed.
 #' @slot normalization    Name of the normalization method.
 #' @slot param            List containing the statistical model parameters.
-#' @slot initial.organism         Organism
-#' @slot initial.orthologs        List of ortholog genes for which human
-#' analog exists for the organism of study.
+#' @slot initial.organism         Organism for which the data were obtained.
+#' @slot initial.orthologs        List of genes for which human
+#' orthologs exist.
 #' @export
 #' @examples
 #' new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
@@ -218,7 +218,6 @@ if (!isGeneric("learnParameters")) {
 #'   for the receptor-target correlations should be used.
 #' @param null.model      The null model to use for Spearman correlation
 #'   null distributions.
-#' @param seed      Seed to reproduce exact same sampling.
 #'
 #' @details Estimates the model parameters that are stored in the
 #'   slot \code{param}.
@@ -258,7 +257,7 @@ if (!isGeneric("learnParameters")) {
 #'   the L-R null assuming a similar shape for the R-T null (with
 #'   different parameters though, unless \code{quick} was set to \code{TRUE}).
 #'
-#' @return A BSRDataModel with trained model parameters
+#' @return A BSRDataModel object with trained model parameters
 #'
 #' @export
 #'
@@ -282,8 +281,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
       max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = FALSE,
       null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical",
-                     "empirical", "stable"),filename = "distribution",
-      seed = 123) {
+                     "empirical", "stable"), filename = "distribution") {
 
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
     if (obj@param$n.rand.LR < 1)
@@ -306,7 +304,6 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
     if (obj@param$min.positive < 1)
         stop("Parameter min.positive must be an integer > 0")
     obj@param$quick <- quick
-    obj@param$seed  <- seed
     null.model <- match.arg(null.model)
     if (null.model == "normal")
         trainModel <- .getGaussianParam
@@ -330,8 +327,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
     obj@param$min.corr.LR <- -1.0
     ds.LR.null <- .getEmpiricalNullCorrLR(obj@ncounts,
                                           n.rand=obj@param$n.rand.LR,
-                                          min.cor=obj@param$min.corr.LR,
-                                          seed=123)
+                                          min.cor=obj@param$min.corr.LR)
     rc <- ds.LR.null[[1]]$corr
     if (length(ds.LR.null) > 1)
         for (i in 2:length(ds.LR.null)) rc <- c(rc, ds.LR.null[[i]]$corr)
@@ -412,8 +408,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
                                         max.pw.size = obj@param$max.pw.size,
                                         min.pw.size = obj@param$min.pw.size,
                                         min.positive = obj@param$min.positive,
-                                        min.cor = obj@param$min.corr.LR,
-                                        seed=seed)
+                                        min.cor = obj@param$min.corr.LR)
         t <- ds.RT.null[[1]]
         if (length(ds.RT.null) > 1)
             for (i in 2:length(ds.RT.null)) t <- rbind(t, ds.RT.null[[i]])
@@ -608,14 +603,13 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' @param robust       A logical indicating that z-scores should be computed
 #' with median and MAD instead of mean and standard deviation.
 #' @param name.by.pathway     A logical indicating whether row names of the
-#' resulting score matrix should be complemented with (illustrative) pathway
-#' names.
+#' resulting score matrix should be pathway names.
+#' @param rownames.LRP A logical indicating, in case \code{name.by.pathway}
+#' was set to TRUE, whether ligand and receptor names should be added on top.
+#' No role if \code{name.by.pathway} was set to FALSE.
 #' @param abs.z.score  A logical to use absolute z-scores (useful if the
 #' activity of a paythway is reported by a mixture of up- and down-genes
 #' whose z-score averages might hide actual activity).
-#' @param rownames.LRP Logical. If TRUE, Ligand Receptor and Pathway
-#  names are concatened in the rownames. Otherwise you got Pathway
-#  name only when name.by.pathway is TRUE.
 #' @return A matrix containing the scores of each ligand-receptor gene
 #' signature in each sample.
 #'
@@ -652,8 +646,8 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
 
     if( initialOrganism(obj)!="hsapiens" )
         all.genes <- unlist(initialOrthologs(obj))
-
-    else all.genes <- rownames(ncounts(obj))
+    else
+        all.genes <- rownames(ncounts(obj))
 
     # intersect signature gene names with RNA-seq data
     ncounts <- ncounts(obj)
@@ -661,7 +655,8 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
     receptors <- sapply(receptors(sig), function(x) intersect(x, all.genes))
     t.genes <- sapply(tGenes(sig), function(x) intersect(x, all.genes))
 
-    good <- sapply(ligands, length) > 0 & sapply(receptors, length) > 0 & sapply(t.genes, length) > 0
+    good <- sapply(ligands, length) > 0 & sapply(receptors, length) > 0 &
+            sapply(t.genes, length) > 0
     ligands   <- ligands[good]
     receptors <- receptors[good]
     t.genes   <- t.genes[good]
@@ -677,7 +672,7 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
     if (abs.z.score)
         z <- abs(z)
 
-    if( initialOrganism(obj)!="hsapiens" )
+    if( initialOrganism(obj) != "hsapiens" )
         rownames(z) <- all.genes
 
     # compute the LR gene signatures
@@ -688,14 +683,16 @@ setMethod("scoreLRGeneSignatures", "BSRDataModel", function(obj,
 
             if(rownames.LRP){
 
-              paste0(paste(ligands[[i]], collapse=" / ") ," | ",
-                    paste(receptors[[i]], collapse=" / ")," | ",pathways[[i]])
-             } else { pathways[[i]] }
+                paste0("{",paste(ligands[[i]], collapse=";") ,"} / {",
+                    paste(receptors[[i]], collapse=";"),"} | ",pathways[[i]])
+            }
+            else
+                pathways[[i]]
 
         }
         else if (!name.by.pathway){
-            paste0(paste(ligands[[i]], collapse="/") ," -> ",
-                    paste(receptors[[i]], collapse="/"))
+            paste0("{",paste(ligands[[i]], collapse=";") ,"} / {",
+                    paste(receptors[[i]], collapse=";"),"}")
         }
 
     }

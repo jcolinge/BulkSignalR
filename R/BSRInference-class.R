@@ -560,7 +560,6 @@ setMethod("reduceToBestPathway", "BSRInference", function(obj) {
     obj@tg.corr <- tg.corr
     obj@inf.param$pathway.reduced <- TRUE
 
-
     obj
 
 }) # reduceToBestPathway
@@ -833,6 +832,8 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' @param obj    BSRinf Object.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
+#' @param with.pw.id    A logical indicating whether the ID of a pathway
+#' should be concatenated to its name.
 #' @return A BSRSignature object containing a gene signature for each triple
 #' ligand-receptor pair. A reduction to the best pathway
 #' for each pair is automatically performed and the gene signature is
@@ -858,7 +859,7 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' @importFrom foreach %do% %dopar%
 #' @importFrom methods new
 setMethod("getLRGeneSignatures", "BSRInference", function(obj,
-        pval.thres=NULL, qval.thres=NULL){
+        pval.thres=NULL, qval.thres=NULL, with.pw.id=FALSE){
 
     if (is.null(pval.thres) && is.null(qval.thres))
         stop("Either a P- or a Q-value threshold must be provided")
@@ -875,8 +876,10 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
     pairs     <- pairs[selected,]
     ligands   <- ligands(obj)[selected]
     receptors <- receptors(obj)[selected]
-    pathways  <- pairs$pw.name
-    #pathways  <- paste(pairs$pw.id, pairs$pw.name)
+    if (with.pw.id)
+        pathways  <- paste0(pairs$pw.id, ": ", pairs$pw.name)
+    else
+        pathways  <- pairs$pw.name
     t.genes   <- tGenes(obj)[selected]
     t.corrs   <- tgCorr(obj)[selected]
 
@@ -894,8 +897,8 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
 }) # getLRGeneSignatures
 
 
-# Reset gene names to initial organism providen in first instance
-# ==========================
+# Reset gene names to initial organism
+# ====================================
 
 if (!isGeneric("resetToInitialOrganism")) {
   if (is.function("resetToInitialOrganism"))
@@ -955,7 +958,8 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 
     obj
 
-})
+}) # resetToInitialOrganism
+
 
 #' @title Convert gene symbol to another organism
 #'
@@ -970,7 +974,8 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 #' LRinter return a vector of genes
 #' tGenes receptors ligands : return list of list of genes
 #'
-.geneNameConversion <- function(genes,conversion.dict=data.frame(Gene.name="A",row.names = "B")){
+.geneNameConversion <- function(genes,conversion.dict=
+                                  data.frame(Gene.name="A", row.names = "B")){
 
     #print(".geneNameConversion")
     if(typeof(genes) == "character"){
@@ -978,7 +983,8 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 
         genes.df$id <- 1:nrow(genes.df)
 
-        genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+        genes.converted <- merge(genes.df, conversion.dict,
+                                 by.x='human.gene.name', sort=FALSE, all=FALSE)
         genes.converted <- genes.converted[order(genes.converted$id), ]
 
         genes.converted$human.gene.name <- NULL
@@ -992,7 +998,9 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
         for (i in seq_len(length(genes))){
             genes.df <- data.frame(human.gene.name = genes[[i]])
             genes.df$id <- 1:nrow(genes.df)
-            genes.converted <- merge(genes.df,conversion.dict,by.x='human.gene.name',sort=FALSE,all=FALSE)
+            genes.converted <- merge(genes.df, conversion.dict,
+                                     by.x='human.gene.name',
+                                     sort=FALSE, all=FALSE)
             genes.converted <- genes.converted[order(genes.converted$id), ]
 
             genes.converted$human.gene.name <- NULL
@@ -1009,6 +1017,4 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
         stop("Something went wrong during gene conversion.", call. = FALSE)
     }
 
-
-}
-#.geneNameConversion
+} # .geneNameConversion

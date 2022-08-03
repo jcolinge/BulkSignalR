@@ -6,7 +6,7 @@
 #' are not instantiated directly, but through this function.
 #'
 #' @param counts     A table or matrix of read counts.
-#' @param species    The dataset belongs to this organism.
+#' @param species    Data were obtained for this organism.
 #' @param normalize  A logical indicating whether \code{counts} should be
 #'   normalized according to \code{method} or if it was normalized beforehand.
 #' @param symbol.col The index of the column containing the gene symbols in case
@@ -25,8 +25,8 @@
 #' @param min.LR.found  The minimum number of ligands or receptors found in
 #'   \code{count} row names after eliminating the rows containing too many
 #'   zeros according to \code{min.count} and \code{prop}.
-#' @param conversion.dict  Optional : Table correspondance gene symbols
-#' Human - Non Human organism
+#' @param conversion.dict  Correspondence table of HUGO gene symbols
+#' human/nonhuman. Not used unless the organism is not human.
 #'
 #' @return A BSRModelData object with empty model parameters.
 #'
@@ -134,13 +134,15 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
         ncounts <- counts
 
     homolog.genes <- list()
-    if (species!="hsapiens"){
+    if (species != "hsapiens"){
           ncounts <- as.data.frame(ncounts) 
-          ncounts$human.gene.name          <- rownames(ncounts)
+          ncounts$human.gene.name <- rownames(ncounts)
           conversion.dict$human.gene.name  <- rownames(conversion.dict) 
           ncounts$id <- 1:nrow(ncounts) 
 
-          counts.transposed <- merge(ncounts,conversion.dict, by.x='human.gene.name',all=FALSE,sort=FALSE)
+          counts.transposed <- merge(ncounts, conversion.dict,
+                                     by.x='human.gene.name',
+                                     all=FALSE, sort=FALSE)
           counts.transposed <- counts.transposed[order(counts.transposed$id), ]
 
           homolog.genes <- list(counts.transposed$Gene.name)
@@ -168,22 +170,19 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
 
 #' @title Orthologs Gene Names 
 #'
-#' @description By default, BulkSignalR is designed to work with Homo Sapiens.
-#' In order to work with other species, gene names need to be first converted
-#' to Human following an orthology mapping process.
-#' @param from_organism    An organism as defined in Ensembl : 
-#' drerio, mmusculus, celegans, dmelanogaster...This is the source organism 
-#' from which you want to convert the gene names to Homo Sapiens.
-#' @param from_values    A vector of gene names from the current species studied.
-#' @param method    3 choices are available ("gprofiler","homologene","babelgene")
-#' gprofiler is set by  default.
-#' @return Return a datraframe with 2 columns containing the gene names
-#' for two species.  
+#' @description By default, BulkSignalR is designed to work with Homo sapiens.
+#' In order to work with other organisms, gene names need to be first converted
+#' to human following an orthology mapping process.
+#' @param from_organism    An organism defined as in Ensembl: 
+#' drerio, mmusculus, celegans, dmelanogaster, etc. This is the source organism 
+#' from which you want to convert the gene names to Homo sapiens.
+#' @param from_values   A vector of gene names from the current species studied.
+#' @param method  Ortholog mapping method.
+#' @return Return a data frame with 2 columns containing the gene names
+#' for the two species.  
 #' First column is the gene name from the source organism 
 #' and the second column corresponds to the  homologous gene name
-#' in  Homo Sapiens.
-#' This function uses orthogene package to query databases
-#' for homologous genes annotation.
+#' in  Homo sapiens.
 #' @importFrom orthogene convert_orthologs
 #'
 #' @export
@@ -235,12 +234,12 @@ findOrthoGenes<- function(from_organism ="mmusculus",
 
 #' @title Transpose to Human Gene Names
 #'
-#' @description By default, BulkSignalR is designed to work with Homo Sapiens.
-#' In order to work with other species, gene names need to be first converted
-#' to Human following an orthology mapping process.
+#' @description By default, BulkSignalR is designed to work with Homo sapiens.
+#' In order to work with other organisms, gene names need to be first converted
+#' to human following an orthology mapping process.
 #' @param counts     A table or matrix of read counts.
-#' @param dictionary   A dataframe where first column belong to 
-#'  organism of study & rownames are the human gene names.
+#' @param dictionary   A data frame where first column belong to 
+#'  organism of study & row names are the human gene names.
 #'
 #' @return Return a counts matrix transposed for Human.
 #'
@@ -288,7 +287,4 @@ convertToHuman <- function(counts,dictionary=data.frame(Gene.name="A",row.names 
         
           counts.transposed
 
- } 
-
-
-
+ } # convertToHuman
