@@ -302,7 +302,7 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
     
     grDevices::pdf(paste0(plot.folder, "/interaction-plot-", fn), width=width,
                    height=height, useDingbats=FALSE, pointsize=pointsize)
-    spatialPlot(scores[i, areas[[idSpatial.col]]], areas, inter,
+    figure <- spatialPlot(scores[i, areas[[idSpatial.col]]], areas, inter,
                 rev.y=rev.y, ref.plot=ref.plot, 
                 image.raster=image.raster,
                 x.col=x.col, y.col=y.col,
@@ -311,6 +311,11 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
                 high.color=high.color, title.fs=title.fs,
                 legend.fs=legend.fs, axis.fs=axis.fs, label.fs=label.fs,
                 dot.size=dot.size)
+    if(ref.plot)
+      figure
+    else 
+      print(figure)
+
     grDevices::dev.off()
   }
   
@@ -345,6 +350,7 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' spatialIndexPlot(scores, areas, out.file)
 #'
 #' }
+#' @import grid
 #' @importFrom gridExtra grid.arrange
 spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
                              dot.size=0.25, ratio=1.25,
