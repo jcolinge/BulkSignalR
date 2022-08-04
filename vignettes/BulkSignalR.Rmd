@@ -209,7 +209,7 @@ head(sdc)
 `prepareDataset` creates the first object with information
 relative to your bulk expression data.
 
-```{r prepareDataset , eval=FALSE,cache=TRUE}
+```{r prepareDataset , eval=FALSE,cache=FALSE}
 bsrdm <- prepareDataset(counts = sdc)
 # print object
 str(bsrdm)
@@ -233,12 +233,12 @@ Spearman correlation null distributions, you can provide a directory and
 a base file name to plot this distribution along with the fitted
 model for visual inspection.
 
-```{r learnParameters , eval=FALSE,cache=TRUE,results=FALSE}
+```{r learnParameters , eval=FALSE,cache=FALSE,results=FALSE}
 bsrdm <- learnParameters(bsrdm, 
          plot.folder = "../man/figures/", filename = "sdc")
 ```
 
-```{r printBsrdm , eval=FALSE,cache=TRUE}
+```{r printBsrdm , eval=FALSE,cache=FALSE}
 # print object updated 
 str(bsrdm)
 ```
@@ -302,7 +302,7 @@ with their associated pathways and corrected p-values.
 
 From here, you can already access LR interactions using: `LRinter(bsrinf)`.
 
-```{r BSRInference , eval=FALSE,cache=TRUE}
+```{r BSRInference , eval=FALSE,cache=FALSE}
 bsrinf <- initialInference(bsrdm)
 
 LRinter.dataframe <- LRinter(bsrinf)
@@ -351,7 +351,7 @@ once. For a given pathway, the reported P-values and target genes are those
 of best (minimum P-value) L-R interaction that was part of the aggregation.
 Nothing is recomputed, we simply merge.
 
-```{r ReduceToPathway, eval=FALSE,cache=TRUE}
+```{r ReduceToPathway, eval=FALSE,cache=FALSE}
      bsrinf.redP <- reduceToPathway(bsrinf)
 ```
 
@@ -362,7 +362,7 @@ one pathway per L-R interaction. The pathway with the smallest P-value
 is selected.
 A same pathways might occur multiple times with with different L-R interactions.
 
-```{r ReduceToBestPathway, eval=FALSE,cache=TRUE}
+```{r ReduceToBestPathway, eval=FALSE,cache=FALSE}
      bsrinf.redBP    <- reduceToBestPathway(bsrinf)
 ```
 
@@ -373,7 +373,7 @@ several shared receptors) and the converse is true as well. Two
 reduction operators enable users to either aggregate all the ligands
 of a same receptor or all the receptors bound by a same ligand:
 
-```{r ReduceToLigand, eval=FALSE,cache=TRUE}
+```{r ReduceToLigand, eval=FALSE,cache=FALSE}
      bsrinf.L    <- reduceToLigand(bsrinf)
      bsrinf.R    <- reduceToReceptor(bsrinf)
 ```
@@ -388,7 +388,7 @@ same sets of aggregated ligands and receptors obtained with `reduceToPathway`
 was associated with several pathways, the pathway with the best P-value
 would be kept by `reduceToBestPathway`.
 
-```{r doubleReduction, eval=FALSE,cache=TRUE}
+```{r doubleReduction, eval=FALSE,cache=FALSE}
      bsrinf.redP  <- reduceToPathway(bsrinf)  
      bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP) 
 ```
@@ -412,7 +412,7 @@ signature scoring and display.
 
 ###  Scoring by ligand-receptor
 
-```{r scoringLR  ,cache=TRUE,results=FALSE,eval=FALSE}
+```{r scoringLR  ,cache=FALSE,results=FALSE,eval=FALSE}
 
      bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP, qval.thres=0.001)
 
@@ -433,7 +433,7 @@ signature scoring and display.
 
 ###  Scoring by pathway
 
-```{r scoringPathway, cache=TRUE,results=FALSE,eval=FALSE}    
+```{r scoringPathway, cache=FALSE,results=FALSE,eval=FALSE}    
      bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP, qval.thres=0.001)
      
      scoresPathway <- scoreLRGeneSignatures(bsrdm, bsrsig.redPBP,
@@ -575,7 +575,7 @@ Furthermore, networks can be exported in text files and graphML objects
 to be further explored with Cytoscape (www.cytoscape.org), 
 yEd (www.yworks.com), or similar software tools.
 
-```{r network1, eval=FALSE,cache=TRUE, results=FALSE} 
+```{r network1, eval=FALSE,cache=FALSE, results=FALSE} 
 # Generate a ligand-receptor network and export it in .graphML
 # for Cytoscape or similar tools
 gLR <- getLRNetwork(bsrinf.redBP, qval.thres=1e-8)
@@ -593,7 +593,7 @@ plot(gLR,
 ```
 ![network1](../man/figures/network-1_clean.png)
 
-```{r network2, eval=FALSE,cache=TRUE, results=FALSE} 
+```{r network2, eval=FALSE,cache=FALSE, results=FALSE} 
 # You can apply other functions.
 
 
@@ -616,7 +616,7 @@ plot(cb,u.gLR,
 
 ![network2](../man/figures/network-2_clean.png)
 
-```{r network3, eval=FALSE,cache=TRUE, results=FALSE} 
+```{r network3, eval=FALSE,cache=FALSE, results=FALSE} 
 # For the next steps, we just share the code below but graph generation function
 # are commented to lighten the vignette.
 
@@ -682,7 +682,7 @@ computing gene signatures and visualizing.
 
 \
 
-```{r mouse , cache=TRUE,results=FALSE,eval=FALSE}
+```{r mouse , cache=FALSE,results=FALSE,eval=FALSE}
 data(bodyMap.mouse)
 
 ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
