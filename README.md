@@ -21,13 +21,9 @@ processes from GO.
 A number of visualization and data summary functions are proposed to
 help navigating the predicted interactions.
 
-\
-\
-  
+
 <img   src="man/figures/workflow.png" align="center" width="85%" height="85%" />
   
-\ 
-\
 
 ## Installation
 
