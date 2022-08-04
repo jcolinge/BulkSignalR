@@ -43,6 +43,7 @@ Suggests:
     knitr,
     dplyr,
     kableExtra,
+    BiocStyle,
     markdown,
     rmarkdown
 RoxygenNote: 7.2.1

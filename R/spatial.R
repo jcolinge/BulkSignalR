@@ -262,6 +262,8 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
 #' at the top of the plot.
 #' @param ref.plot  A Boolean indicating whether a reference map of the tissue
 #' with area labels should be plot aside.
+#' @param image.raster  Raster object image to plot raw tissue image as
+#' reference.
 #' @param x.col  Column name in \code{areas} containing x coordinates.
 #' @param y.col  Column name in \code{areas} containing y coordinates.
 #' @param label.col  Column name in \code{areas} containing area labels.
@@ -286,7 +288,7 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
 #'
 #' }
 generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
-                                 pointsize=8, rev.y=TRUE, ref.plot=TRUE,
+                                 pointsize=8, rev.y=TRUE,ref.plot=TRUE,image.raster=NULL,
                                  x.col="array_col", y.col="array_row",
                                  label.col="label", idSpatial.col="idSpatial",
                                  cut.p=0.01, low.color="royalblue3",
@@ -301,7 +303,8 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
     grDevices::pdf(paste0(plot.folder, "/interaction-plot-", fn), width=width,
                    height=height, useDingbats=FALSE, pointsize=pointsize)
     spatialPlot(scores[i, areas[[idSpatial.col]]], areas, inter,
-                rev.y=rev.y, ref.plot=ref.plot,
+                rev.y=rev.y, ref.plot=ref.plot, 
+                image.raster=image.raster,
                 x.col=x.col, y.col=y.col,
                 label.col=label.col, idSpatial.col=idSpatial.col,
                 cut.p=cut.p, low.color=low.color, mid.color=mid.color,
@@ -312,6 +315,7 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
   }
   
 } # generateSpatialPlots
+
 
 
 #' Generate a visual index of spatial score distributions
@@ -326,6 +330,8 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' coordinates of the locations, the unique IDs of spatial locations, and
 #' a tissue label column.
 #' @param out.file File name for the output PDF.
+#' @param image.raster  Raster object image to plot raw tissue image as
+#' reference.
 #' @param dot.size Dot size.
 #' @param base.h  Width of each plot.
 #' @param base.v  Height of each plot.
@@ -340,14 +346,17 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #'
 #' }
 #' @importFrom gridExtra grid.arrange
-spatialIndexPlot <- function(scores, areas, out.file,
+spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
                              dot.size=0.25, ratio=1.25,
                              base.v=2.5, base.h=3){
   
   # one reference plot at the beginning
-  plots <- list(spatialPlot(scores[1,], areas, "",
+  if(is.null(image.raster))
+    plots <- list(spatialPlot(scores[1,], areas, "",
                             ref.plot.only=TRUE, dot.size=dot.size))
-  
+  else 
+    plots <- list(grid::rasterGrob(image.raster) )
+
   # actual plots
   for (i in seq_len(nrow(scores))){
     inter <- gsub("\\}", "", gsub("\\{", "", rownames(scores)[i]))
