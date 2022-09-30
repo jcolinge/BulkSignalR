@@ -337,6 +337,14 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @param out.file File name for the output PDF.
 #' @param image.raster  Raster object image to plot raw tissue image as
 #' reference.
+#' @param cut.p  Proportion of top and bottom values for thresholding.
+#' @param low.color  Color for low score values.
+#' @param mid.color  Color for score = 0.
+#' @param high.color  Color for high score values.
+#' @param title.fs Title font size.
+#' @param legend.fs Legend items font size.
+#' @param axis.fs Axis ticks font size.
+#' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
 #' @param base.h  Width of each plot.
 #' @param base.v  Height of each plot.
@@ -353,13 +361,23 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @import grid
 #' @importFrom gridExtra grid.arrange
 spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
-                             dot.size=0.25, ratio=1.25,
+                             cut.p=0.01,low.color="royalblue3",
+                             mid.color="white", high.color="orange",
+                             title.fs=12, legend.fs=10, axis.fs=10,
+                             label.fs=12,
+                             dot.size=0.25,ratio=1.25,
                              base.v=2.5, base.h=3){
   
   # one reference plot at the beginning
   if(is.null(image.raster))
     plots <- list(spatialPlot(scores[1,], areas, "",
-                            ref.plot.only=TRUE, dot.size=dot.size))
+                 ref.plot.only=TRUE,,cut.p=cut.p,
+                  low.color=low.color,
+                  mid.color=mid.color, high.color=high.color,
+                  title.fs=title.fs, legend.fs=legend.fs, 
+                  axis.fs=axis.fs,
+                  label.fs=label.fs,
+                  dot.size=dot.size))
   else 
     plots <- list(grid::rasterGrob(image.raster) )
 
@@ -368,7 +386,13 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
     inter <- gsub("\\}", "", gsub("\\{", "", rownames(scores)[i]))
     plots <- c(plots, list(
       spatialPlot(scores[i,], areas, inter,
-                  ref.plot=FALSE, dot.size=dot.size)
+                  ref.plot=FALSE,cut.p=cut.p,
+                  low.color=low.color,
+                  mid.color=mid.color, high.color=high.color,
+                  title.fs=title.fs, legend.fs=legend.fs, 
+                  axis.fs=axis.fs,
+                  label.fs=label.fs,
+                  dot.size=dot.size)
     ))
   }
   

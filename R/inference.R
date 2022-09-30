@@ -32,8 +32,8 @@
     if (!is(ds, "BSRDataModel"))
         stop("ds must be an object of class BSRDataModel")
 
-    lrgenes <- intersect(c(SingleCellSignalR::LRdb$ligand,
-                           SingleCellSignalR::LRdb$receptor), rownames(ncounts(ds)))
+    lrgenes <- intersect(c(LRdb$ligand,
+                           LRdb$receptor), rownames(ncounts(ds)))
     if (!is.null(restrict.genes))
         lrgenes <- intersect(lrgenes, restrict.genes)
 
@@ -41,14 +41,14 @@
     corlr <- stats::cor(t(ncounts(ds)[lrgenes, ]), method = "spearman")
 
     # get the pairs
-    pairs <- foreach::foreach(i = seq_len(nrow(SingleCellSignalR::LRdb)),
+    pairs <- foreach::foreach(i = seq_len(nrow(LRdb)),
                               .combine = rbind) %do% {
-              if (SingleCellSignalR::LRdb$ligand[i] %in% rownames(corlr) &&
-                  SingleCellSignalR::LRdb$receptor[i] %in% rownames(corlr))
-                  data.frame(L = SingleCellSignalR::LRdb$ligand[i],
-                             R = SingleCellSignalR::LRdb$receptor[i],
-                             corr = corlr[SingleCellSignalR::LRdb$ligand[i],
-                                          SingleCellSignalR::LRdb$receptor[i]],
+              if (LRdb$ligand[i] %in% rownames(corlr) &&
+                  LRdb$receptor[i] %in% rownames(corlr))
+                  data.frame(L = LRdb$ligand[i],
+                             R = LRdb$receptor[i],
+                             corr = corlr[LRdb$ligand[i],
+                                          LRdb$receptor[i]],
                              stringsAsFactors = FALSE)
               else
                   NULL
