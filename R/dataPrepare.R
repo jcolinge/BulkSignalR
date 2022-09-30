@@ -36,6 +36,155 @@ setLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
 
 }
 
+#' Transform gmt file to dataframe 
+#' in order to update core databases
+#' of BulkSignalR.
+#'
+#' Pathways are defined in Reactome and
+#' Gobp databases.
+#' This can be replaced by more recent versions of
+#' their databases.
+#' User can parse a gmt file and export a dataframe.
+#'
+#' \code{resetReactomeDB} and \code{resetGoBPDB} are functions
+#' we provide to user to refresh REACTOME 
+#' and GO-BP content include in the BulkSignalR.
+#'
+#' Dataframe produced here can then be reloaded by
+#' these two functions.
+#'
+#' This process is slow.
+#' We advise the user to save the dataframe once
+#' and then reuse it latter.
+#  This is to prevent the software from recomputing this
+#' ressource each time.
+#'
+#' We note discrepency between format avaibable 
+#' over internet. For example, GSEA-MSigDB.org
+#' does not provide REACTOME ID in its gmt format.
+#'
+#' Function is designed to work with this ressource
+#' - For GO-BP.
+#' http://download.baderlab.org/EM_Genesets/
+#' - For Reactome.
+#' http://download.baderlab.org/EM_Genesets/
+#'
+#' This is inspired from read.gmt function from gsa R pacakge
+#'
+#' @param filename    Path to GMT file
+#' @param nameDB     A dataframe with 3 columns names :
+#' "Reactome ID" , "Gene name","Reactome name".
+#'
+#' @return gmt file as dataframe
+#'
+#' @export
+#' @examples
+#' print('gmtToDataframe')
+#' if(FALSE)
+#'    gmtToDataframe(filename,"GO-BP")
+#'
+gmtToDataframe<- function(filename,nameDB=c("GO-BP","REACTOME")){
+
+if (! nameDB %in% c("GO-BP","REACTOME")){
+           stop("GO-BP and REACTOME are the only keywords alllowed.")
+        }
+
+        if (! file.exists(filename)){
+           stop("File doesn't exist.")
+        }
+
+        if(nameDB=="GO-BP") mycolnames <- c("GO ID" , "Gene name" ,"GO name")
+        if(nameDB=="REACTOME") mycolnames <- c("Reactome ID" , "Gene name","Reactome name")
+
+        a<-scan(filename,what=list("",""),sep="\t", 
+                quote=NULL, fill=T, flush=T,multi.line=F)
+        
+        if(nameDB=="GO-BP"){ 
+                geneset.names<-a[1][[1]]
+                geneset.descriptions<-a[2][[1]]
+        }
+        else {
+                geneset.names<-a[2][[1]]
+                geneset.descriptions<-a[1][[1]]
+        }      
+
+        if(nameDB=="GO-BP")
+             geneset.ids<-sapply(strsplit(geneset.names, "%"), "[[", 3) 
+        else geneset.ids<-geneset.names
+
+        dd<-scan(filename,what="",sep="\t", quote=NULL)
+        dd<- dd[dd!=""]
+       
+        nn<-length(geneset.names)
+        n<-length(dd)
+        ox<-rep(NA,nn)
+
+        ii<-1
+        for(i in 1:nn){
+              
+          if(nameDB=="GO-BP"){
+                 while((dd[ii]!=geneset.names[i]) | (dd[ii+1]!=geneset.descriptions[i]) ){
+                   ii=ii+1
+                 }
+          }
+          else {
+                 while((dd[ii]!=geneset.descriptions[i]) | (dd[ii+1]!=geneset.names[i]) ){
+                  ii=ii+1
+                 }
+         }
+         ox[i]=ii
+         ii=ii+1
+        }
+
+        genesets=vector("list",nn)
+
+        for(i in 1:(nn-1)){
+          i1=ox[i]+2
+          i2=ox[i+1]-1
+          if(nameDB=="GO-BP"){
+                geneset.descriptions[i]=dd[ox[i]+1]
+                geneset.ids[i]=strsplit(dd[ox[i]] , "%")[[1]][3]
+              }
+             else {
+                geneset.descriptions[i]=dd[ox[i]]
+                geneset.ids[i]=dd[ox[i]+1]
+                }
+          genesets[[i]]=dd[i1:i2]
+
+        }
+
+        if(nameDB=="GO-BP"){
+                geneset.ids[nn]=strsplit(dd[ox[nn]], "%")[[1]][3]
+                geneset.descriptions[nn]=dd[ox[nn]+1]
+                genesets[[nn]]=dd[(ox[nn]+2):n] }
+        else {
+           geneset.ids[nn]=dd[ox[nn]+1] 
+           geneset.descriptions[nn]=dd[ox[nn]]
+           genesets[[nn]]=dd[(ox[nn]+2):n]
+        }
+
+        data=list(geneset.ids=geneset.ids,
+                  geneset.descriptions=geneset.descriptions,
+                  genesets=genesets
+                 )
+          
+        dataframeFromGmt <-  data.frame() 
+      
+        for ( i in 1:length(data$geneset.ids)){
+           
+            for (ii in 1:length(data$genesets[[i]])) {
+                elements.2add <- c(data$geneset.ids[[i]],
+                        data$genesets[[i]][ii],
+                        data$geneset.descriptions[[i]])
+                dataframeFromGmt <- rbind(dataframeFromGmt, elements.2add)
+            }
+        }
+        dataframeFromGmt <- data.frame(setNames(dataframeFromGmt, mycolnames))
+
+return(dataframeFromGmt)
+
+} #gmtToDataframe
+
 #' Reset Reactome database
 #'
 #' Pathways are defined in Reactome and
@@ -43,9 +192,7 @@ setLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
 #' This can be replaced by more recent versions.
 #' User can parse a gmt file and export
 #' a dataframe with necessary information. 
-#' Dedicated packages exist
-#' for this purpose. We do not provide
-#' the parsing function here.
+#' See \code{gmtToDataframe}.
 #' 
 #' @param db     A dataframe with 3 columns names :
 #' "Reactome ID" , "Gene name","Reactome name".
@@ -75,7 +222,7 @@ resetReactomeDB <- function(
             ,"'Gene name','Reactome name'"))
     }
 
-}
+} # resetReactomeDB
 
 #' Reset Gobp database
 #'
@@ -84,9 +231,8 @@ resetReactomeDB <- function(
 #' This can be replaced by more recent versions.
 #' User can parse a gmt file and export
 #' a dataframe with necessary information. 
-#' Dedicated packages exist
-#' for this purpose. We do not provide
-#' the parsing function here.
+#' See \code{gmtToDataframe}.
+#'
 #'
 #' @param db     A dataframe with 3 columns names :
 #' "GO ID" , "Gene name" ,"GO name".
@@ -113,7 +259,7 @@ db=data.frame("GO ID"="GO:0002250", "Gene name"="IGKV3-7",
             "3 columns named 'GO ID' ",
             ,"'Gene name','GO name'"))
     }
-}
+} # resetGoBPDB
 
 #' Prepare a BSRDataModel object from expression data
 #'
