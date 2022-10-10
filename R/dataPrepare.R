@@ -1,3 +1,31 @@
+#' Modify PwC_ReactomeKEGG database
+#'
+#' User can define a dataframe with 3 columns named :
+#' respectively a.gn, b.gn and  type
+#' This can be used to replace the existing
+#' PwC_ReactomeKEGG database.
+#'
+#' @param db     A dataframe with 3 column names :
+#' a.gn, b.gn and type.
+#'
+#' @return NULL
+#'
+#' @export
+#' @examples
+#' print('resetInteractions')
+#' 
+resetInteractions <- function(db=data.frame(a.gn="A2M",b.gn="LRP1",type="controls-expression-of")) {
+
+    if (all(colnames(db)==  c('a.gn','b.gn','type'))){
+            # envir = package.BulkSignalR
+            assign("PwC_ReactomeKEGG", db, envir = .GlobalEnv)
+    } else {
+      stop(paste0("db should be a dataframe with ",
+            "3 columns named : 'a.gn' and 'b.gn'",
+            " and 'type'."))
+    }
+} # resetInteractions
+
 #' Modify LRdb database
 #'
 #' User can define a dataframe with 2 columns named
@@ -5,7 +33,7 @@
 #' This can be used to extand or replace the existing
 #' LRdb.
 #'
-#' @param db     A dataframe with 2 columns names
+#' @param db     A dataframe with 2 column names :
 #' ligand and receptor.
 #' @param switch  By default set to FALSE, it extends the
 #' existing LRdb database. If TRUE, LRdb is replaced by user 
@@ -15,10 +43,10 @@
 #'
 #' @export
 #' @examples
-#' print('setLRdb')
+#' print('resetLRdb')
 #' data(sdc,package='BulkSignalR')
-#'setLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
-setLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
+#'resetLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
+resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
 
     if(colnames(db)[1]=='ligand' &  colnames(db)[2]=='receptor'){
       
@@ -26,12 +54,12 @@ setLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
             assign("LRdb", unique(db[,c('ligand','receptor')]), envir = .GlobalEnv)
         }
         else {  
-            updated.LRdb <- rbind(LRdb [,c('ligand','receptor')],db[,c('ligand','receptor')])
+            updated.LRdb <- rbind(LRdb[,c('ligand','receptor')],db[,c('ligand','receptor')])
             assign("LRdb", unique(updated.LRdb), envir = .GlobalEnv)
         }
     } else {
       stop(paste0("db should be a dataframe with ",
-            "2 columns named : ligand and receptor."))
+            "2 columns named : 'ligand' and 'receptor'."))
     }
 
 }
@@ -41,41 +69,38 @@ setLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
 #' of BulkSignalR.
 #'
 #' Pathways are defined in Reactome and
-#' Gobp databases.
+#' GoBP databases.
 #' This can be replaced by more recent versions of
-#' their databases.
-#' User can parse a gmt file and export a dataframe.
+#' these databases using gmt files.
 #'
-#' \code{resetReactomeDB} and \code{resetGoBPDB} are functions
+#' \code{resetDownstreamPathways} is a function
 #' we provide to user to refresh REACTOME 
-#' and GO-BP content include in the BulkSignalR.
+#' and GO-BP content included in BulkSignalR.
 #'
-#' Dataframe produced here can then be reloaded by
-#' these two functions.
+#' Then dataframe produced here can be loaded by
+#' \code{resetDownstreamPathways}.
 #'
-#' This process is slow.
-#' We advise the user to save the dataframe once
-#' and then reuse it latter.
-#  This is to prevent the software from recomputing this
-#' ressource each time.
-#'
-#' We note discrepency between format avaibable 
+#' We note discrepancy between format avaibable 
 #' over internet. For example, GSEA-MSigDB.org
-#' does not provide REACTOME ID in its gmt format.
+#' does not provide GO ID in its gmt format.
 #'
-#' Function is designed to work with this ressource
-#' - For GO-BP.
+#' Function is designed to work with these ressources
+#' - For GO-BP. (Bader Lab provides updated versions
+# of gmt files every month)
 #' http://download.baderlab.org/EM_Genesets/
-#' - For Reactome.
-#' http://download.baderlab.org/EM_Genesets/
+#' - For Reactome. (Directly from their website)
+#' https://reactome.org/download/current/
 #'
-#' This is inspired from read.gmt function from gsa R pacakge
+#' The code is inspired from read.gmt function
+#' from gsa R package.
 #'
 #' @param filename    Path to GMT file
-#' @param nameDB     A dataframe with 3 columns names :
-#' "Reactome ID" , "Gene name","Reactome name".
+#' @param nameDB      Two options "GO-BP" or "REACTOME"
 #'
 #' @return gmt file as dataframe
+#'
+#' @importFrom foreach %do% %dopar%
+#' @import doParallel
 #'
 #' @export
 #' @examples
@@ -85,7 +110,7 @@ setLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
 #'
 gmtToDataframe<- function(filename,nameDB=c("GO-BP","REACTOME")){
 
-if (! nameDB %in% c("GO-BP","REACTOME")){
+        if (! nameDB %in% c("GO-BP","REACTOME")){
            stop("GO-BP and REACTOME are the only keywords alllowed.")
         }
 
@@ -93,99 +118,102 @@ if (! nameDB %in% c("GO-BP","REACTOME")){
            stop("File doesn't exist.")
         }
 
-        if(nameDB=="GO-BP") mycolnames <- c("GO ID" , "Gene name" ,"GO name")
-        if(nameDB=="REACTOME") mycolnames <- c("Reactome ID" , "Gene name","Reactome name")
-
         a<-scan(filename,what=list("",""),sep="\t", 
-                quote=NULL, fill=T, flush=T,multi.line=F)
-        
-        if(nameDB=="GO-BP"){ 
-                geneset.names<-a[1][[1]]
-                geneset.descriptions<-a[2][[1]]
+            quote=NULL, fill=T, flush=T,multi.line=F)
+
+        if(nameDB=="GO-BP"){
+            a <- setNames(a, c("ID","Description"))
         }
-        else {
-                geneset.names<-a[2][[1]]
-                geneset.descriptions<-a[1][[1]]
-        }      
 
-        if(nameDB=="GO-BP")
-             geneset.ids<-sapply(strsplit(geneset.names, "%"), "[[", 3) 
-        else geneset.ids<-geneset.names
-
+        if(nameDB=="REACTOME"){
+            # Reactome is reversed compared to GO
+            a <- setNames(a, c("Description","ID"))
+            # Reorder
+            a <- a[c("ID","Description")]
+        } 
+       
+        geneset.ids<-a[1][[1]]
+        geneset.descriptions<-a[2][[1]]
+      
         dd<-scan(filename,what="",sep="\t", quote=NULL)
         dd<- dd[dd!=""]
-       
-        nn<-length(geneset.names)
+
+        nn<-length(geneset.ids)
         n<-length(dd)
         ox<-rep(NA,nn)
 
+        # Clean the two scans 
+        # Only for GO where you need to split to get the ID
+        if(nameDB=="GO-BP"){
+            for(u in 1:nn){
+                if (grepl("%", geneset.ids[u])){
+                    geneset.ids[u]<-strsplit(geneset.ids[u] , "%")[[1]][3]
+                }
+            }    
+            for(v in 1:n){
+                    if( grepl("%", dd[v])){
+                      dd[v]<-strsplit(dd[v] , "%")[[1]][3]
+                    }
+            } 
+        }  
+        # Compute indice of pathway
         ii<-1
         for(i in 1:nn){
-              
-          if(nameDB=="GO-BP"){
-                 while((dd[ii]!=geneset.names[i]) | (dd[ii+1]!=geneset.descriptions[i]) ){
-                   ii=ii+1
-                 }
-          }
-          else {
-                 while((dd[ii]!=geneset.descriptions[i]) | (dd[ii+1]!=geneset.names[i]) ){
-                  ii=ii+1
-                 }
-         }
-         ox[i]=ii
+            if(nameDB=="GO-BP"){
+             while((dd[ii]!=geneset.ids[i]) | (dd[ii+1]!=geneset.descriptions[i]) ){
+               ii=ii+1
+             }
+            }
+            if(nameDB=="REACTOME"){
+             while((dd[ii]!=geneset.descriptions[i]) | (dd[ii+1]!=geneset.ids[i]) ){
+               ii=ii+1
+             }
+            }
+         ox[i]=ii   
          ii=ii+1
         }
-
+   
         genesets=vector("list",nn)
 
         for(i in 1:(nn-1)){
-          i1=ox[i]+2
-          i2=ox[i+1]-1
-          if(nameDB=="GO-BP"){
-                geneset.descriptions[i]=dd[ox[i]+1]
-                geneset.ids[i]=strsplit(dd[ox[i]] , "%")[[1]][3]
-              }
-             else {
-                geneset.descriptions[i]=dd[ox[i]]
-                geneset.ids[i]=dd[ox[i]+1]
-                }
-          genesets[[i]]=dd[i1:i2]
-
+          i1<-ox[i]+2
+          i2<-ox[i+1]-1
+          geneset.descriptions[i]<-dd[ox[i]+1]
+          geneset.ids[i]<-dd[ox[i]] 
+          genesets[[i]]<-dd[i1:i2]
         }
 
-        if(nameDB=="GO-BP"){
-                geneset.ids[nn]=strsplit(dd[ox[nn]], "%")[[1]][3]
-                geneset.descriptions[nn]=dd[ox[nn]+1]
-                genesets[[nn]]=dd[(ox[nn]+2):n] }
-        else {
-           geneset.ids[nn]=dd[ox[nn]+1] 
-           geneset.descriptions[nn]=dd[ox[nn]]
-           genesets[[nn]]=dd[(ox[nn]+2):n]
-        }
+        geneset.ids[nn]<-dd[ox[nn]] 
+        geneset.descriptions[nn]=dd[ox[nn]+1]
+        genesets[[nn]]=dd[(ox[nn]+2):n]
 
         data=list(geneset.ids=geneset.ids,
                   geneset.descriptions=geneset.descriptions,
                   genesets=genesets
                  )
           
-        dataframeFromGmt <-  data.frame() 
-      
-        for ( i in 1:length(data$geneset.ids)){
-           
-            for (ii in 1:length(data$genesets[[i]])) {
-                elements.2add <- c(data$geneset.ids[[i]],
-                        data$genesets[[i]][ii],
-                        data$geneset.descriptions[[i]])
-                dataframeFromGmt <- rbind(dataframeFromGmt, elements.2add)
-            }
+        dataframeFromGmt <-foreach(i= 1:length(data$geneset.ids), 
+                    .combine = rbind) %dopar% { 
+   
+           data.frame(a=rep(data$geneset.ids[[i]],length(data$genesets[[i]])),
+                      b=data$genesets[[i]][1:length(data$genesets[[i]])],
+                      c=rep(data$geneset.descriptions[[i]],length(data$genesets[[i]])))
         }
-        dataframeFromGmt <- data.frame(setNames(dataframeFromGmt, mycolnames))
+
+        # Due to the fact React and Go are organized differently
+        if(nameDB=="REACTOME"){
+            names(dataframeFromGmt)<-c('Reactome name','Gene name','Reactome ID')
+            dataframeFromGmt <- dataframeFromGmt[c('Reactome ID','Gene name','Reactome name')]
+        }
+
+        if(nameDB=="GO-BP")
+            names(dataframeFromGmt)<-c('GO ID','Gene name','GO name')
 
 return(dataframeFromGmt)
 
 } #gmtToDataframe
 
-#' Reset Reactome database
+#' Reset database
 #'
 #' Pathways are defined in Reactome and
 #' Gobp databases.
@@ -196,70 +224,48 @@ return(dataframeFromGmt)
 #' 
 #' @param db     A dataframe with 3 columns names :
 #' "Reactome ID" , "Gene name","Reactome name".
-#'
+#' "GO ID", "Gene name",  "GO name"
+#' @param nameDB    "GO-BP" or "REACTOME"
 #' @return NULL
 #'
 #' @export
 #' @examples
-#' print('resetReactomeDB')
-#' resetReactomeDBdata.frame(
-#'   "Reactome ID"="R-HSA-109582" ,
-#'      "Gene name"="IGKV2-28",
-#'      "Reactome name"="Hemostasis") 
-resetReactomeDB <- function(
+#' print('resetDownstreamPathways')
+#' 
+resetDownstreamPathways <- function(
     db=data.frame("Reactome ID"="R-HSA-109582" ,
      "Gene name"="IGKV2-28",
-     "Reactome name"="Hemostasis")) {
+     "Reactome name"="Hemostasis"),
+    nameDB=c("GO-BP","REACTOME")) {
 
-    if(colnames(db)[1]=='Reactome ID' 
-         &  colnames(db)[2]=='Gene name'
-         & colnames(db)[3]=='Reactome name'){
-            reactome <- db 
-        }
-    else {
-      stop(paste0("db should be a dataframe with",
-            "3 columns named 'Reactome ID' ",
-            ,"'Gene name','Reactome name'"))
+    if (! nameDB %in% c("GO-BP","REACTOME")){
+        stop("GO-BP and REACTOME are the only keywords alllowed.")
     }
 
-} # resetReactomeDB
-
-#' Reset Gobp database
-#'
-#' Pathways are defined in Reactome and
-#' Gobp databases.
-#' This can be replaced by more recent versions.
-#' User can parse a gmt file and export
-#' a dataframe with necessary information. 
-#' See \code{gmtToDataframe}.
-#'
-#'
-#' @param db     A dataframe with 3 columns names :
-#' "GO ID" , "Gene name" ,"GO name".
-#'
-#' @return NULL
-#'
-#' @export
-#' @examples
-#' print('resetGoBPDB')
-#' resetGoBPDB(db=data.frame("GO ID"="GO:0002250",
-#' "Gene name"="IGKV3-7", 
-#'    "GO name"="Probable non-functional immunoglobulin kappa") 
-resetGoBPDB <- function(
-db=data.frame("GO ID"="GO:0002250", "Gene name"="IGKV3-7", 
-    "GO name"="Probable non-functional immunoglobulin kappa")){
-
-    if(colnames(db)[1]=='GO ID' 
-         &  colnames(db)[2]=='Gene name'
-         & colnames(db)[3]=='GO name'){
-            reactome <- db 
+    if(nameDB=="REACTOME"){
+        if (all(colnames(db)==  c('Reactome ID','Gene name','Reactome name')))
+             reactome <- db 
+            
+       else  {   
+          stop(paste0("db should be a dataframe with "
+              ,"3 columns named 'Reactome ID', ",
+               ,"'Gene name' and 'Reactome name'."))
         }
-    else {
-      stop(paste0("db should be a dataframe with",
-            "3 columns named 'GO ID' ",
-            ,"'Gene name','GO name'"))
     }
-} # resetGoBPDB
+
+    if(nameDB=="GO-BP"){
+        if (all(colnames(db)== c('GO ID','Gene name','GO name')))
+            gobp <- db 
+        else {
+          stop(paste0("db should be a dataframe with "
+                ,"3 columns named 'GO ID' "
+                ,"'Gene name' and 'GO name'."))
+        }
+        
+    }    
+ 
+
+} # resetDownstreamPathways
 
 #' Prepare a BSRDataModel object from expression data
 #'
