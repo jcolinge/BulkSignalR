@@ -31,6 +31,19 @@
 "tme.signatures"
 
 
+#' Partial EMT gene signature
+#'
+#' A dataset containing a partial EMT gene signature.
+#'
+#' @format A data frame with 100 rows and 1 variables:
+#' \describe{
+#'   \item{gene}{HUGO gene symbol}
+#' }
+#' @source Puram, SV & al., Cell, 2017.
+#' @usage data(p.EMT)
+"p.EMT"
+
+
 #' Immune cell gene signatures
 #'
 #' A dataset containing gene signatures for general immune cell populations.
@@ -41,4 +54,5 @@
 #'   \item{signature}{cell population name}
 #' }
 #' @source PanglaoDB (Franzén et al., Database, 2019).
+#' @usage data(immune.signatures)
 "immune.signatures"

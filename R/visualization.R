@@ -21,17 +21,17 @@
 #' and Q-values.
 #'
 #' @param bsrinf     BulkSignalR inference object.
-#' @param pathways  Vector or pathway names
-#' @param threshold     BulkSignalR data model object.
-#' @param filter.L     Filter a list of ligands.
-#' @param filter.R     Filter a list of receptors.
+#' @param pathways  Vector of pathway names to keep.
+#' @param qval.thres     Maximum Q-value.
+#' @param filter.L     Vector of ligands to keep.
+#' @param filter.R     Vector of receptors to keep.
 #' @param path      Path directory to plot.
-#' @param filename     An output filename.
+#' @param filename     An output filename, NULL by default to display on screen.
 #' @param color     Main color used for the gradient.
 #' @param width     Global image width in cm.
 #' @param height    Global image height in cm.
 #' @param pointsize Global pointsize.
-#' @param format   File format svg (default),png or pdf.
+#' @param format   File format.
 #'
 #' @return  A plot is created with the given filename. 
 #'
@@ -55,7 +55,7 @@
 #' pathways <- c("PD-1 signaling","Interferon gamma signaling")
 #' bubblePlotPathwaysLR(bsrinf,
 #'    pathways = pathways, 
-#'    threshold = 1,
+#'    qval.thres = 1,
 #'    path = "./",
 #'    color = "red",
 #'    filename  = "sdc_bubble", 
@@ -65,29 +65,25 @@
 #'    )  
 #' @import ggplot2
 bubblePlotPathwaysLR <- function(bsrinf,
-    pathways=c("Cell surface interactions at the vascular wall"),
-    threshold = 1,
+    pathways,
+    qval.thres = 1,
     filter.L=NULL, 
     filter.R=NULL,
     path="./",
-    filename="bubblePlot",
+    filename=NULL,
     color="#16a647",
     width=16, 
     height=7,
     pointsize=6, 
-    format=c("svg","png","pdf") ) {
+    format=c("pdf","svg","png") ) {
 
-    if (!dir.exists(path)) {
-        stop("Directory is invalid.")
-    }
-
-    filtered.brinf <- as.data.frame(LRinter(bsrinf))
-    filtered.brinf <- filtered.brinf[filtered.brinf$qval < threshold,]
+    filtered.brinf <- LRinter(bsrinf)
+    filtered.brinf <- filtered.brinf[filtered.brinf$qval < qval.thres,]
 
     if(!is.null(filter.R) | !is.null(filter.L))
         filtered.brinf <- filtered.brinf[filtered.brinf$L %in% filter.L | filtered.brinf$R %in% filter.R ,]
 
-    filtered.brinf$LR <- paste (filtered.brinf$L,filtered.brinf$R,sep= "->")
+    filtered.brinf$LR <- paste (filtered.brinf$L,filtered.brinf$R,sep= " / ")
 
     filtered.brinf <- filtered.brinf[,c("LR","pw.name","LR.corr","qval")] 
     filtered.brinf$log10.qval <- -log10(filtered.brinf$qval)
@@ -121,7 +117,7 @@ bubblePlotPathwaysLR <- function(bsrinf,
 
     format <- match.arg(format)
 
-    #if (!is.null(filename))
+    if (!is.null(filename)){
         if (format=="svg")
             grDevices::svg(file=paste0(path,filename,".svg")
              ,width=width/2.54, height=height/2.54) 
@@ -133,6 +129,8 @@ bubblePlotPathwaysLR <- function(bsrinf,
         if (format=="pdf")
            grDevices::pdf(file=paste0(path,filename,".pdf")
                 ,width=width/2.54, height=height/2.54) 
+
+    }
 
     print(ggplot2::ggplot(filtered.brinf, 
        ggplot2::aes_string(x = "LR", y = "pw.name")) + 
@@ -162,7 +160,8 @@ bubblePlotPathwaysLR <- function(bsrinf,
        guide = "colourbar",aesthetics = "fill") +
        ggplot2::scale_y_discrete(limits = rev(levels(filtered.brinf$pw.name))) )
     
-    grDevices::dev.off()
+    if (!is.null(filename))
+        grDevices::dev.off()
 
 }
 
@@ -264,14 +263,15 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #' @param bsrdm     BulkSignalR data model object.
 #' @param bsrsig     BulkSignalR signature object.
 #' @param path     Path to write your ouput.
-#' @param filename     An output filename.
+#' @param filename     An output filename, NULL by default
+#' to display on screen.
 #' @param h.width     Heatmap width in cm.
 #' @param h.height    Heatmap height in cm.
 #' @param fontsize    Fontsize.
-#' @param format   File format svg (default)/png/pdf
+#' @param format   File format.
 #' @param show_column_names   Add column names on heatmap.
 
-#' @return  A plot is created with the given filename. 
+#' @return  A plot is created.
 #'
 #' This is a convenience function 
 #' to propose a simple way
@@ -307,24 +307,17 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #' @importFrom circlize colorRamp2
 #' @import grid
 signatureHeatmaps <- function(
-        pathway="Cell surface interactions at the vascular wall",
+        pathway,
         bsrdm,
         bsrsig,
         path="./",
-        filename="ExpresssionSignature",
+        filename=NULL,
         h.width=6,
         h.height=9,
         fontsize=6,
-        format=c("svg","png","pdf"),
+        format=c("pdf","svg","png"),
         show_column_names= FALSE
         ){
-
-    print("signatureHeatmaps")
-
-    #check path
-    if (!dir.exists(path)) {
-        stop("Directory is invalid.")
-    }
 
     idx.path.sig    <- which(pathways(bsrsig) == pathway)
 
@@ -393,6 +386,8 @@ signatureHeatmaps <- function(
 
     format <- match.arg(format)
 
+    if (!is.null(filename)){
+
     # inch
     if (format=="svg")
         grDevices::svg(file=paste0(path,filename,".svg")
@@ -405,6 +400,8 @@ signatureHeatmaps <- function(
     if (format=="pdf")
        grDevices::pdf(file=paste0(path,filename,".pdf")
             ,width=width, height=height) 
+
+    }   
 
      grid::grid.newpage()
      grid::pushViewport(grid::viewport(layout = grid::grid.layout(nr = 3, nc = 2)))
@@ -459,20 +456,21 @@ signatureHeatmaps <- function(
 
     grid::upViewport()
 
-    grDevices::dev.off()
+    if (!is.null(filename))
+      grDevices::dev.off()
 
 } # signatureHeatmaps
 
 
 #' Heatmap function for LR scores
 #'
-#' Generate a PDF file with a heatmap representing ligand-receptor gene
+#' Generate a heatmap representing ligand-receptor gene
 #' signature scores.
 #'
 #' @param mat.c         A matrix with the signature scores such as output by
 #' \code{scoreLRGeneSignatures()}.
 #' @param path directory where to plot file.
-#' @param filename file name.
+#' @param filename file name, NULL by default to display on screen.
 #' @param dend.row       A precomputed row dendrogram.
 #' @param dend.spl       A precompute sample (column) dendrogram.
 #' @param cols           A vector of colors to use for the heatmap.
@@ -484,21 +482,21 @@ signatureHeatmaps <- function(
 #' @param n.row.clust    Number of row clusters.
 #' @param gap.size       Gap size between clusters.
 #' @param cut.p          Proportion of top and bottom values for thresholding.
-#' @param row.names      A logical to turn on/off the display
+#' @param row.names      A logical to turn on/off the display of row names.
 #' @param column.names      A logical to turn on/off the display
 #' of column (sample) names.
-#' @param hcl_palette    support for HCL colormaps in ComplexHeatmap
+#' @param hcl.palette    support for HCL colormaps in ComplexHeatmap
 #' using color mapping function with circlize::colorRamp2().
 #' palettes are listed in grDevides::hcl.pals().
 #' of row (gene) names.
-#' @param reverse    A logicial to reverse or not colors in hclpalette.
-#' @param format   File format svg (default)/png/pdf
+#' @param reverse    A logicial to reverse or not colors in hcl.palette.
+#' @param format   File format.
 #' 
 #' @return A heatmap. Since heatmap plotting tend to be slow on the screen,
 #' it is advisable to provide a
 #' PDF file name and plot in a file (much faster).
 #'
-#' If hcl_palette is set. colors parameter won't be used. 
+#' If hcl.palette is set, the colors parameter won't be used. 
 #'
 #' Extreme values (top and bottom) can be replaced by global quantiles at
 #' \code{cut.p} and \code{1-cut.p}
@@ -533,18 +531,18 @@ signatureHeatmaps <- function(
 #'                   column.names = TRUE, 
 #'                   height = 5, width = 9,
 #'                   pointsize = 10,
-#'                   hcl_palette = "Cividis"                   
+#'                   hcl.palette = "Cividis"                   
 #'                   )
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
 simpleHeatmap <- function(mat.c, width, height, 
-                          path="./", filename="simpleHeatmap",
+                          path="./", filename=NULL,
                           dend.row=NULL,
                           dend.spl=NULL, cols=NULL, pointsize=4,
                           bottom.annotation=NULL, n.col.clust=0, n.row.clust=0,
                           gap.size=0.5, cut.p=0.01, row.names=TRUE,
-                          column.names = TRUE ,hcl_palette = NULL,
-                          reverse = FALSE, format=c("svg","png","pdf")
+                          column.names = TRUE ,hcl.palette = NULL,
+                          reverse = FALSE, format=c("pdf","svg","png")
                           ){
 
     if (!requireNamespace("ComplexHeatmap",quietly=TRUE))
@@ -564,7 +562,7 @@ simpleHeatmap <- function(mat.c, width, height,
         cols <- circlize::colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
                            colors=c("royalblue3","white","orange"))
 
-        if (!is.null(hcl_palette)){
+        if (!is.null(hcl.palette)){
                 cols <- circlize::colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
                            , hcl_palette = hcl_palette,reverse = reverse)
         }    
@@ -582,6 +580,7 @@ simpleHeatmap <- function(mat.c, width, height,
     }
 
     format <- match.arg(format)
+    if (!is.null(filename)){
 
         if (format=="svg")
             grDevices::svg(file=paste0(path,filename,".svg")
@@ -595,7 +594,8 @@ simpleHeatmap <- function(mat.c, width, height,
            grDevices::pdf(file=paste0(path,filename,".pdf")
                     , width=width, height=height,
                        pointsize=pointsize, useDingbats=FALSE)
-
+    }
+    
     if (n.row.clust>0)
         if (n.col.clust>0)
             print(ComplexHeatmap::Heatmap(mat.c, cluster_rows=dend.row,
@@ -630,8 +630,9 @@ simpleHeatmap <- function(mat.c, width, height,
                 raster_quality=8, raster_by_magick=FALSE,
                 row_names_gp=grid::gpar(fontsize=pointsize),
                 show_row_dend=TRUE,bottom_annotation=bottom.annotation))
-    #if (!is.null(filename))
-    grDevices::dev.off()
+
+    if (!is.null(filename))
+        grDevices::dev.off()
 
 } # simpleHeatmap
 
@@ -649,7 +650,7 @@ simpleHeatmap <- function(mat.c, width, height,
 #' @details This function relies on 
 #' a simple average of gene z-scores over each signature.
 #' It is no replacement for mode advanced methods
-#' such as CYBERSORT or BisqueRNA. 
+#' such as CIBERSORT or BisqueRNA. 
 #' It is provided for convenience.
 #' @return A matrix containing the scores of 
 #' each gene signature in each sample.
@@ -715,15 +716,16 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #'
 #' @param bsrinf object bsrinf inference.
 #' @param keywords vector of pathways.
-#' @param type filter on Ligand, Recptor or pathway id.
-#' @param qval threshold over Q-value.
+#' @param type filter on Ligand, Receptor or pathway id.
+#' @param qval.thres threshold over Q-value.
 #' @param format svg / png / pdf. By default means it will 
-#' plot in a svg format.
+#' plot in pdf format.
 #' @param path directory where to plot file.
-#' @param filename file name.
+#' @param filename file name, NULL by default (plot on screen).
 #' @param width width of image in cm.
 #' @param height height of image in cm. 
-#' @return NULL (plot printed somewhere on disk)
+#' @return NULL
+#'
 #' This is a convenience function that relies on the \code{ggalluvial}
 #' package to propose a simple way
 #' of representing Ligands, Receptors 
@@ -745,22 +747,16 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' alluvialPlot(bsrinf,
 #'              keywords = c("COL4A1"),
 #'              type = "L",
-#'              qval = 0.001,
+#'              qval.thres = 0.001,
 #'              path = "./",
 #'              filename = "sdc_alluvial", 
 #'              width  = 16, 
 #'              height = 12
 #'              )
-alluvialPlot <- function(bsrinf,
-                 keywords=c("COL4A1"),
-                 type=c("L","R","pw.id"),
-                 qval=1,
-                 format=c("svg","png","pdf") ,
-                 path="./",
-                 filename = "alluvial.plot",
-                 width = 10 ,
-                 height = 10
-                 ) {
+alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
+                 qval.thres=0.01, format=c("pdf","svg","png"),
+                 path="./", filename = NULL,
+                 width = 10, height = 10) {
 
      interactions <- data.frame(
            L =  unlist(ligands(bsrinf)) 
@@ -770,11 +766,6 @@ alluvialPlot <- function(bsrinf,
           ,qval = LRinter(bsrinf)$qval
           ,targets = sapply(tGenes(bsrinf), paste, collapse = "  ")
         )
-
-
-    if (!dir.exists(path)) {
-        stop("Directory is invalid.")
-    }
 
     type <- match.arg(type)
     format <- match.arg(format)
@@ -790,9 +781,9 @@ alluvialPlot <- function(bsrinf,
         cat(paste(keywords, collapse = ' ')," for ", type, " not found.","\n", sep="")
         stop("Try another value for filtering.")
     }
-     subset.interactions                <- subset.interactions[subset.interactions$qval < qval,]  
+     subset.interactions <- subset.interactions[subset.interactions$qval <= qval.thres,]  
      subset.interactions$count <- 1
-     subset.interactions       <- subset.interactions[,c("L" ,   "R"  ,  "pw.name" ,"count")]
+     subset.interactions <- subset.interactions[,c("L" , "R", "pw.name" ,"count")]
 
      stratum <- ggalluvial::StatStratum
 
@@ -815,51 +806,52 @@ alluvialPlot <- function(bsrinf,
                        , axis.ticks = ggplot2::element_blank()  
                        , panel.grid = ggplot2::element_blank())
 
-    if (format=="svg")
-        grDevices::svg(file=paste0(path,filename,".svg")
-         ,width=width/2.54, height=height/2.54) 
+    if (!is.null(filename)){
 
-    if (format=="png")
-        grDevices::png(file=paste0(path,filename,".png")
-         ,width=width/2.54, height=height/2.54,units="in",res=600) 
+        if (format=="svg")
+            grDevices::svg(file=paste0(path,filename,".svg")
+             ,width=width/2.54, height=height/2.54) 
 
-    if (format=="pdf")
-       grDevices::pdf(file=paste0(path,filename,".pdf")
-            ,width=width/2.54, height=height/2.54) 
+        if (format=="png")
+            grDevices::png(file=paste0(path,filename,".png")
+             ,width=width/2.54, height=height/2.54,units="in",res=600) 
+
+        if (format=="pdf")
+           grDevices::pdf(file=paste0(path,filename,".pdf")
+                ,width=width/2.54, height=height/2.54)
+    } 
 
     print(pl)
 
-    grDevices::dev.off()
+    if (!is.null(filename))
+       grDevices::dev.off()
 
 } #alluvialPlot
 
 
 #' Chord Diagram of LR interactions with correlations
 #'
-#' @description By default, chord diagrams will be plot on disk.
+#' @description Chord diagram.
 #'
 #' @param bsrinf bsrinf object 
-#' @param path Path where to plot
-#' @param filename Filename for the plot
-#' @param pw.id.filter A vector of pathway IDs accepted to 
-#  retrieve respective LR interactions.
-#' @param qval.filter Qval filter, default set to 1.
-#' @param inter.filter L-R filter, default set to none.
-#' A vector of concatenated Ligand and Receptor pair,
-#  given as follows c ("L1-R1","L2-R2").
+#' @param pw.id.filter One Pathway ID accepted only to 
+#  retrieve the respective LR interactions.
 #' @param ligand Ligand
-#' for the LR pair that you want to 
+#' of the LR pair that you want to 
 #' highlight in the chord diagram. 
 #' @param receptor Receptor
-#' for the LR pair that you want to highlight
+#' of the LR pair that you want to highlight
 #' in the chord diagram. 
+#' @param path Path where to create the file containing the plot.
+#' @param filename Filename for the plot or NULL (default) for display
+#' on screen.
 #' @param limit Number of interactions you can visualize.
 #  Maximum set to 30.
-#' @param format svg / png / pdf. By default means it will 
-#' plot in a svg format.
-#' @param width width of image in cm.
+#' @param format pdf / png / svg. 
+#' @param width width of image in cm. 
 #' @param height height of image in cm.
-#' @return Circos Plot on Disk
+#' @return Circos Plot on the screen or a file
+#'
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2 circos.par chordDiagramFromDataFrame
 #' @importFrom circlize circos.trackPlotRegion circos.text circos.axis 
@@ -878,23 +870,19 @@ alluvialPlot <- function(bsrinf,
 #'          verbose = TRUE)
 #' bsrinf <- initialInference(bsrdm)
 #' chordDiagramLR (bsrinf,
-#'                  path="./",
-#'                  filename="sdc_chord",
 #'                  pw.id.filter="R-HSA-202733",
 #'                  ligand="COL18A1",
 #'                  receptor="ITGA3",
+#'                  path="./",
+#'                  filename="sdc_chord",
 #'                  limit=20,
 #'                  width=5, 
 #'                  height=4.5
 #'    )
-chordDiagramLR  <- function(bsrinf,path="./",
-    filename="chord",
-    pw.id.filter= NULL,
-    qval.filter = 1,
-    inter.filter = NULL,
-    ligand="L1",receptor="R1",
-    limit=20,
-    format=c("svg","png","pdf"),
+chordDiagramLR  <- function(bsrinf,
+    pw.id.filter, ligand=NULL, receptor=NULL,
+    path="./", filename=NULL,
+    limit=20, format=c("pdf","svg","png"),
     width=4,height=4) {
 
     format <- match.arg(format)
@@ -906,7 +894,10 @@ chordDiagramLR  <- function(bsrinf,path="./",
        stop("Number of visualised interactions sould be less than 40\n")
     }
 
-    pair.to.highlight <- paste(ligand,receptor,sep='-')
+    if (!is.null(ligand) && !is.null(receptor))
+      pair.to.highlight <- paste(ligand,receptor,sep='-')
+    else
+      pair.to.highlight <- NULL
 
     dataframe.bsrinf<- data.frame(
         ligands=unlist(ligands(bsrinf)),
@@ -921,16 +912,13 @@ chordDiagramLR  <- function(bsrinf,path="./",
     dataframe.bsrinf$pair <- paste(dataframe.bsrinf$ligands,
         dataframe.bsrinf$receptors,sep="-")
 
-    if (!pair.to.highlight %in% dataframe.bsrinf$pair) {
-        cat("Highlighted LR pair ", pair.to.highlight, " was not found for ",pw.id.filter,".\n")
-    }
+    if (!is.null(pair.to.highlight) && !(pair.to.highlight %in% dataframe.bsrinf$pair))
+        stop("Highlighted LR pair ", pair.to.highlight, " was not found for ",
+             pw.id.filter, ".\n")
 
     # Filters
     if(!is.null(pw.id.filter))
         dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pw.id %in% pw.id.filter,]
-    if(!is.null(inter.filter))
-        dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pair %in% inter.filter,]
-    dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$qval < qval.filter,]
 
     if(dim(dataframe.bsrinf)[1]==0)
         stop("Pathway ID was not found.\n")
@@ -963,22 +951,26 @@ chordDiagramLR  <- function(bsrinf,path="./",
     
     link.width <- rep(0.12,nrow(dataframe.bsrinf))
 
-    index.filter <- which(pair.to.highlight == dataframe.bsrinf$pair)
+    if (!is.null(pair.to.highlight)){
+      index.filter <- which(pair.to.highlight == dataframe.bsrinf$pair)
+      link.col[index.filter] <- "#d40000"
+      link.lwd[index.filter] <- 3
+      link.width[index.filter] <- 0.15
+    }
 
-    link.col[index.filter] <- "#d40000"
-    link.lwd[index.filter] <- 3
-    link.width[index.filter] <- 0.15
+    if (!is.null(filename)){
 
-    if (format=="svg")#3.6
-        grDevices::svg(paste0(path,"/",filename,".svg"),
-            width=width, height=height) #inch
-    if (format=="png")
-        grDevices::png(paste0(path,"/",filename,".png"),
-            width=width,height=height,units="in",res=600)
-    if (format=="pdf")
-        grDevices::pdf(paste0(path,"/",filename,".pdf"),
-            width=width, height=height)
-
+        if (format=="svg")#3.6
+            grDevices::svg(paste0(path,"/",filename,".svg"),
+                width=width, height=height) #inch
+        if (format=="png")
+            grDevices::png(paste0(path,"/",filename,".png"),
+                width=width,height=height,units="in",res=600)
+        if (format=="pdf")
+            grDevices::pdf(paste0(path,"/",filename,".pdf"),
+                width=width, height=height)
+    }
+    
     interactions <- data.frame(from=dataframe.bsrinf$ligands,
         to=dataframe.bsrinf$receptors,
         value=dataframe.bsrinf$corr)
@@ -1050,6 +1042,7 @@ chordDiagramLR  <- function(bsrinf,path="./",
 
      circlize::circos.clear()
 
-     grDevices::dev.off()
+     if (!is.null(filename))
+       grDevices::dev.off()
 
 } # chordDiagramLR

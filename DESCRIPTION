@@ -22,6 +22,7 @@ Imports:
     rlang,
     methods,
     doParallel,
+    glmnet,
     ggalluvial,
     ggplot2,
     gridExtra,
