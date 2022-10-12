@@ -122,9 +122,9 @@
             best.2nd <- foreach::foreach(p=pa,.combine=rbind) %do% {
                 # best.2nd <- NULL
                 # for (p in pa){
-                int <- PwC_ReactomeKEGG[
-                    PwC_ReactomeKEGG$a.gn %in% pw[pw[[id.col]]==p,gene.col] &
-                    PwC_ReactomeKEGG$b.gn %in% pw[pw[[id.col]]==p,gene.col],
+                int <- SingleCellSignalR::PwC_ReactomeKEGG[
+                    SingleCellSignalR::PwC_ReactomeKEGG$a.gn %in% pw[pw[[id.col]]==p,gene.col] &
+                    SingleCellSignalR::PwC_ReactomeKEGG$b.gn %in% pw[pw[[id.col]]==p,gene.col],
                 ]
                 directed <- int$type %in% directed.int
 

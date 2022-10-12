@@ -133,9 +133,9 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
         a.iter <- data.frame(from=pairs$L[i], to=r, edge.type="LR",
                              stringsAsFactors=FALSE)
         genes.in.pw <- pw[pw[[id.col]]==p,gene.col]
-        int <- PwC_ReactomeKEGG[
-            PwC_ReactomeKEGG$a.gn %in% genes.in.pw &
-                PwC_ReactomeKEGG$b.gn %in% genes.in.pw,]
+        int <- SingleCellSignalR::PwC_ReactomeKEGG[
+            SingleCellSignalR::PwC_ReactomeKEGG$a.gn %in% genes.in.pw &
+                SingleCellSignalR::PwC_ReactomeKEGG$b.gn %in% genes.in.pw,]
         directed <- int$type %in% directed.int
         ret <- int[!directed,c("b.gn", "a.gn")]
         names(ret) <- c("a.gn", "b.gn")
@@ -156,9 +156,9 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
                         for (k in 2:length(vertices)){
                             from <- igraph::V(g)$name[vertices[k-1]]
                             to <- igraph::V(g)$name[vertices[k]]
-                            edge.type <- PwC_ReactomeKEGG[
-                                PwC_ReactomeKEGG$a.gn==from &
-                                PwC_ReactomeKEGG$b.gn==to,
+                            edge.type <- SingleCellSignalR::PwC_ReactomeKEGG[
+                                SingleCellSignalR::PwC_ReactomeKEGG$a.gn==from &
+                                SingleCellSignalR::PwC_ReactomeKEGG$b.gn==to,
                                 "type"][1]
                             a.iter <- rbind(a.iter, data.frame(from=from,to=to,
                                                         edge.type=edge.type,
