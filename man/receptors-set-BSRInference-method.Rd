@@ -14,3 +14,4 @@
 \description{
 receptors setter (internal use only)
 }
+\keyword{internal}

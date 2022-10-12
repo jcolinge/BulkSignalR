@@ -19,3 +19,4 @@ A list with same structure as \code{pind} with shuffled indices
 \description{
 Internal function to shuffle permutation indices
 }
+\keyword{internal}

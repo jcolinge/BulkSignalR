@@ -18,3 +18,4 @@ the latter thresholds.
 \description{
 Internal function to cut extreme values from a matrix
 }
+\keyword{internal}

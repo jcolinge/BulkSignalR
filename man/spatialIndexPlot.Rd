@@ -9,6 +9,14 @@ spatialIndexPlot(
   areas,
   out.file,
   image.raster = NULL,
+  cut.p = 0.01,
+  low.color = "royalblue3",
+  mid.color = "white",
+  high.color = "orange",
+  title.fs = 12,
+  legend.fs = 10,
+  axis.fs = 10,
+  label.fs = 12,
   dot.size = 0.25,
   ratio = 1.25,
   base.v = 2.5,
@@ -28,6 +36,22 @@ a tissue label column.}
 
 \item{image.raster}{Raster object image to plot raw tissue image as
 reference.}
+
+\item{cut.p}{Proportion of top and bottom values for thresholding.}
+
+\item{low.color}{Color for low score values.}
+
+\item{mid.color}{Color for score = 0.}
+
+\item{high.color}{Color for high score values.}
+
+\item{title.fs}{Title font size.}
+
+\item{legend.fs}{Legend items font size.}
+
+\item{axis.fs}{Axis ticks font size.}
+
+\item{label.fs}{Legend titles and axis names font size.}
 
 \item{dot.size}{Dot size.}
 

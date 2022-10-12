@@ -49,3 +49,17 @@ Suggests:
     rmarkdown
 RoxygenNote: 7.2.1
 VignetteBuilder: knitr
+Collate: 
+    'BSRDataModel-class.R'
+    'BSRInference-class.R'
+    'BSRSignature-class.R'
+    'BulkSignalR.R'
+    'cellTypeAssign.R'
+    'data.R'
+    'zzz.R'
+    'dataPrepare.R'
+    'inference.R'
+    'modelTraining.R'
+    'networks.R'
+    'spatial.R'
+    'visualization.R'

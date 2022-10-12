@@ -26,3 +26,4 @@ A list with the four stable distribution parameters (S0
 \description{
 Maximum-likelihood estimators are used.
 }
+\keyword{internal}

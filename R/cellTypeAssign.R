@@ -66,6 +66,9 @@ assignCellTypesToInteractions <- function(bsrdm, bsrinf, ct.scores,
                                           min.r2=0.25, min.r2.after=0.35,
                                           lasso=TRUE, qval.thres=1e-3){
   
+  # local binding
+  i <- NULL
+
   # L-R interaction table and scores
   bsrinf.red <- reduceToBestPathway(bsrinf)
   inter <- LRinter(bsrinf.red)
@@ -98,7 +101,7 @@ assignCellTypesToInteractions <- function(bsrdm, bsrinf, ct.scores,
   # assignment of CTs
   a <- foreach::foreach(i=seq_len(nrow(inter)), .combine=rbind) %do% {
     y <- lr.scores[i,]
-    c <- suppressWarnings(cor(y, x, method="spearman"))
+    c <- suppressWarnings(stats::cor(y, x, method="spearman"))
     c2 <- c**2
     good <- c2 >= min.r2 & c > 0
     if (sum(good) > 0)
@@ -114,8 +117,8 @@ assignCellTypesToInteractions <- function(bsrdm, bsrinf, ct.scores,
                                 lower.limits=lb, upper.limits=ub)
           MAE <- as.vector(glmnet::assess.glmnet(lasso.fit.l, newx=xL, newy=y)$mae)
           p <- stats::predict(lasso.fit.l, newx=xL)
-          gc2 <- suppressWarnings(cor(y,p))**2
-          lcoef <- coef(lasso.fit.l)[-1,1]
+          gc2 <- suppressWarnings(stats::cor(y,p))**2
+          lcoef <- stats::coef(lasso.fit.l)[-1,1]
           if (gc2 > min.r2.after && sum(lcoef>0) > 0)
             data.frame(L=inter$L[i], R=inter$R[i], cell.type=names(lcoef)[lcoef>0],
                        weight=lcoef[lcoef>0], MAE=MAE, r2=gc2[1,1],
@@ -128,7 +131,7 @@ assignCellTypesToInteractions <- function(bsrdm, bsrinf, ct.scores,
           dat <- data.frame(y=y, x=x[,good])
           lmfit <- stats::lm(y~x, data=dat)
           p <- stats::predict(lmfit)
-          gc2 <- suppressWarnings(cor(y,p))**2
+          gc2 <- suppressWarnings(stats::cor(y,p))**2
           lcoef <- stats::coef(lmfit)[-1]
           if (gc2 > min.r2.after && lcoef > 0)
             data.frame(L=inter$L[i], R=inter$R[i], cell.type=colnames(x)[good],
@@ -197,6 +200,9 @@ assignCellTypesToInteractions <- function(bsrdm, bsrinf, ct.scores,
 #' @importFrom foreach %do%
 cellularNetworkTable <- function(lr, autocrine=FALSE){
   
+  # global binding
+  key <- j <- NULL
+
   # paracrine
   keys <- paste(lr$L, lr$R, sep="-")
   t <- table(keys)
@@ -226,7 +232,7 @@ cellularNetworkTable <- function(lr, autocrine=FALSE){
   # paracrine
   if (autocrine){
     if (sum(t == 1) > 1)
-      nt <- rbind(nt, foreach (key=names(t)[t==1], .combine=rbind) %do% {
+      nt <- rbind(nt, foreach::foreach (key=names(t)[t==1], .combine=rbind) %do% {
         i <- which(keys == key)
         L <- lr$L[i]
         R <- lr$R[i]
@@ -332,7 +338,7 @@ cellularNetwork <- function(tab){
 #' @import igraph
 #' @importFrom foreach %do%
 summarizedCellularNetwork <- function(tab){
-  
+  i <- NULL
   sscore <- sum(tab$score)
   ct <- unique(tab[,c("CT1","CT2")])
   sum.tab <- foreach::foreach (i=seq_len(nrow(ct)),.combine=rbind) %do% {
@@ -380,6 +386,7 @@ summarizedCellularNetwork <- function(tab){
 #' @importFrom foreach %do%
 relateToGeneSet <- function(bsrinf, gs, min.cor=0.25, qval.thres=0.001){
   
+  i <- NULL
   # get target gens and L-R interactions
   inter <- LRinter(bsrinf)
   tg <- tGenes(bsrinf)

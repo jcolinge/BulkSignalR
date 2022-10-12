@@ -28,3 +28,4 @@ A list with the step function implementing the CDF of
 \description{
 Based on stats::density.
 }
+\keyword{internal}

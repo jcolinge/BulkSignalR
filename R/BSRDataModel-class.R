@@ -128,7 +128,8 @@ if (!isGeneric("ncounts<-")) {
 #' Normalized count matrix setter (internal use only)
 #'
 #' @param x object BSRDataModel 
-#' @param value valut to be set for BSRDataModel 
+#' @param value value to be set for BSRDataModel
+#' @keywords internal 
 setMethod("ncounts<-", "BSRDataModel", function(x,value){
     x@ncounts <- value
     methods::validObject(x)

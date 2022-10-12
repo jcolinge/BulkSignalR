@@ -30,3 +30,4 @@ A BSRInference object.
 Estimate the P-value of each ligand-receptor pair based
 on the data frame output by \code{\link{.checkReceptorSignaling}}.
 }
+\keyword{internal}

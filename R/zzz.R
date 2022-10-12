@@ -1,6 +1,6 @@
 .onLoad <- function(...) {
 
- # envir = package.BulkSignalR
+ # envir = package.BulkSignalR .GlobalEnv
  assign("LRdb", SingleCellSignalR::LRdb, envir = .GlobalEnv)
 
 }

@@ -31,7 +31,7 @@ samples of a BSRDataModel object.
 This function relies on 
 a simple average of gene z-scores over each signature.
 It is no replacement for mode advanced methods
-such as CYBERSORT or BisqueRNA. 
+such as CIBERSORT or BisqueRNA. 
 It is provided for convenience.
 }
 \examples{

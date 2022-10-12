@@ -6,13 +6,14 @@
 \usage{
 chordDiagramLR(
   bsrinf,
+  pw.id.filter,
+  qval.thres = 1,
+  ligand = NULL,
+  receptor = NULL,
   path = "./",
-  filename = "chord",
-  pw.id.filter = "R-RSA-17821",
-  ligand = "L1",
-  receptor = "R1",
+  filename = NULL,
   limit = 20,
-  format = c("svg", "png", "pdf"),
+  format = c("pdf", "svg", "png"),
   width = 4,
   height = 4
 )
@@ -20,34 +21,36 @@ chordDiagramLR(
 \arguments{
 \item{bsrinf}{bsrinf object}
 
-\item{path}{Path where to plot}
-
-\item{filename}{Filename for the plot}
-
 \item{pw.id.filter}{One Pathway ID accepted only to}
 
+\item{qval.thres}{threshold over Q-value.}
+
 \item{ligand}{Ligand
-for the LR pair that you want to 
+of the LR pair that you want to 
 highlight in the chord diagram.}
 
 \item{receptor}{Receptor
-for the LR pair that you want to highlight
+of the LR pair that you want to highlight
 in the chord diagram.}
+
+\item{path}{Path where to create the file containing the plot.}
+
+\item{filename}{Filename for the plot or NULL (default) for display
+on screen.}
 
 \item{limit}{Number of interactions you can visualize.}
 
-\item{format}{svg / png / pdf. By default means it will 
-plot in a svg format.}
+\item{format}{pdf / png / svg.}
 
-\item{width}{width of image}
+\item{width}{width of image in cm.}
 
-\item{height}{height of image}
+\item{height}{height of image in cm.}
 }
 \value{
-Circos Plot on Disk
+Circos Plot on the screen or a file
 }
 \description{
-By default, chord diagrams will be plot on disk.
+Chord diagram.
 }
 \examples{
 print('chordDiagramLR')
@@ -61,11 +64,11 @@ bsrdm <- learnParameters(bsrdm,
          verbose = TRUE)
 bsrinf <- initialInference(bsrdm)
 chordDiagramLR (bsrinf,
-                 path="./",
-                 filename="sdc_chord",
                  pw.id.filter="R-HSA-202733",
                  ligand="COL18A1",
                  receptor="ITGA3",
+                 path="./",
+                 filename="sdc_chord",
                  limit=20,
                  width=5, 
                  height=4.5

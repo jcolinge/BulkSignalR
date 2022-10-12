@@ -6,27 +6,30 @@
 \usage{
 .customheatmap(
   counts,
-  width = 5,
-  height = 10,
+  h.width = 5,
+  h.height = 10,
+  fontsize = 6,
   scoring = c(-1.5, 0, 4, 5, 6.1, 0.3),
   cols.scoring,
-  palette = "Blues 3",
+  hcl.palette = "Blues 3",
   show_column_names = FALSE
 )
 }
 \arguments{
 \item{counts}{Matrice of counts exported from a}
 
-\item{width}{Heatmap  width size.}
+\item{h.width}{Heatmap  width in cm.}
 
-\item{height}{Heatmap  height size.}
+\item{h.height}{Heatmap  height in cm.}
+
+\item{fontsize}{Fontsize.}
 
 \item{scoring}{Vector of scored sample for a 
 a previously choosen pathway.}
 
 \item{cols.scoring}{Fixed colorRamp2 object.}
 
-\item{palette}{Palette from 
+\item{hcl.palette}{Palette from 
 HCL colormaps supported by ComplexHeatmap.}
 
 \item{show_column_names}{Add column names on heatmap.}
@@ -45,3 +48,4 @@ Generate one heatmap re-used by
 by  
 \code{"\link[=BSRDataModel-class]{scoreLRGeneSignatures}"}
 }
+\keyword{internal}

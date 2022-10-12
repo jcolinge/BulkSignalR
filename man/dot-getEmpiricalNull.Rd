@@ -56,3 +56,4 @@ A large number of correlations (ligand-receptor and receptor-downstream
   See \code{\link{.checkReceptorSignaling}} for more details about the
   parameters.
 }
+\keyword{internal}

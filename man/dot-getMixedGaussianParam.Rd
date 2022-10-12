@@ -27,3 +27,4 @@ A list with the mean (\code{mu}) and standard deviation
 \description{
 Maximum-likelihood estimators are used.
 }
+\keyword{internal}

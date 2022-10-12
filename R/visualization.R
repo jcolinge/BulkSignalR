@@ -6,6 +6,7 @@
 #' @param p          Proportion of top and bottom values for thresholding.
 #' @return A matrix with values beyond top and bottom thresholds repaced by
 #' the latter thresholds.
+#' @keywords internal
 .cutExtremeValues <- function(m, p){
     thres.lo <- stats::quantile(m, prob=p)
     thres.hi <- stats::quantile(m, prob=1-p)
@@ -180,7 +181,7 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #' @param scoring Vector of scored sample for a 
 #' a previously choosen pathway.
 #' @param cols.scoring   Fixed colorRamp2 object.
-#' @param palette   Palette from 
+#' @param hcl.palette   Palette from 
 #' HCL colormaps supported by ComplexHeatmap.
 #' @param show_column_names   Add column names on heatmap.
 #'
@@ -194,13 +195,14 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #'
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
+#' @keywords internal
 .customheatmap <- function(counts, 
     h.width=5, 
     h.height=10 ,
     fontsize=6,
     scoring = c(-1.5,0,4,5,6.1,0.3) ,
     cols.scoring,
-    palette= "Blues 3",
+    hcl.palette= "Blues 3",
     show_column_names = FALSE
     ) {
 
@@ -210,7 +212,7 @@ bubblePlotPathwaysLR <- function(bsrinf,
     counts.scaled = t(scale(t(counts)))
 
     cols <- circlize::colorRamp2(breaks=c(-1, 0, 3), 
-        hcl_palette = palette,reverse=TRUE) 
+        hcl_palette = hcl.palette,reverse=TRUE) 
 
     top.annotation <- HeatmapAnnotation(    
      border = c(scoring = TRUE),
@@ -366,21 +368,21 @@ signatureHeatmaps <- function(
     p.T <- .customheatmap(counts=counts.T,
      h.width=h.width,h.height=h.height, 
          scoring=as.vector(scoresPathway[idx.path.sig,]),
-      palette= palette.T,cols.scoring=cols.scoring,
+      hcl.palette= palette.T,cols.scoring=cols.scoring,
           show_column_names = show_column_names
           )
 
     p.R <- .customheatmap(counts=counts.R, 
         h.width=h.width,h.height=h.height ,
          scoring=as.vector(scoresPathway[idx.path.sig,]),
-          palette= palette.R,cols.scoring=cols.scoring,
+          hcl.palette= palette.R,cols.scoring=cols.scoring,
           show_column_names = show_column_names
           )
 
     p.L <- .customheatmap(counts=counts.L, 
         h.width= h.width,h.height=h.height,
          scoring=as.vector(scoresPathway[idx.path.sig,]),
-          palette= palette.L,cols.scoring=cols.scoring,
+          hcl.palette= palette.L,cols.scoring=cols.scoring,
           show_column_names = show_column_names
           )
 
@@ -564,7 +566,7 @@ simpleHeatmap <- function(mat.c, width, height,
 
         if (!is.null(hcl.palette)){
                 cols <- circlize::colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
-                           , hcl_palette = hcl_palette,reverse = reverse)
+                           , hcl_palette = hcl.palette,reverse = reverse)
         }    
     }
 
@@ -718,7 +720,7 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' @param keywords vector of pathways.
 #' @param type filter on Ligand, Receptor or pathway id.
 #' @param qval.thres threshold over Q-value.
-#' @param format svg / png / pdf. By default means it will 
+#' @param format pdf / png / sg. By default, it will 
 #' plot in pdf format.
 #' @param path directory where to plot file.
 #' @param filename file name, NULL by default (plot on screen).
@@ -836,6 +838,7 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #' @param bsrinf bsrinf object 
 #' @param pw.id.filter One Pathway ID accepted only to 
 #  retrieve the respective LR interactions.
+#' @param qval.thres threshold over Q-value.
 #' @param ligand Ligand
 #' of the LR pair that you want to 
 #' highlight in the chord diagram. 
@@ -880,7 +883,8 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #'                  height=4.5
 #'    )
 chordDiagramLR  <- function(bsrinf,
-    pw.id.filter, ligand=NULL, receptor=NULL,
+    pw.id.filter, qval.thres=1,
+    ligand=NULL, receptor=NULL,
     path="./", filename=NULL,
     limit=20, format=c("pdf","svg","png"),
     width=4,height=4) {
@@ -919,6 +923,9 @@ chordDiagramLR  <- function(bsrinf,
     # Filters
     if(!is.null(pw.id.filter))
         dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pw.id %in% pw.id.filter,]
+    
+    dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$qval < qval.thres,]
+
 
     if(dim(dataframe.bsrinf)[1]==0)
         stop("Pathway ID was not found.\n")

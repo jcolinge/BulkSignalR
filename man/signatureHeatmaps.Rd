@@ -5,14 +5,15 @@
 \title{Heatmap function for gene expression of signature}
 \usage{
 signatureHeatmaps(
-  pathway = "Cell surface interactions at the vascular wall",
+  pathway,
   bsrdm,
   bsrsig,
   path = "./",
-  filename = "ExpresssionSignature",
-  width = 15,
-  height = 8,
-  format = c("svg", "png", "pdf"),
+  filename = NULL,
+  h.width = 6,
+  h.height = 9,
+  fontsize = 6,
+  format = c("pdf", "svg", "png"),
   show_column_names = FALSE
 )
 }
@@ -25,18 +26,21 @@ signatureHeatmaps(
 
 \item{path}{Path to write your ouput.}
 
-\item{filename}{An output filename.}
+\item{filename}{An output filename, NULL by default
+to display on screen.}
 
-\item{width}{Global image width size.}
+\item{h.width}{Heatmap width in cm.}
 
-\item{height}{Global image height size.}
+\item{h.height}{Heatmap height in cm.}
 
-\item{format}{File format svg (default)/png/pdf}
+\item{fontsize}{Fontsize.}
+
+\item{format}{File format.}
 
 \item{show_column_names}{Add column names on heatmap.}
 }
 \value{
-A plot is created with the given filename. 
+A plot is created.
 
 This is a convenience function 
 to propose a simple way

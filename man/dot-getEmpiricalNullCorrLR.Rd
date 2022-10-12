@@ -32,3 +32,4 @@ A large number of correlations is reported in each randomized
 
   See \code{\link{.getCorrelatedLR}} for more details about the parameters.
 }
+\keyword{internal}

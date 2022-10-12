@@ -50,3 +50,4 @@ A table reporting all the ligand-receptor pairs provided in \code{lr}
 \description{
 Internal function to check receptor signaling downstream
 }
+\keyword{internal}

@@ -15,7 +15,7 @@ A data frame with 1541 rows and 2 variables:
 PanglaoDB (Franzén et al., Database, 2019).
 }
 \usage{
-immune.signatures
+data(immune.signatures)
 }
 \description{
 A dataset containing gene signatures for general immune cell populations.

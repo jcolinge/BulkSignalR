@@ -17,16 +17,18 @@
 #' @examples
 #' print('resetLRdb')
 #' data(sdc,package='BulkSignalR')
-#'resetLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
+#' resetLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
 resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
 
     if(colnames(db)[1]=='ligand' &  colnames(db)[2]=='receptor'){
       
         if(switch){
+            ## envir = package.BulkSignalR .GlobalEnv
             assign("LRdb", unique(db[,c('ligand','receptor')]), envir = .GlobalEnv)
         }
         else {  
             updated.LRdb <- rbind(LRdb[,c('ligand','receptor')],db[,c('ligand','receptor')])
+            # envir = package.BulkSignalR .GlobalEnv
             assign("LRdb", unique(updated.LRdb), envir = .GlobalEnv)
         }
     } else {
@@ -92,6 +94,8 @@ resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE )
 #'
 #'   In case proteomic or microarray data are provided, \code{min.count} must be
 #'   understood as its equivalent with respect to those data.
+#' 
+#' 
 #' @export
 #' @examples
 #' print('prepareDataset')

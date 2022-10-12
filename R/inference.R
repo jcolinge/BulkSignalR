@@ -21,7 +21,7 @@
 #' @importFrom methods is
 #' @importFrom foreach %do% %dopar%
 #' @import doParallel
-#'
+#' @keywords internal
 .getCorrelatedLR <- function(ds, min.cor = 0.25, restrict.genes = NULL) {
 
     # local binding
@@ -84,7 +84,7 @@
 #'   the receptor.
 #'
 #' @importFrom foreach %do% %dopar%
-#'
+#' @keywords internal
 .downstreamSignaling <- function(lr, pw, pw.size, rncounts, id.col, gene.col,
                                  pw.col, min.positive, with.complex = TRUE) {
     if (!is.matrix(rncounts))
@@ -255,7 +255,8 @@
 #' and Reactome. The minimum pathway size is
 #' used to avoid overspecific, noninformative results.
 #'
-#' @importFrom methods is 
+#' @importFrom methods is
+#' @keywords internal
 .checkReceptorSignaling <- function(ds, lr, reference=c("REACTOME-GOBP",
                                                      "REACTOME","GOBP"),
                                     max.pw.size=200, min.pw.size=5,
@@ -338,7 +339,7 @@
 #'   \code{\link[multtest]{mt.rawp2adjp}}.
 #'
 #' @return A BSRInference object.
-#'
+#' @keywords internal
 .pValuesLR <- function(pairs, param, rank.p = 0.75,
                       fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg",
                                    "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {

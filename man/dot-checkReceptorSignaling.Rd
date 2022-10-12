@@ -67,3 +67,4 @@ part of a ligand-receptor pair, and
 genes coding for proteins forming a complex with the receptor or genes
 regulated by the receptor downstream signaling.
 }
+\keyword{internal}

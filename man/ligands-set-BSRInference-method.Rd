@@ -14,3 +14,4 @@
 \description{
 ligands setter (internal use only)
 }
+\keyword{internal}

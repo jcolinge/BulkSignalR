@@ -14,3 +14,4 @@
 \description{
 LRinter setter (internal use only)
 }
+\keyword{internal}

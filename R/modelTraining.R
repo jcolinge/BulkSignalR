@@ -9,6 +9,7 @@
 #'
 #' @importFrom foreach %do% %dopar%
 #' @importFrom stats quantile
+#' @keywords internal
 .buildPermutationIndices <- function(ncounts, n.bins = 20) {
 
     rm <-  rowMeans(ncounts, na.rm = TRUE)
@@ -30,8 +31,9 @@
 #'
 #' @return A list with same structure as \code{pind} with shuffled indices
 #'   within each bin.
-#' @importFrom foreach %do% %dopar%
 #'
+#' @importFrom foreach %do% %dopar%
+#' @keywords internal
 .shufflePermutationIndices <- function(pind,seed) {
 
     set.seed(seed)
@@ -52,7 +54,7 @@
 #' @return \code{ncount} with shuffled row names (gene symbols). Shuffling is
 #'   performed within rows of comparable average expression.
 #'
-#'
+#' @keywords internal
 .buildPermutatedCountMatrix <- function(ncounts, pind,seed) {
 
     symbols <- rownames(ncounts)
@@ -82,6 +84,7 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
+#' @keywords internal
 .getGaussianParam <- function(d, title, verbose = FALSE, file.name = NULL) {
 
     if (!is.null(file.name)) {
@@ -159,6 +162,7 @@
 #' @param par A list containing the censored Gaussian model parameters.
 #'
 #' @return A vector of probabilities P(X<x|par).
+#' @keywords internal
 .cdfGaussian <- function(x, par){
 
     (stats::pnorm(x, par$mu, par$sigma) - par$start) / par$factor
@@ -182,6 +186,7 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
+#' @keywords internal
 .getMixedGaussianParam <- function(d, title, verbose = FALSE, file.name = NULL) {
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
@@ -271,6 +276,7 @@
 #' @param par A list containing the censored mixed-Gaussian model parameters.
 #'
 #' @return A vector of probabilities P(X<x|par).
+#' @keywords internal
 .cdfMixedGaussian <- function(x, par){
 
     (par$alpha*stats::pnorm(x, par$mu1, par$sigma1) +
@@ -296,6 +302,7 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
+#' @keywords internal
 .getEmpiricalParam <- function(d, title, verbose = FALSE, file.name = NULL) {
 
     if (!is.null(file.name)) {
@@ -333,6 +340,7 @@
 #' @param par A list containing the step function implementing the CDF.
 #'
 #' @return A vector of probabilities P(X<x|par).
+#' @keywords internal
 .cdfEmpirical <- function(x, par){
     par$empirCDF(x)
 
@@ -355,6 +363,7 @@
 #'   If \code{file.name} is provided, a control plot is generated in a PDF with
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
+#' @keywords internal
 .getKernelEmpiricalParam <- function(d, title, verbose = FALSE,
                                      file.name = NULL, n=512) {
 
@@ -406,6 +415,7 @@
 #' @param par A list containing the step function implementing the CDF.
 #'
 #' @return A vector of probabilities P(X<x|par).
+#' @keywords internal
 .cdfKernelEmpirical <- function(x, par){
     par$kernelCDF(x)
 
@@ -428,6 +438,7 @@
 #'   a data histogram and the fitted Gaussian. \code{title} is used to give this
 #'   plot a main title.
 #' @importFrom stabledist pstable dstable
+#' @keywords internal
 .getAlphaStableParam <- function(d, title, verbose = FALSE, file.name = NULL) {
     if (!is.null(file.name)) {
         grDevices::pdf(file = file.name, width = 4, height = 4,
@@ -493,6 +504,7 @@
 #'
 #' @return A vector of probabilities P(X<x|par).
 #' @importFrom stabledist pstable dstable
+#' @keywords internal
 .cdfAlphaStable <- function(x, par){
 
     (stabledist::pstable(x, alpha=par$alpha, beta=par$beta, gamma=par$gamma,
@@ -534,7 +546,7 @@
 #'   parameters.
 #'
 #' @importFrom foreach %do% %dopar%
-#'
+#' @keywords internal
 .getEmpiricalNull <- function(ncounts, n.rand = 5, min.cor = -1,
                              with.complex = TRUE, max.pw.size = 200,
                              min.pw.size = 5, min.positive = 4,seed=123) {
@@ -585,6 +597,7 @@
 #'   See \code{\link{.getCorrelatedLR}} for more details about the parameters.
 #'
 #' @importFrom foreach %do% %dopar%
+#' @keywords internal
 .getEmpiricalNullCorrLR <- function(ncounts, n.rand = 5, min.cor = -1,seed=123) {
 
     pindices <- .buildPermutationIndices(ncounts)
