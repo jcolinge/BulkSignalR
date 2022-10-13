@@ -23,19 +23,19 @@ resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE )
     if(colnames(db)[1]=='ligand' &  colnames(db)[2]=='receptor'){
       
         if(switch){
-            ## envir = package.BulkSignalR .GlobalEnv
-            assign("LRdb", unique(db[,c('ligand','receptor')]), envir = .GlobalEnv)
+            # envir = .GlobalEnv
+            assign("LRdb", unique(db[,c('ligand','receptor')]), envir = as.environment("LRdbEnv"))
         }
         else {  
             updated.LRdb <- rbind(LRdb[,c('ligand','receptor')],db[,c('ligand','receptor')])
-            # envir = package.BulkSignalR .GlobalEnv
-            assign("LRdb", unique(updated.LRdb), envir = .GlobalEnv)
+            # envir = .GlobalEnv
+            assign("LRdb", unique(updated.LRdb), envir = as.environment("LRdbEnv"))
         }
     } else {
       stop(paste0("db should be a dataframe with ",
             "2 columns named : 'ligand' and 'receptor'."))
     }
-
+    
 }
 
 #' Prepare a BSRDataModel object from expression data
@@ -108,7 +108,6 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     species = "hsapiens",conversion.dict = data.frame(Gene.name="A",row.names = "B"),
      UQ.pc = 0.75 ) {
 
- 
 
     if (prop < 0 || prop > 1)
         stop("prop must lie in [0;1]")
