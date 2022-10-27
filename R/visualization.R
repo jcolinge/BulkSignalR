@@ -6,6 +6,7 @@
 #' @param p          Proportion of top and bottom values for thresholding.
 #' @return A matrix with values beyond top and bottom thresholds repaced by
 #' the latter thresholds.
+#' @keywords internal
 .cutExtremeValues <- function(m, p){
     thres.lo <- stats::quantile(m, prob=p)
     thres.hi <- stats::quantile(m, prob=1-p)
@@ -28,8 +29,8 @@
 #' @param path      Path directory to plot.
 #' @param filename     An output filename, NULL by default to display on screen.
 #' @param color     Main color used for the gradient.
-#' @param width     Global image width size.
-#' @param height    Global image height size.
+#' @param width     Global image width in cm.
+#' @param height    Global image height in cm.
 #' @param pointsize Global pointsize.
 #' @param format   File format.
 #'
@@ -94,7 +95,7 @@ bubblePlotPathwaysLR <- function(bsrinf,
     if(dim(filtered.brinf)[1]==0)
         stop("The pathways you have selected do no exist.")
 
-    limit.P <- 5
+    limit.P <- 8
     if(length(pathways)>=limit.P){
         cat("We recommend less than ",limit.P," pathways.","\n")
         stop("Too many pathways were given in input.")
@@ -113,25 +114,25 @@ bubblePlotPathwaysLR <- function(bsrinf,
     if(width.fit > width ) width <- width.fit
     height.fit <- (length(pathways) * 0.5 ) / 2.54
     if(height.fit  > height ) height  <- height.fit
-
+    width <- width+3
 
     format <- match.arg(format)
 
     if (!is.null(filename)){
         if (format=="svg")
             grDevices::svg(file=paste0(path,filename,".svg")
-             ,width=(width+3)/2.54, height=height/2.54) 
+             ,width=width/2.54, height=height/2.54) 
 
         if (format=="png")
             grDevices::png(file=paste0(path,filename,".png")
-             ,width=(width+3)/2.54, height=height/2.54) 
+             ,width=width/2.54, height=height/2.54, units="in",res=600) 
 
         if (format=="pdf")
            grDevices::pdf(file=paste0(path,filename,".pdf")
-                ,width=(width+3)/2.54, height=height/2.54) 
+                ,width=width/2.54, height=height/2.54) 
+
     }
 
-    #ggsave
     print(ggplot2::ggplot(filtered.brinf, 
        ggplot2::aes_string(x = "LR", y = "pw.name")) + 
        ggplot2::geom_point(ggplot2::aes_string(size = "log10.LR.corr",
@@ -150,9 +151,11 @@ bubblePlotPathwaysLR <- function(bsrinf,
        legend.title = ggplot2::element_text(size = pointsize, 
        face = "bold"), 
        panel.background = ggplot2::element_blank(), 
+       #panel.grid.minor = ggplot2::element_line(size = 0.25, 
+       # linetype = 'solid',colour = "grey"),
        panel.border = ggplot2::element_rect(colour = "black", 
        fill = NA, size = 1.2), 
-       panel.grid.major.y = ggplot2::element_line(colour = "grey95")) +    
+       panel.grid.major = ggplot2::element_line(colour = "grey95"))+   
        ggplot2::scale_fill_gradient(low = "white",
        high = color,space = "Lab",na.value = "grey50",
        guide = "colourbar",aesthetics = "fill") +
@@ -172,12 +175,13 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #'
 #' @param counts  Matrice of counts exported from a
 #  BulksignalR data model object.
-#' @param width   Heatmap  width size.
-#' @param height      Heatmap  height size.
+#' @param h.width   Heatmap  width in cm.
+#' @param h.height  Heatmap  height in cm. 
+#' @param fontsize  Fontsize. 
 #' @param scoring Vector of scored sample for a 
 #' a previously choosen pathway.
 #' @param cols.scoring   Fixed colorRamp2 object.
-#' @param palette   Palette from 
+#' @param hcl.palette   Palette from 
 #' HCL colormaps supported by ComplexHeatmap.
 #' @param show_column_names   Add column names on heatmap.
 #'
@@ -191,12 +195,14 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #'
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
+#' @keywords internal
 .customheatmap <- function(counts, 
-    width=5, 
-    height=10 ,
+    h.width=5, 
+    h.height=10 ,
+    fontsize=6,
     scoring = c(-1.5,0,4,5,6.1,0.3) ,
     cols.scoring,
-    palette= "Blues 3",
+    hcl.palette= "Blues 3",
     show_column_names = FALSE
     ) {
 
@@ -206,12 +212,12 @@ bubblePlotPathwaysLR <- function(bsrinf,
     counts.scaled = t(scale(t(counts)))
 
     cols <- circlize::colorRamp2(breaks=c(-1, 0, 3), 
-        hcl_palette = palette,reverse=TRUE) 
+        hcl_palette = hcl.palette,reverse=TRUE) 
 
     top.annotation <- HeatmapAnnotation(    
      border = c(scoring = TRUE),
      show_legend = FALSE,
-     simple_anno_size = unit(2.5, "mm"),
+     simple_anno_size = grid::unit(2.5, "mm"),
      show_annotation_name = FALSE,
           scoring  = as.vector(scoring),
           col = list( scoring =   cols.scoring ) 
@@ -237,12 +243,12 @@ bubblePlotPathwaysLR <- function(bsrinf,
        use_raster = TRUE,raster_device = "png", 
        raster_quality = 8,  raster_by_magick = FALSE,
        rect_gp = grid::gpar(col= "white"),  
-       row_names_gp = grid::gpar(fontsize = 6),
-       column_names_gp = grid::gpar(fontsize = 4),
+       row_names_gp = grid::gpar(fontsize = fontsize),
+       column_names_gp = grid::gpar(fontsize = fontsize-2),
        top_annotation = top.annotation,
        show_heatmap_legend = FALSE, 
-       width =unit(width, "cm"),
-       height =unit(height, "cm"),
+       width = grid::unit(h.width, "cm"),
+       height = grid::unit(h.height, "cm"),
        column_gap = grid::unit(0.5, "mm")
      )
 
@@ -259,9 +265,11 @@ bubblePlotPathwaysLR <- function(bsrinf,
 #' @param bsrdm     BulkSignalR data model object.
 #' @param bsrsig     BulkSignalR signature object.
 #' @param path     Path to write your ouput.
-#' @param filename     An output filename, NULL by default to display on screen.
-#' @param width     Global image width size.
-#' @param height    Global image height size.
+#' @param filename     An output filename, NULL by default
+#' to display on screen.
+#' @param h.width     Heatmap width in cm.
+#' @param h.height    Heatmap height in cm.
+#' @param fontsize    Fontsize.
 #' @param format   File format.
 #' @param show_column_names   Add column names on heatmap.
 
@@ -306,8 +314,9 @@ signatureHeatmaps <- function(
         bsrsig,
         path="./",
         filename=NULL,
-        width=15, 
-        height=8,
+        h.width=6,
+        h.height=9,
+        fontsize=6,
         format=c("pdf","svg","png"),
         show_column_names= FALSE
         ){
@@ -348,102 +357,104 @@ signatureHeatmaps <- function(
     abundance.genes <- c(dim(counts.T)[1],dim(counts.R)[1],dim(counts.L)[1])
   
     # Adjust size image / heatmaps
-    heatmap_ind_height <- (max(abundance.genes)*0.5)/2.54
+    # We know that 1 inch is equal to 2.54 cm.
+    #So there are 96 pixels per 2.54 cm.
+    # Than 1 centimeter = (96 / 2.54) = 38 px. T
 
-    heatmap_ind_witdth <- (abundance.samples*0.5)/2.54
+    # Given size in cm transformed to inch
+    height <- (h.height/2.54)*4
+    width <- ((h.width*2)+3)/2.54 
 
-    width.fit <-  (heatmap_ind_witdth+3) * 3
-    height.fit <- heatmap_ind_height + 6
-
-    if(width.fit > width ) width <- width.fit
-    if(height.fit  > height ) height  <- height.fit
-
-    # width and height in cm
     p.T <- .customheatmap(counts=counts.T,
-     width=heatmap_ind_witdth,height=heatmap_ind_height, 
+     h.width=h.width,h.height=h.height, 
          scoring=as.vector(scoresPathway[idx.path.sig,]),
-      palette= palette.T,cols.scoring=cols.scoring,
-          show_column_names = show_column_names)
+      hcl.palette= palette.T,cols.scoring=cols.scoring,
+          show_column_names = show_column_names
+          )
 
     p.R <- .customheatmap(counts=counts.R, 
-        width=heatmap_ind_witdth,height=heatmap_ind_height ,
+        h.width=h.width,h.height=h.height ,
          scoring=as.vector(scoresPathway[idx.path.sig,]),
-          palette= palette.R,cols.scoring=cols.scoring,
-          show_column_names = show_column_names)
+          hcl.palette= palette.R,cols.scoring=cols.scoring,
+          show_column_names = show_column_names
+          )
 
     p.L <- .customheatmap(counts=counts.L, 
-        width= heatmap_ind_witdth,height=heatmap_ind_height,
+        h.width= h.width,h.height=h.height,
          scoring=as.vector(scoresPathway[idx.path.sig,]),
-          palette= palette.L,cols.scoring=cols.scoring,
-          show_column_names = show_column_names)
+          hcl.palette= palette.L,cols.scoring=cols.scoring,
+          show_column_names = show_column_names
+          )
 
     format <- match.arg(format)
 
     if (!is.null(filename)){
-      if (format=="svg")
+
+    # inch
+    if (format=="svg")
         grDevices::svg(file=paste0(path,filename,".svg")
-                       ,width=(width+6)/2.54, height=height/2.54) 
-      
-      if (format=="png")
+         ,width=width, height=height) 
+
+    if (format=="png")
         grDevices::png(file=paste0(path,filename,".png")
-                       ,width=(width+6)/2.54, height=height/2.54) 
-      
-      if (format=="pdf")
-        grDevices::pdf(file=paste0(path,filename,".pdf")
-                       ,width=(width+6)/2.54, height=height/2.54) 
-    }
-      
-    grid::grid.newpage()#grid
-    grid::pushViewport(grid::viewport(layout = grid::grid.layout(nr = 1, nc = 4)))
+         ,width=width, height=height,units="in",res=600)   
+
+    if (format=="pdf")
+       grDevices::pdf(file=paste0(path,filename,".pdf")
+            ,width=width, height=height) 
+
+    }   
+
+     grid::grid.newpage()
+     grid::pushViewport(grid::viewport(layout = grid::grid.layout(nr = 3, nc = 2)))
      
-    grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
-    ComplexHeatmap::draw(p.L, newpage = FALSE)
-    grid::upViewport()
-    
-    grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
-    ComplexHeatmap::draw(p.R, newpage = FALSE)
-    grid::upViewport()
-    
-    grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 3))
-    ComplexHeatmap::draw(p.T, newpage = FALSE)
-    grid::upViewport()
-    
+     grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
+     ComplexHeatmap::draw(p.L, newpage = FALSE)
+     grid::upViewport()
+
+     grid::pushViewport(grid::viewport(layout.pos.row = 2, layout.pos.col = 1))
+     ComplexHeatmap::draw(p.R, newpage = FALSE)
+     grid::upViewport()
+
+     grid::pushViewport(grid::viewport(layout.pos.row = 3, layout.pos.col = 1))
+     ComplexHeatmap::draw(p.T, newpage = FALSE)
+     grid::upViewport()
+
     lgd_score = ComplexHeatmap::Legend( col_fun = cols.scoring, direction = "horizontal",  
     title = "Gene signature scores",title_position = "topleft",
     grid_height = unit(0.2, "mm"),
-    labels_gp = grid::gpar(fontsize = 6),
-    title_gp = grid::gpar(fontsize = 6,fontface="bold")
+    labels_gp = grid::gpar(fontsize = fontsize),
+    title_gp = grid::gpar(fontsize = fontsize,fontface="bold")
     )
-
-    lgd_heatmap.T = ComplexHeatmap::Legend( col_fun = cols.T, direction = "horizontal",  
-    title = "Expression target",title_position = "topleft",
-    grid_width = unit(0.7, "mm"),
-    grid_height = unit(0.2, "mm") , 
-    labels_gp = grid::gpar( fontsize = 6),
-    title_gp = grid::gpar( fontsize = 6,fontface="bold")
+    lgd_heatmap.L = ComplexHeatmap::Legend( col_fun = cols.L, direction = "horizontal",  
+    title = "Expression ligand",title_position = "topleft",
+    grid_width = grid::unit(0.7, "mm"),
+    grid_height = grid::unit(0.2, "mm") , 
+    labels_gp = grid::gpar( fontsize = fontsize),
+    title_gp = grid::gpar( fontsize = fontsize,fontface="bold")
     )
 
     lgd_heatmap.R = ComplexHeatmap::Legend( col_fun = cols.R, direction = "horizontal",  
     title = "Expression receptor",title_position = "topleft",
-    grid_width = unit(0.7, "mm"),
-    grid_height = unit(0.2, "mm") , 
-    labels_gp = grid::gpar( fontsize = 6),
-    title_gp = grid::gpar( fontsize = 6,fontface="bold")
+    grid_width = grid::unit(0.7, "mm"),
+    grid_height = grid::unit(0.2, "mm") , 
+    labels_gp = grid::gpar( fontsize = fontsize),
+    title_gp = grid::gpar( fontsize = fontsize,fontface="bold")
+    )
+ 
+    lgd_heatmap.T = ComplexHeatmap::Legend( col_fun = cols.T, direction = "horizontal",  
+    title = "Expression target",title_position = "topleft",
+    grid_width = grid::unit(0.7, "mm"),
+    grid_height = grid::unit(0.2, "mm"), 
+    labels_gp = grid::gpar( fontsize = fontsize),
+    title_gp = grid::gpar( fontsize = fontsize,fontface="bold")
     )
 
-    lgd_heatmap.L = ComplexHeatmap::Legend( col_fun = cols.L, direction = "horizontal",  
-    title = "Expression ligand",title_position = "topleft",
-    grid_width = unit(0.7, "mm"),
-    grid_height = unit(0.2, "mm") , 
-    labels_gp = grid::gpar( fontsize = 6),
-    title_gp = grid::gpar( fontsize = 6,fontface="bold")
-    )
-
-    grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 4))
-    ComplexHeatmap::draw(lgd_score, y = unit( (height+2)/2, "cm"))
-    ComplexHeatmap::draw(lgd_heatmap.L,y = unit( (height+5)/2, "cm"))
-    ComplexHeatmap::draw(lgd_heatmap.R, y = unit( (height+7)/2, "cm"))
-    ComplexHeatmap::draw(lgd_heatmap.T,y = unit( (height+9)/2, "cm"))
+    grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
+    ComplexHeatmap::draw(lgd_score, y = grid::unit(h.height, "cm"))
+    ComplexHeatmap::draw(lgd_heatmap.L,y = grid::unit((h.height-2), "cm"))
+    ComplexHeatmap::draw(lgd_heatmap.R, y = grid::unit((h.height-4), "cm"))
+    ComplexHeatmap::draw(lgd_heatmap.T,y = grid::unit((h.height-6), "cm"))
 
     grid::upViewport()
 
@@ -555,7 +566,7 @@ simpleHeatmap <- function(mat.c, width, height,
 
         if (!is.null(hcl.palette)){
                 cols <- circlize::colorRamp2(breaks=c(min(mat.c.cut), 0, max(mat.c.cut)),
-                           , hcl_palette = hcl_palette,reverse = reverse)
+                           , hcl_palette = hcl.palette,reverse = reverse)
         }    
     }
 
@@ -709,13 +720,14 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' @param keywords vector of pathways.
 #' @param type filter on Ligand, Receptor or pathway id.
 #' @param qval.thres threshold over Q-value.
-#' @param format svg / png / pdf. By default means it will 
+#' @param format pdf / png / sg. By default, it will 
 #' plot in pdf format.
 #' @param path directory where to plot file.
 #' @param filename file name, NULL by default (plot on screen).
-#' @param width width of image.
-#' @param height height of image. 
+#' @param width width of image in cm.
+#' @param height height of image in cm. 
 #' @return NULL
+#'
 #' This is a convenience function that relies on the \code{ggalluvial}
 #' package to propose a simple way
 #' of representing Ligands, Receptors 
@@ -796,23 +808,24 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
                        , axis.ticks = ggplot2::element_blank()  
                        , panel.grid = ggplot2::element_blank())
 
-     if (!is.null(filename)){
-       if (format=="svg")
-         grDevices::svg(file=paste0(path,filename,".svg")
-                        ,width=width/2.54, height=height/2.54) 
-       
-       if (format=="png")
-         grDevices::png(file=paste0(path,filename,".png")
-                        ,width=width/2.54, height=height/2.54) 
-       
-       if (format=="pdf")
-         grDevices::pdf(file=paste0(path,filename,".pdf")
-                        ,width=width/2.54, height=height/2.54)
-     }
-     
-     print(pl)
+    if (!is.null(filename)){
 
-     if (!is.null(filename))
+        if (format=="svg")
+            grDevices::svg(file=paste0(path,filename,".svg")
+             ,width=width/2.54, height=height/2.54) 
+
+        if (format=="png")
+            grDevices::png(file=paste0(path,filename,".png")
+             ,width=width/2.54, height=height/2.54,units="in",res=600) 
+
+        if (format=="pdf")
+           grDevices::pdf(file=paste0(path,filename,".pdf")
+                ,width=width/2.54, height=height/2.54)
+    } 
+
+    print(pl)
+
+    if (!is.null(filename))
        grDevices::dev.off()
 
 } #alluvialPlot
@@ -825,6 +838,7 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #' @param bsrinf bsrinf object 
 #' @param pw.id.filter One Pathway ID accepted only to 
 #  retrieve the respective LR interactions.
+#' @param qval.thres threshold over Q-value.
 #' @param ligand Ligand
 #' of the LR pair that you want to 
 #' highlight in the chord diagram. 
@@ -836,11 +850,11 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #' on screen.
 #' @param limit Number of interactions you can visualize.
 #  Maximum set to 30.
-#' @param format svg / png / pdf. By default means it will 
-#' plot in PDF format.
-#' @param width width of image 
-#' @param height height of image 
+#' @param format pdf / png / svg. 
+#' @param width width of image in cm. 
+#' @param height height of image in cm.
 #' @return Circos Plot on the screen or a file
+#'
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2 circos.par chordDiagramFromDataFrame
 #' @importFrom circlize circos.trackPlotRegion circos.text circos.axis 
@@ -869,7 +883,8 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #'                  height=4.5
 #'    )
 chordDiagramLR  <- function(bsrinf,
-    pw.id.filter, ligand=NULL, receptor=NULL,
+    pw.id.filter, qval.thres=1,
+    ligand=NULL, receptor=NULL,
     path="./", filename=NULL,
     limit=20, format=c("pdf","svg","png"),
     width=4,height=4) {
@@ -878,9 +893,9 @@ chordDiagramLR  <- function(bsrinf,
 
     print("chordDiagramLR")
 
-    if (limit >= 30){
+    if (limit > 40){
        cat("Number of selected interactions is too large",limit,".\n")
-       stop("Number of visualised interactions sould be less than 30.\n")
+       stop("Number of visualised interactions sould be less than 40\n")
     }
 
     if (!is.null(ligand) && !is.null(receptor))
@@ -897,6 +912,7 @@ chordDiagramLR  <- function(bsrinf,
         pval=LRinter(bsrinf)$pval,
         qval=LRinter(bsrinf)$qval
         )
+
     dataframe.bsrinf$pair <- paste(dataframe.bsrinf$ligands,
         dataframe.bsrinf$receptors,sep="-")
 
@@ -904,10 +920,15 @@ chordDiagramLR  <- function(bsrinf,
         stop("Highlighted LR pair ", pair.to.highlight, " was not found for ",
              pw.id.filter, ".\n")
 
-    dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pw.id==pw.id.filter,]
+    # Filters
+    if(!is.null(pw.id.filter))
+        dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$pw.id %in% pw.id.filter,]
+    
+    dataframe.bsrinf <- dataframe.bsrinf[dataframe.bsrinf$qval < qval.thres,]
+
 
     if(dim(dataframe.bsrinf)[1]==0)
-        stop("Pathway ID was not found")
+        stop("Pathway ID was not found.\n")
 
     if (dim(dataframe.bsrinf)[1] < limit) {
         limit <- dim(dataframe.bsrinf)[1] 
@@ -916,6 +937,9 @@ chordDiagramLR  <- function(bsrinf,
 
     dataframe.bsrinf <- dataframe.bsrinf[order(dataframe.bsrinf$qval),]
     dataframe.bsrinf <- dataframe.bsrinf[1:limit,]
+    dataframe.bsrinf <- unique(dataframe.bsrinf[,c("ligands","receptors","corr","pair")])
+
+    print(dataframe.bsrinf)
 
     cr <- circlize::colorRamp2(c(min(dataframe.bsrinf$corr),
                      max(dataframe.bsrinf$corr)), c("white","#febd17"))
@@ -942,14 +966,18 @@ chordDiagramLR  <- function(bsrinf,
     }
 
     if (!is.null(filename)){
-      if (format=="svg")#3.6
-        grDevices::svg(paste0(path,"/",filename,".svg"),width=width, height=height) #inch
-      if (format=="png")
-        grDevices::png(paste0(path,"/",filename,".png"),width=width, height=height)
-      if (format=="pdf")
-        grDevices::pdf(paste0(path,"/",filename,".pdf"),width=width, height=height)
-    }
 
+        if (format=="svg")#3.6
+            grDevices::svg(paste0(path,"/",filename,".svg"),
+                width=width, height=height) #inch
+        if (format=="png")
+            grDevices::png(paste0(path,"/",filename,".png"),
+                width=width,height=height,units="in",res=600)
+        if (format=="pdf")
+            grDevices::pdf(paste0(path,"/",filename,".pdf"),
+                width=width, height=height)
+    }
+    
     interactions <- data.frame(from=dataframe.bsrinf$ligands,
         to=dataframe.bsrinf$receptors,
         value=dataframe.bsrinf$corr)

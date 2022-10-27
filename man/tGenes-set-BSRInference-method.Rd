@@ -9,8 +9,9 @@
 \arguments{
 \item{x}{BSRInferance object}
 
-\item{value}{value to be set BSRInferance}
+\item{value}{value to be set BSRInference}
 }
 \description{
 Target genes setter (internal use only)
 }
+\keyword{internal}

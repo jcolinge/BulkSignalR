@@ -9,8 +9,9 @@
 \arguments{
 \item{x}{object BSRDataModel}
 
-\item{value}{valut to be set for BSRDataModel}
+\item{value}{value to be set for BSRDataModel}
 }
 \description{
 Normalized count matrix setter (internal use only)
 }
+\keyword{internal}

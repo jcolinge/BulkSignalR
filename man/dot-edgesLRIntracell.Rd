@@ -40,3 +40,4 @@ signaling network. Default colors and node sizes are assigned.
 \description{
 Internal function to generate a ligand-receptor-downstream signaling network
 }
+\keyword{internal}

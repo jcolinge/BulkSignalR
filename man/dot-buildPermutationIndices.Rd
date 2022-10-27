@@ -19,3 +19,4 @@ A list containing a vectors of row indices. The vector at index
 \description{
 Internal function to generate expression matrix permutation indices
 }
+\keyword{internal}

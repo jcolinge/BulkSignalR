@@ -101,7 +101,8 @@ if (!isGeneric("LRinter<-")) {
 }
 #' LRinter setter (internal use only)
 #' @param x BSRInference object
-#' @param value value to be set to BSRInference 
+#' @param value value to be set to BSRInference
+#' @keywords internal
 setMethod("LRinter<-", "BSRInference", function(x, value){
     x@LRinter <- value
     methods::validObject(x)
@@ -133,6 +134,7 @@ if (!isGeneric("ligands<-")) {
 #' ligands setter (internal use only)
 #' @param x BRSInference object
 #' @param value Value to be set for bsrinf
+#' @keywords internal
 setMethod("ligands<-", "BSRInference", function(x, value){
     x@ligands <- value
     methods::validObject(x)
@@ -163,7 +165,8 @@ if (!isGeneric("receptors<-")) {
 }
 #' receptors setter (internal use only)
 #' @param x BRSInference object
-#' @param value value to be set for BRSInference 
+#' @param value value to be set for BRSInference
+#' @keywords internal
 setMethod("receptors<-", "BSRInference", function(x, value){
     x@receptors <- value
     methods::validObject(x)
@@ -194,7 +197,8 @@ if (!isGeneric("tGenes<-")) {
 }
 #' Target genes setter (internal use only)
 #' @param x BSRInferance object
-#' @param value value to be set BSRInferance 
+#' @param value value to be set BSRInference
+#' @keywords internal 
 setMethod("tGenes<-", "BSRInference", function(x, value){
     x@t.genes <- value
     methods::validObject(x)
@@ -226,6 +230,7 @@ if (!isGeneric("tgCorr<-")) {
 #' Target gene correlations setter (internal use only)
 #' @param x BSRInference object
 #' @param value value to be set for bsrinf
+#' @keywords internal
 setMethod("tgCorr<-", "BSRInference", function(x, value){
     x@tg.corr <- value
     methods::validObject(x)
@@ -256,6 +261,7 @@ if (!isGeneric("infParam<-")) {
 #' Inference parameters setter (internal use only)
 #' @param x BRSInferecence object.
 #' @param value value to be set.
+#' @keywords internal
 setMethod("infParam<-", "BSRInference", function(x, value){
     x@inf.param <- value
     methods::validObject(x)
@@ -464,17 +470,17 @@ setMethod("getPathwayStats", "BSRInference", function(obj,
     pw.ids.R <- table(pairs.R$pw.id)
 
     # number of ligands for each receptor
-    R.n.comb <- table(SingleCellSignalR::LRdb$receptor)
+    R.n.comb <- table(LRdb$receptor)
 
     foreach::foreach(id=names(pw.ids), .combine=rbind) %do% {
 
         # number of receptors that are in the current pathway,
         # depending on whether it is a GOBP or Reactome pathway
         if (regexpr("^R-",id) != -1)
-            Rs <- intersect(SingleCellSignalR::LRdb$receptor,
+            Rs <- intersect(LRdb$receptor,
                             reactome[reactome$`Reactome ID`==id,"Gene name"])
         else
-            Rs <- intersect(SingleCellSignalR::LRdb$receptor,
+            Rs <- intersect(LRdb$receptor,
                             gobp[gobp$`GO ID`==id,"Gene name"])
 
         # non-combinatorial version (ignore ligands)
@@ -978,7 +984,7 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 #' @return Depend type of input genes
 #' LRinter return a vector of genes
 #' tGenes receptors ligands : return list of list of genes
-#'
+#' @keywords internal
 .geneNameConversion <- function(genes,conversion.dict=
                                   data.frame(Gene.name="A", row.names = "B")){
 

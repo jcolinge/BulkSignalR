@@ -109,6 +109,7 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' signaling network. Default colors and node sizes are assigned.
 #'
 #' @importFrom foreach %do% %dopar%
+#' @keywords internal
 .edgesLRIntracell <- function(pairs, pw, t.genes, tg.corr, id.col, gene.col,
                               min.cor=0.25){
 

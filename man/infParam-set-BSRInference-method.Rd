@@ -14,3 +14,4 @@
 \description{
 Inference parameters setter (internal use only)
 }
+\keyword{internal}

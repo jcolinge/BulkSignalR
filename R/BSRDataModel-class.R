@@ -130,7 +130,8 @@ if (!isGeneric("ncounts<-")) {
 #' Normalized count matrix setter (internal use only)
 #'
 #' @param x object BSRDataModel 
-#' @param value valut to be set for BSRDataModel 
+#' @param value value to be set for BSRDataModel
+#' @keywords internal 
 setMethod("ncounts<-", "BSRDataModel", function(x,value){
     x@ncounts <- value
     methods::validObject(x)
@@ -285,6 +286,7 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical",
                      "empirical", "stable"), filename = "distribution") {
 
+   
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
     if (obj@param$n.rand.LR < 1)
         stop("Parameter n.rand.LR must be an integer > 0")

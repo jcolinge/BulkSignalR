@@ -21,7 +21,7 @@
 #' @importFrom methods is
 #' @importFrom foreach %do% %dopar%
 #' @import doParallel
-#'
+#' @keywords internal
 .getCorrelatedLR <- function(ds, min.cor = 0.25, restrict.genes = NULL) {
 
     # local binding
@@ -32,8 +32,8 @@
     if (!is(ds, "BSRDataModel"))
         stop("ds must be an object of class BSRDataModel")
 
-    lrgenes <- intersect(c(SingleCellSignalR::LRdb$ligand,
-                           SingleCellSignalR::LRdb$receptor), rownames(ncounts(ds)))
+    lrgenes <- intersect(c(LRdb$ligand,
+                           LRdb$receptor), rownames(ncounts(ds)))
     if (!is.null(restrict.genes))
         lrgenes <- intersect(lrgenes, restrict.genes)
 
@@ -41,14 +41,14 @@
     corlr <- stats::cor(t(ncounts(ds)[lrgenes, ]), method = "spearman")
 
     # get the pairs
-    pairs <- foreach::foreach(i = seq_len(nrow(SingleCellSignalR::LRdb)),
+    pairs <- foreach::foreach(i = seq_len(nrow(LRdb)),
                               .combine = rbind) %do% {
-              if (SingleCellSignalR::LRdb$ligand[i] %in% rownames(corlr) &&
-                  SingleCellSignalR::LRdb$receptor[i] %in% rownames(corlr))
-                  data.frame(L = SingleCellSignalR::LRdb$ligand[i],
-                             R = SingleCellSignalR::LRdb$receptor[i],
-                             corr = corlr[SingleCellSignalR::LRdb$ligand[i],
-                                          SingleCellSignalR::LRdb$receptor[i]],
+              if (LRdb$ligand[i] %in% rownames(corlr) &&
+                  LRdb$receptor[i] %in% rownames(corlr))
+                  data.frame(L = LRdb$ligand[i],
+                             R = LRdb$receptor[i],
+                             corr = corlr[LRdb$ligand[i],
+                                          LRdb$receptor[i]],
                              stringsAsFactors = FALSE)
               else
                   NULL
@@ -84,7 +84,7 @@
 #'   the receptor.
 #'
 #' @importFrom foreach %do% %dopar%
-#'
+#' @keywords internal
 .downstreamSignaling <- function(lr, pw, pw.size, rncounts, id.col, gene.col,
                                  pw.col, min.positive, with.complex = TRUE) {
     if (!is.matrix(rncounts))
@@ -255,7 +255,8 @@
 #' and Reactome. The minimum pathway size is
 #' used to avoid overspecific, noninformative results.
 #'
-#' @importFrom methods is 
+#' @importFrom methods is
+#' @keywords internal
 .checkReceptorSignaling <- function(ds, lr, reference=c("REACTOME-GOBP",
                                                      "REACTOME","GOBP"),
                                     max.pw.size=200, min.pw.size=5,
@@ -338,7 +339,7 @@
 #'   \code{\link[multtest]{mt.rawp2adjp}}.
 #'
 #' @return A BSRInference object.
-#'
+#' @keywords internal
 .pValuesLR <- function(pairs, param, rank.p = 0.75,
                       fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg",
                                    "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {

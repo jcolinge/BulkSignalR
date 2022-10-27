@@ -29,3 +29,4 @@ The \code{restrict.genes} parameter is used for special cases where
   LRdb must be further restricted to a subset.
   The putative ligand-receptor pairs has 3 columns : R, L and corr.
 }
+\keyword{internal}

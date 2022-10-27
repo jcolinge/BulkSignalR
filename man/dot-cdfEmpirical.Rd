@@ -17,3 +17,4 @@ A vector of probabilities P(X<x|par).
 \description{
 Internal function to compute an empirical CDF
 }
+\keyword{internal}

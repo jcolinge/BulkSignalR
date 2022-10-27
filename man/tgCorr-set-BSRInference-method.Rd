@@ -14,3 +14,4 @@
 \description{
 Target gene correlations setter (internal use only)
 }
+\keyword{internal}

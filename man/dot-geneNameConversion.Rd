@@ -24,3 +24,4 @@ tGenes receptors ligands : return list of list of genes
 Convert gene symbol to another organism
 based on a dictionnary with human and ortholog species.
 }
+\keyword{internal}

@@ -1,3 +1,43 @@
+#' Modify LRdb database
+#'
+#' User can define a dataframe with 2 columns named
+#' respectively ligand and receptor.
+#' This can be used to extand or replace the existing
+#' LRdb.
+#'
+#' @param db     A dataframe with 2 column names :
+#' ligand and receptor.
+#' @param switch  By default set to FALSE, it extends the
+#' existing LRdb database. If TRUE, LRdb is replaced by user 
+# provided database.
+#'
+#' @return NULL
+#'
+#' @export
+#' @examples
+#' print('resetLRdb')
+#' data(sdc,package='BulkSignalR')
+#' resetLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
+resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
+
+    if(colnames(db)[1]=='ligand' &  colnames(db)[2]=='receptor'){
+      
+        if(switch){
+            # envir = .GlobalEnv
+            assign("LRdb", unique(db[,c('ligand','receptor')]), envir = as.environment("LRdbEnv"))
+        }
+        else {  
+            updated.LRdb <- rbind(LRdb[,c('ligand','receptor')],db[,c('ligand','receptor')])
+            # envir = .GlobalEnv
+            assign("LRdb", unique(updated.LRdb), envir = as.environment("LRdbEnv"))
+        }
+    } else {
+      stop(paste0("db should be a dataframe with ",
+            "2 columns named : 'ligand' and 'receptor'."))
+    }
+    
+}
+
 #' Prepare a BSRDataModel object from expression data
 #'
 #' Take a matrix or data frame containing RNA sequencing,
@@ -54,6 +94,8 @@
 #'
 #'   In case proteomic or microarray data are provided, \code{min.count} must be
 #'   understood as its equivalent with respect to those data.
+#' 
+#' 
 #' @export
 #' @examples
 #' print('prepareDataset')
@@ -64,7 +106,8 @@
 prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.count = 10,
     prop = 0.1, method = c("UQ", "TC"), log.transformed = FALSE, min.LR.found = 80, 
     species = "hsapiens",conversion.dict = data.frame(Gene.name="A",row.names = "B"),
-     UQ.pc = 0.75) {
+     UQ.pc = 0.75 ) {
+
 
     if (prop < 0 || prop > 1)
         stop("prop must lie in [0;1]")
@@ -155,7 +198,7 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     }
        
     nLR <- length(intersect(
-        c(SingleCellSignalR::LRdb$ligand, SingleCellSignalR::LRdb$receptor),
+        c(LRdb$ligand, LRdb$receptor),
         rownames(ncounts)))
     if (nLR < min.LR.found)
         stop(paste0("Not enough LR genes (",nLR," < ", min.LR.found,
@@ -217,12 +260,12 @@ findOrthoGenes<- function(from_organism ="mmusculus",
          " genes \n", sep="") 
 
     nL <- length(intersect(
-        SingleCellSignalR::LRdb$ligand,
+        LRdb$ligand,
         rownames(orthologs_dictionary)) )
     cat("-> ",nL, " : Ligands \n", sep="") 
 
     nR <- length(intersect(
-        SingleCellSignalR::LRdb$receptor,
+        LRdb$receptor,
         rownames(orthologs_dictionary))) 
     cat("-> ", nR, " : Receptors \n", sep="") 
       

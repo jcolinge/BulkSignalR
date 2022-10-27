@@ -21,3 +21,4 @@
 \description{
 Internal function to generate a randomized expression matrix
 }
+\keyword{internal}

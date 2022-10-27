@@ -6,12 +6,12 @@
 \usage{
 alluvialPlot(
   bsrinf,
-  keywords = c("COL4A1"),
+  keywords,
   type = c("L", "R", "pw.id"),
-  qval = 1,
-  format = c("svg", "png", "pdf"),
+  qval.thres = 0.01,
+  format = c("pdf", "svg", "png"),
   path = "./",
-  filename = "alluvial.plot",
+  filename = NULL,
   width = 10,
   height = 10
 )
@@ -21,23 +21,24 @@ alluvialPlot(
 
 \item{keywords}{vector of pathways.}
 
-\item{type}{filter on Ligand, Recptor or pathway id.}
+\item{type}{filter on Ligand, Receptor or pathway id.}
 
-\item{qval}{threshold over Q-value.}
+\item{qval.thres}{threshold over Q-value.}
 
-\item{format}{svg / png / pdf. By default means it will 
-plot in a svg format.}
+\item{format}{pdf / png / sg. By default, it will 
+plot in pdf format.}
 
 \item{path}{directory where to plot file.}
 
-\item{filename}{file name.}
+\item{filename}{file name, NULL by default (plot on screen).}
 
-\item{width}{width of image.}
+\item{width}{width of image in cm.}
 
-\item{height}{height of image.}
+\item{height}{height of image in cm.}
 }
 \value{
-NULL (plot printed somewhere on disk)
+NULL
+
 This is a convenience function that relies on the \code{ggalluvial}
 package to propose a simple way
 of representing Ligands, Receptors
@@ -60,7 +61,7 @@ bsrinf <- initialInference(bsrdm)
 alluvialPlot(bsrinf,
              keywords = c("COL4A1"),
              type = "L",
-             qval = 0.001,
+             qval.thres = 0.001,
              path = "./",
              filename = "sdc_alluvial", 
              width  = 16, 
