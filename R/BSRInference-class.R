@@ -67,7 +67,7 @@ setValidity("BSRInference",
 setMethod("show", "BSRInference",
           function(object) {
               cat("Reference database: ", object@inf.param$reference, "\n", sep="")
-               print(as.data.frame(object@LRinter[order(object@LRinter$qval),
+               print(head(object@LRinter[order(object@LRinter$qval),
                         c("L", "R", "pval", "qval", "pw.id", "pw.name"),]))[5,]
               cat("Inference parameters:\n")
               utils::str(object@inf.param)
@@ -353,8 +353,13 @@ setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.55,
         spears <- tg.corr[[i]]
 
         # estimate the LR correlation P-value
-        p.lr <- 1 - cdf(pairs$LR.corr[i], LR.par)
-
+        if (pairs$LR.corr[i] >= 0)
+            # normal case
+            p.lr <- 1 - cdf(pairs$LR.corr[i], LR.par)
+        else
+            # to enable searching for inhibitory L-R interactions
+            p.lr <- cdf(pairs$LR.corr[i], LR.par)
+        
         # estimate the target gene correlation P-value based on rank statistics
         # for the individual correlation Gaussian model
         len <- pairs$len[i]
@@ -586,7 +591,7 @@ if (!isGeneric("reduceToReceptor")) {
 #'
 #' The reported P-value and target genes are those from the line with the
 #' pathway featuring the smallest P-value.
-#' @param obj BRSInfereance object
+#' @param obj BRSInference object
 #' @export
 #' @examples
 #' print('reduceToReceptor')
@@ -829,7 +834,7 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' @name getLRGeneSignatures
 #' @aliases getLRGeneSignatures,BSRInference-method
 #'
-#' @param obj    BSRinf Object.
+#' @param obj    BSRinference object.
 #' @param pval.thres    P-value threshold.
 #' @param qval.thres    Q-value threshold.
 #' @param with.pw.id    A logical indicating whether the ID of a pathway

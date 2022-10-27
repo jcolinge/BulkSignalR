@@ -378,7 +378,12 @@
         len <- as.numeric(unlist(strsplit(pairs$len[i],split="\\|")))
 
         # estimate the LR correlation P-value
-        p.lr <- 1 - cdf(pairs$corr[i], LR.par)
+        if (pairs$corr[i] >= 0)
+            # normal case
+            p.lr <- 1 - cdf(pairs$corr[i], LR.par)
+        else
+            # to enable searching for inhibitory L-R interactions
+            p.lr <- cdf(pairs$corr[i], LR.par)
 
         # estimate the target gene correlation P-value based on rank statistics
         # for the individual correlation Gaussian model

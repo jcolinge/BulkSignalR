@@ -123,6 +123,7 @@ scalesReverse <- function(rasterImage, axis = "x") {
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param legend.dot.factor A factor applied to obtain the legend dot size.
 #' @details A single (scores) or side-by-side (reference tissue & scores) plot
 #' is generated.
 #' @export
@@ -147,7 +148,7 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
                         cut.p=0.01, low.color="royalblue3",
                         mid.color="white", high.color="orange",
                         title.fs=12, legend.fs=10, axis.fs=10,
-                        label.fs=12, dot.size=0.5){
+                        label.fs=12, dot.size=0.5, legend.dot.factor=10){
   
   x <- y <- label <- score <- NULL
   
@@ -189,7 +190,9 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
         ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
         ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
         ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs)) +
-        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs))
+        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs)) +
+        ggplot2::guides(colour=ggplot2::guide_legend(
+                        override.aes=list(size=dot.size*legend.dot.factor)))
     else
       ref <- grid::rasterGrob(image.raster)
   }
@@ -383,6 +386,123 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
   grDevices::dev.off()
   
 } # spatialIndexPlot
+
+
+#' Generate separated plots for a L-R interaction
+#'
+#' Generate a detailed view related to a chosen interaction made of series of
+#' small individual spatial plots: tissue organization (optional), gene
+#' signature score, ligand and receptor expression.
+#'
+#' @param v  A named vector containing the gene signature scores for the
+#' L-R interaction including the contribution of the pathway, names must be
+#' the IDs of each location. Alternatively, v can be a gene signature score
+#' matrix such as those returned by \code{scoreLRGeneSignatures} and the
+#' row named "{\code{L}} / {\code{R}}" will be used.
+#' @param L  The name of the ligand.
+#' @param R  The name of the receptor.
+#' @param ncounts  The (normalized) expression matrix with column names equal
+#' to the IDs of each location.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations as well as the unique IDs of spatial locations.
+#' In case \code{ref.plot} is set to TRUE,
+#' a label column is required additionally.
+#' @param inter.name  Interaction name to display as plot title,
+#' equal to "\code{L} / \code{R}" unless specified.
+#' @param rev.y  A Boolean indicating whether low y coordinates should be
+#' at the top of the plot.
+#' @param ref.plot  A Boolean indicating whether a reference map of the tissue
+#' with area labels should be plot aside.
+#' @param image.raster  Raster object image to plot raw tissue image as
+#' reference.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
+#' @param cut.p  Proportion of top and bottom values for thresholding.
+#' @param low.color  Color for low score values.
+#' @param mid.color  Color for score = 0.
+#' @param high.color  Color for high score values.
+#' @param title.fs Title font size.
+#' @param legend.fs Legend items font size.
+#' @param axis.fs Axis ticks font size.
+#' @param label.fs Legend titles and axis names font size.
+#' @param dot.size Dot size.
+#' @details A set of spatial plots are generated including an optional
+#' reference tissue plot (image or areas represented), the gene signature
+#' scores, the ligand expression values, and the receptor expression values.
+#' @export
+#' @examples
+#' print('spatialPlot')
+#' if(FALSE){
+#' img <- png::readPNG(path.to.file)
+#'
+#' spatialPlot(v,
+#'     areas,
+#'     inter.name="L->R",
+#'     image.raster=img)
+#' }
+#' @import grid
+#' @importFrom gridExtra grid.arrange
+separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE,
+                            ref.plot=TRUE, image.raster=NULL,
+                            x.col="array_col", y.col="array_row",
+                            label.col="label", idSpatial.col="idSpatial",
+                            cut.p=0.01, low.color="royalblue3",
+                            mid.color="white", high.color="orange",
+                            title.fs=12, legend.fs=10, axis.fs=10,
+                            label.fs=12, dot.size=0.5, legend.dot.factor=10){
+
+  if (is.matrix(v))
+    v <- v[paste0("{",L,"} / {",R,"}"),]
+  if (is.null(inter.name))
+    inter.name <- paste(L,"/",R)
+  
+  # one reference plot at the beginning
+  if (ref.plot)
+    if(is.null(image.raster))
+      plots <- list(spatialPlot(v, areas, "",
+                          ref.plot.only=TRUE, dot.size=dot.size,
+                          legend.dot.factor=legend.dot.factor))
+    else 
+      plots <- list(grid::rasterGrob(image.raster))
+  else
+    plots <- list()
+  
+  # gene signature scores
+  plots <- c(plots, list(
+    spatialPlot(v, areas, inter.name, rev.y=rev.y, ref.plot=FALSE,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color,
+                mid.color=mid.color, high.color=high.color,
+                title.fs=title.fs, legend.fs=legend.fs, axis.fs=axis.fs,
+                label.fs=label.fs, dot.size=dot.size)
+  ))
+  
+  # ligand and receptor plots
+  plots <- c(plots, list(
+    spatialPlot(ncounts[L,], areas, inter.name=L, rev.y=rev.y, ref.plot=FALSE,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color,
+                mid.color=mid.color, high.color=high.color,
+                title.fs=title.fs, legend.fs=legend.fs, axis.fs=axis.fs,
+                label.fs=label.fs, dot.size=dot.size),
+    spatialPlot(ncounts[R,], areas, inter.name=R, rev.y=rev.y, ref.plot=FALSE,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color,
+                mid.color=mid.color, high.color=high.color,
+                title.fs=title.fs, legend.fs=legend.fs, axis.fs=axis.fs,
+                label.fs=label.fs, dot.size=dot.size)
+  ))
+
+  # display  
+  gridExtra::grid.arrange(grobs=plots, ncol=2, nrow=2)
+
+} # separatedLRPlot
 
 
 #' Statistical association of scores with area labels
