@@ -486,9 +486,11 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
   # one reference plot at the beginning
   if (ref.plot)
     if(is.null(image.raster))
-      plots <- list(spatialPlot(v, areas, "",
-                          ref.plot.only=TRUE, dot.size=dot.size,
-                          legend.dot.factor=legend.dot.factor))
+      plots <- list(spatialPlot(v, areas, "", ref.plot.only=TRUE,
+                                x.col=x.col, y.col=y.col,
+                                label.col=label.col, idSpatial.col=idSpatial.col,
+                                dot.size=dot.size,
+                                legend.dot.factor=legend.dot.factor))
     else 
       plots <- list(grid::rasterGrob(image.raster))
   else
