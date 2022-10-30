@@ -566,7 +566,8 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
 #' accordingly.
 #'
 #' In case a statistics is preferred, Spearman correlation or explained variance
-#' (r2, through linear models) are are available. They mesure the relationship
+#' (r2 or coefficient of determination, through linear models) are are available.
+#' They mesure the relationship
 #' between each individual area and \code{scores}. For the explained variance,
 #' a global value (R2) is also computed from a multi-linear model (the same as
 #' what is used for the ANOVA).
@@ -744,7 +745,7 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
                                               grDevices::hcl.colors(10, "Viridis")))
     else
       colscale <- circlize::colorRamp2(breaks=c(min(mat), 0, max(mat)),
-                                       colors=c("blue", "white", "red"))
+                                       colors=c("royalblue", "white", "orangered"))
     else
     colscale <- colors
   
