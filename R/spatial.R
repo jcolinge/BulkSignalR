@@ -543,8 +543,8 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
 #' @param areas  A data.frame containing at least the x and y
 #' coordinates of the locations, the unique IDs of spatial locations, and
 #' a label column.
-#' @param test  The chosen statistical test, parametric (normal) or
-#' nonparametric (see also details below).
+#' @param test  The chosen statistical test or statistics
+#' (see details below).
 #' @param label.col  Column name in \code{areas} containing area labels.
 #' @param idSpatial.col  Column name in \code{areas} containing the unique
 #' IDs of spatial locations.
@@ -560,9 +560,16 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
 #' one for the statistics and one for a Bonferroni-corrected P-value over
 #' all the labels.
 #'
-#' In case the parametric model is chosen, a linear model followed by ANOVA
-#' are used for the global association test. Individual labels are tested
-#' with T-tests (Bonferroni-corrected).
+#' In case an actual statistical test is chosen, a parametric test (ANOVA) and
+#' a non-parametric test (Kruskal-Wallis) are available for the global analysis.
+#' Individual labels are tested with T-tests or Wilcoxon (Bonferroni-corrected)
+#' accordingly.
+#'
+#' In case a statistics is preferred, Spearman correlation or explained variance
+#' (r2, through linear models) are are available. They mesure the relationship
+#' between each individual area and \code{scores}. For the explained variance,
+#' a global value (R2) is also computed from a multi-linear model (the same as
+#' what is used for the ANOVA).
 #' @export
 #' @examples
 #' print('spatialAssociation')
@@ -573,7 +580,7 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
 #' }
 #' @import multtest
 #' @importFrom foreach %do%
-spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
+spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA","Spearman","r2"),
                                label.col="label", idSpatial.col="idSpatial",
                                fdr.proc=c("BH", "Bonferroni",
                                           "Holm", "Hochberg", "SidakSS", "SidakSD", "BY",
@@ -606,7 +613,7 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
                        stringsAsFactors=FALSE),
             pvals)
     }
-    else{
+    else if (test == "ANOVA"){
       # ANOVA
       df <- data.frame(score=v, label=labels)
       my.lm <- stats::lm(score ~ label, data=df)
@@ -624,24 +631,63 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
                        F=ano$`F value`[1], stringsAsFactors=FALSE),
             pvals)
     }
+    else if (test=="Spearman") {
+      # Spearman correlation
+      
+      # specific correlations with each label
+      corrs <- foreach::foreach(lab=ul, .combine=c) %do% {
+        local <- rep(0, length(labels))
+        local[labels == lab] <- 1
+        co <- stats::cor(v, local, method="spearman")
+        list(co)
+      }
+      names(corrs) <- ul
+      
+      cbind(data.frame(interaction=inter, stringsAsFactors=FALSE), corrs)
+    }
+    else{
+      # r2 from linear regressions
+      
+      df <- data.frame(score=v, label=labels)
+      my.lm <- stats::lm(score ~ label, data=df)
+      ano <- stats::anova(my.lm)
+      R2 <- ano$`Sum Sq`[1]/sum(ano$`Sum Sq`)
+
+      # specific r2 for each label
+      r2s <- foreach::foreach(lab=ul, .combine=c) %do% {
+        local <- rep(0, length(labels))
+        local[labels == lab] <- 1
+        dfl <- data.frame(score=v, local=local)
+        my.llm <- stats::lm(score ~ local, data=dfl)
+        lano <- stats::anova(my.llm)
+        r2 <- lano$`Sum Sq`[1]/sum(lano$`Sum Sq`)
+        list(r2)
+      }
+      names(r2s) <- ul
+      
+      cbind(data.frame(interaction=inter, global.R2=R2, stringsAsFactors=FALSE),
+            r2s)
+    }
   }
   
   # multiple hypothesis correction on the global association P-values
-  rawp <- res$pval
-  adj <- multtest::mt.rawp2adjp(rawp, fdr.proc)
-  res$qval <- adj$adjp[order(adj$index), fdr.proc]
-  
+  if (test %in% c("Kruskal-Wallis","ANOVA")){
+    rawp <- res$pval
+    adj <- multtest::mt.rawp2adjp(rawp, fdr.proc)
+    res$qval <- adj$adjp[order(adj$index), fdr.proc]
+    label.index.stop <- ncol(res)-1
+    res <- res[, c(1:3, ncol(res), 4:label.index.stop)] # put Q-values in column 4
+  }
+
   rownames(res) <- res$interaction
-  
-  label.index.stop <- ncol(res)-1
-  res[, c(1:3, ncol(res), 4:label.index.stop)] # put label columns at the end
+  res  
   
 } # spatialAssociation
 
 
 #' Heatmap plot of association of scores with area labels
 #'
-#' Plot a heatmap featuring Q-values of statistical association between
+#' Plot a heatmap featuring Q-values or values of statistical association between
 #' L-R interaction score spatial distributions and tissue area labels.
 #'
 #' @param associations  A statistical association data.frame generated
@@ -649,6 +695,9 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
 #' @param qval.thres  The maximum Q-value to consider in the plot (a
 #' L-R interaction must associate with one label at least with a Q-value
 #' smaller or equal to this threshold).
+#' @param absval.thres  The minimum value to consider in the plot (a
+#' L-R interaction must associate with one label at least with an absolute
+#' value larger or equal to this threshold).
 #' @param  colors  A function returning a color for a given value such as
 #' generated by \code{circlize::colorRamp2}.
 #' @details Display a heatmap linking L-R interactions to labels.
@@ -662,23 +711,41 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
 #' }
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
-spatialAssociationPlot <- function(associations, qval.thres=0.01, colors=NULL){
+spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0,
+                             colors=NULL){
   
   # transform and filter data
-  mat <- data.matrix(associations[, -(1:4)])
-  mat[mat == 0] <- min(mat[mat > 0])
-  mat <- -log10(mat)
-  thres <- -log10(qval.thres)
-  good <- apply(mat, 1, max) >= thres
-  mat <- mat[good, ]
+  if (sum(c("pval","qval") %in% names(associations)) == 2){
+    # log-scale on Q-values
+    mat <- data.matrix(associations[, -(1:4)])
+    mat[mat == 0] <- min(mat[mat > 0])
+    mat <- -log10(mat)
+    thres <- -log10(qval.thres)
+    good <- apply(mat, 1, max) >= thres
+    mat <- mat[good, ]
+  }
+  else{
+    # linear scale
+    if ("global.R2" %in% names(associations))
+      mat <- data.matrix(associations[, -(1:2)])
+    else
+      mat <- data.matrix(associations[, -1])
+    thres <- absval.thres
+    good <- apply(abs(mat), 1, max) >= thres
+    mat <- mat[good, ]
+  }
   
   if (is.null(colors))
     # create a color scale
-    colscale <- circlize::colorRamp2(breaks=c(0, thres-1e-10,
+    if (min(mat) >= 0)
+      colscale <- circlize::colorRamp2(breaks=c(0, thres-1e-10,
                                               seq(thres, max(mat), length.out=10)),
                                      colors=c("lightgray", "lightgray",
                                               grDevices::hcl.colors(10, "Viridis")))
-  else
+    else
+      colscale <- circlize::colorRamp2(breaks=c(min(mat), 0, max(mat)),
+                                       colors=c("blue", "white", "red"))
+    else
     colscale <- colors
   
   # plot heatmap
