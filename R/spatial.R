@@ -349,6 +349,11 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
 #' @param base.h  Width of each plot.
 #' @param base.v  Height of each plot.
 #' @param ratio the vertical/horizontal ratio.
@@ -364,6 +369,8 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @import grid
 #' @importFrom gridExtra grid.arrange
 spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
+                             x.col="array_col", y.col="array_row",
+                             label.col="label", idSpatial.col="idSpatial",
                              cut.p=0.01,low.color="royalblue3",
                              mid.color="white", high.color="orange",
                              title.fs=12, legend.fs=10, axis.fs=10,
@@ -374,7 +381,9 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
   # one reference plot at the beginning
   if(is.null(image.raster))
     plots <- list(spatialPlot(scores[1,], areas, "",
-                 ref.plot.only=TRUE,,cut.p=cut.p,
+                  x.col=x.col, y.col=y.col,
+                  label.col=label.col, idSpatial.col=idSpatial.col,
+                  ref.plot.only=TRUE,cut.p=cut.p,
                   low.color=low.color,
                   mid.color=mid.color, high.color=high.color,
                   title.fs=title.fs, legend.fs=legend.fs, 
@@ -389,6 +398,8 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
     inter <- gsub("\\}", "", gsub("\\{", "", rownames(scores)[i]))
     plots <- c(plots, list(
       spatialPlot(scores[i,], areas, inter,
+                  x.col=x.col, y.col=y.col,
+                  label.col=label.col, idSpatial.col=idSpatial.col,
                   ref.plot=FALSE,cut.p=cut.p,
                   low.color=low.color,
                   mid.color=mid.color, high.color=high.color,
@@ -721,7 +732,7 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
     mat <- data.matrix(associations[, -(1:4)])
     mat[mat == 0] <- min(mat[mat > 0])
     mat <- -log10(mat)
-    thres <- -log10(qval.thres)
+    thres <- -log10(abs(qval.thres))
     good <- apply(mat, 1, max) >= thres
     mat <- mat[good, ]
   }
@@ -731,7 +742,7 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
       mat <- data.matrix(associations[, -(1:2)])
     else
       mat <- data.matrix(associations[, -1])
-    thres <- absval.thres
+    thres <- abs(absval.thres)
     good <- apply(abs(mat), 1, max) >= thres
     mat <- mat[good, ]
   }
@@ -744,9 +755,13 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
                                      colors=c("lightgray", "lightgray",
                                               grDevices::hcl.colors(10, "Viridis")))
     else
-      colscale <- circlize::colorRamp2(breaks=c(min(mat), 0, max(mat)),
-                                       colors=c("royalblue", "white", "orangered"))
-    else
+      if (thres == 0)
+        colscale <- circlize::colorRamp2(breaks=c(min(mat), 0, max(mat)),
+                                         colors=c("royalblue", "white", "orangered"))
+      else
+        colscale <- circlize::colorRamp2(breaks=c(min(mat), -thres, thres, max(mat)),
+                                         colors=c("royalblue", "white", "white", "orangered"))
+  else
     colscale <- colors
   
   # plot heatmap
