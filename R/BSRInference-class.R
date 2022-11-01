@@ -67,7 +67,7 @@ setValidity("BSRInference",
 setMethod("show", "BSRInference",
           function(object) {
               cat("Reference database: ", object@inf.param$reference, "\n", sep="")
-               print(head(object@LRinter[order(object@LRinter$qval),
+               print(utils::head(object@LRinter[order(object@LRinter$qval),
                         c("L", "R", "pval", "qval", "pw.id", "pw.name"),]))[5,]
               cat("Inference parameters:\n")
               utils::str(object@inf.param)

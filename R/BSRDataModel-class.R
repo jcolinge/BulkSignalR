@@ -64,9 +64,9 @@ setMethod("show", "BSRDataModel",
         utils::str(object@param)
         cat("Expression data:\n")
         if (ncol(object@ncounts) > 8)
-            print(head(object@ncounts[,1:8]))
+            print(utils::head(object@ncounts[,1:8]))
         else
-            print(head(object@ncounts))
+            print(utils::head(object@ncounts))
     }
 )
 

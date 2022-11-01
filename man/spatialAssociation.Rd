@@ -7,7 +7,7 @@
 spatialAssociation(
   scores,
   areas,
-  test = c("Kruskal-Wallis", "ANOVA"),
+  test = c("Kruskal-Wallis", "ANOVA", "Spearman", "r2"),
   label.col = "label",
   idSpatial.col = "idSpatial",
   fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY", "ABH",
@@ -23,8 +23,8 @@ from BulkSignalR functions \code{scoreLRGeneSignatures} or \code{scScoring}.}
 coordinates of the locations, the unique IDs of spatial locations, and
 a label column.}
 
-\item{test}{The chosen statistical test, parametric (normal) or
-nonparametric (see also details below).}
+\item{test}{The chosen statistical test or statistics
+(see details below).}
 
 \item{label.col}{Column name in \code{areas} containing area labels.}
 
@@ -52,9 +52,17 @@ labels are tested with Wilcoxon and two columns are added *per* label,
 one for the statistics and one for a Bonferroni-corrected P-value over
 all the labels.
 
-In case the parametric model is chosen, a linear model followed by ANOVA
-are used for the global association test. Individual labels are tested
-with T-tests (Bonferroni-corrected).
+In case an actual statistical test is chosen, a parametric test (ANOVA) and
+a non-parametric test (Kruskal-Wallis) are available for the global analysis.
+Individual labels are tested with T-tests or Wilcoxon (Bonferroni-corrected)
+accordingly.
+
+In case a statistics is preferred, Spearman correlation or explained variance
+(r2 or coefficient of determination, through linear models) are are available.
+They mesure the relationship
+between each individual area and \code{scores}. For the explained variance,
+a global value (R2) is also computed from a multi-linear model (the same as
+what is used for the ANOVA).
 }
 \examples{
 print('spatialAssociation')

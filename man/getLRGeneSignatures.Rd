@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{obj}{BSRinf Object.}
+\item{obj}{BSRinference object.}
 
 \item{pval.thres}{P-value threshold.}
 

@@ -9,6 +9,10 @@ spatialIndexPlot(
   areas,
   out.file,
   image.raster = NULL,
+  x.col = "array_col",
+  y.col = "array_row",
+  label.col = "label",
+  idSpatial.col = "idSpatial",
   cut.p = 0.01,
   low.color = "royalblue3",
   mid.color = "white",
@@ -36,6 +40,15 @@ a tissue label column.}
 
 \item{image.raster}{Raster object image to plot raw tissue image as
 reference.}
+
+\item{x.col}{Column name in \code{areas} containing x coordinates.}
+
+\item{y.col}{Column name in \code{areas} containing y coordinates.}
+
+\item{label.col}{Column name in \code{areas} containing area labels.}
+
+\item{idSpatial.col}{Column name in \code{areas} containing the unique
+IDs of spatial locations.}
 
 \item{cut.p}{Proportion of top and bottom values for thresholding.}
 
