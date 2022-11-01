@@ -73,7 +73,8 @@ signatureHeatmaps(
        bsrsig = bsrsig.redPBP,
        path = "./",
        filename = "sdc_signatureheatmap",
-       width  = 15,
-       height = 10 ,
+       h.width=6,
+       h.height=9,
+       fontsize=6,
        show_column_names = TRUE)
 }
