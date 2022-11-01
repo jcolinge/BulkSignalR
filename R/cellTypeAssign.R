@@ -286,7 +286,7 @@ cellularNetworkTable <- function(lr, autocrine=FALSE){
 #' # cellular network
 #' g.table <- cellularNetworkTable(lr2ct)
 #' gCN <- cellularNetwork(g.table)
-#' plot(gCN, edge.width=5*E(gCN)$score)
+#' #plot(gCN, edge.width=5*E(gCN)$score)
 #' @import igraph
 cellularNetwork <- function(tab){
   
@@ -334,7 +334,7 @@ cellularNetwork <- function(tab){
 #' # cellular network
 #' g.table <- cellularNetworkTable(lr2ct)
 #' gSummary <- summarizedCellularNetwork(g.table)
-#' plot(gSummary, edge.width=1+30*E(gSummary)$score)
+#' #plot(gSummary, edge.width=1+30*E(gSummary)$score)
 #' @import igraph
 #' @importFrom foreach %do%
 summarizedCellularNetwork <- function(tab){
