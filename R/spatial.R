@@ -123,6 +123,7 @@ scalesReverse <- function(rasterImage, axis = "x") {
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param legend.dot.factor A factor applied to obtain the legend dot size.
 #' @details A single (scores) or side-by-side (reference tissue & scores) plot
 #' is generated.
 #' @export
@@ -147,7 +148,7 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
                         cut.p=0.01, low.color="royalblue3",
                         mid.color="white", high.color="orange",
                         title.fs=12, legend.fs=10, axis.fs=10,
-                        label.fs=12, dot.size=0.5){
+                        label.fs=12, dot.size=0.5, legend.dot.factor=10){
   
   x <- y <- label <- score <- NULL
   
@@ -189,7 +190,9 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
         ggplot2::theme(axis.title=ggplot2::element_text(size=label.fs)) +
         ggplot2::theme(legend.title=ggplot2::element_text(size=label.fs)) +
         ggplot2::theme(legend.text=ggplot2::element_text(size=legend.fs)) +
-        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs))
+        ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs)) +
+        ggplot2::guides(colour=ggplot2::guide_legend(
+                        override.aes=list(size=dot.size*legend.dot.factor)))
     else
       ref <- grid::rasterGrob(image.raster)
   }
@@ -346,6 +349,11 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
 #' @param base.h  Width of each plot.
 #' @param base.v  Height of each plot.
 #' @param ratio the vertical/horizontal ratio.
@@ -361,6 +369,8 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @import grid
 #' @importFrom gridExtra grid.arrange
 spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
+                             x.col="array_col", y.col="array_row",
+                             label.col="label", idSpatial.col="idSpatial",
                              cut.p=0.01,low.color="royalblue3",
                              mid.color="white", high.color="orange",
                              title.fs=12, legend.fs=10, axis.fs=10,
@@ -371,7 +381,9 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
   # one reference plot at the beginning
   if(is.null(image.raster))
     plots <- list(spatialPlot(scores[1,], areas, "",
-                 ref.plot.only=TRUE,,cut.p=cut.p,
+                  x.col=x.col, y.col=y.col,
+                  label.col=label.col, idSpatial.col=idSpatial.col,
+                  ref.plot.only=TRUE,cut.p=cut.p,
                   low.color=low.color,
                   mid.color=mid.color, high.color=high.color,
                   title.fs=title.fs, legend.fs=legend.fs, 
@@ -386,6 +398,8 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
     inter <- gsub("\\}", "", gsub("\\{", "", rownames(scores)[i]))
     plots <- c(plots, list(
       spatialPlot(scores[i,], areas, inter,
+                  x.col=x.col, y.col=y.col,
+                  label.col=label.col, idSpatial.col=idSpatial.col,
                   ref.plot=FALSE,cut.p=cut.p,
                   low.color=low.color,
                   mid.color=mid.color, high.color=high.color,
@@ -409,6 +423,125 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
 } # spatialIndexPlot
 
 
+#' Generate separated plots for a L-R interaction
+#'
+#' Generate a detailed view related to a chosen interaction made of series of
+#' small individual spatial plots: tissue organization (optional), gene
+#' signature score, ligand and receptor expression.
+#'
+#' @param v  A named vector containing the gene signature scores for the
+#' L-R interaction including the contribution of the pathway, names must be
+#' the IDs of each location. Alternatively, v can be a gene signature score
+#' matrix such as those returned by \code{scoreLRGeneSignatures} and the
+#' row named "{\code{L}} / {\code{R}}" will be used.
+#' @param L  The name of the ligand.
+#' @param R  The name of the receptor.
+#' @param ncounts  The (normalized) expression matrix with column names equal
+#' to the IDs of each location.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations as well as the unique IDs of spatial locations.
+#' In case \code{ref.plot} is set to TRUE,
+#' a label column is required additionally.
+#' @param inter.name  Interaction name to display as plot title,
+#' equal to "\code{L} / \code{R}" unless specified.
+#' @param rev.y  A Boolean indicating whether low y coordinates should be
+#' at the top of the plot.
+#' @param ref.plot  A Boolean indicating whether a reference map of the tissue
+#' with area labels should be plot aside.
+#' @param image.raster  Raster object image to plot raw tissue image as
+#' reference.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' @param label.col  Column name in \code{areas} containing area labels.
+#' @param idSpatial.col  Column name in \code{areas} containing the unique
+#' IDs of spatial locations.
+#' @param cut.p  Proportion of top and bottom values for thresholding.
+#' @param low.color  Color for low score values.
+#' @param mid.color  Color for score = 0.
+#' @param high.color  Color for high score values.
+#' @param title.fs Title font size.
+#' @param legend.fs Legend items font size.
+#' @param axis.fs Axis ticks font size.
+#' @param label.fs Legend titles and axis names font size.
+#' @param dot.size Dot size.
+#' @details A set of spatial plots are generated including an optional
+#' reference tissue plot (image or areas represented), the gene signature
+#' scores, the ligand expression values, and the receptor expression values.
+#' @export
+#' @examples
+#' print('spatialPlot')
+#' if(FALSE){
+#' img <- png::readPNG(path.to.file)
+#'
+#' spatialPlot(v,
+#'     areas,
+#'     inter.name="L->R",
+#'     image.raster=img)
+#' }
+#' @import grid
+#' @importFrom gridExtra grid.arrange
+separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE,
+                            ref.plot=TRUE, image.raster=NULL,
+                            x.col="array_col", y.col="array_row",
+                            label.col="label", idSpatial.col="idSpatial",
+                            cut.p=0.01, low.color="royalblue3",
+                            mid.color="white", high.color="orange",
+                            title.fs=12, legend.fs=10, axis.fs=10,
+                            label.fs=12, dot.size=0.5, legend.dot.factor=10){
+
+  if (is.matrix(v))
+    v <- v[paste0("{",L,"} / {",R,"}"),]
+  if (is.null(inter.name))
+    inter.name <- paste(L,"/",R)
+  
+  # one reference plot at the beginning
+  if (ref.plot)
+    if(is.null(image.raster))
+      plots <- list(spatialPlot(v, areas, "", ref.plot.only=TRUE,
+                                x.col=x.col, y.col=y.col,
+                                label.col=label.col, idSpatial.col=idSpatial.col,
+                                dot.size=dot.size,
+                                legend.dot.factor=legend.dot.factor))
+    else 
+      plots <- list(grid::rasterGrob(image.raster))
+  else
+    plots <- list()
+  
+  # gene signature scores
+  plots <- c(plots, list(
+    spatialPlot(v, areas, inter.name, rev.y=rev.y, ref.plot=FALSE,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color,
+                mid.color=mid.color, high.color=high.color,
+                title.fs=title.fs, legend.fs=legend.fs, axis.fs=axis.fs,
+                label.fs=label.fs, dot.size=dot.size)
+  ))
+  
+  # ligand and receptor plots
+  plots <- c(plots, list(
+    spatialPlot(ncounts[L,], areas, inter.name=L, rev.y=rev.y, ref.plot=FALSE,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color,
+                mid.color=mid.color, high.color=high.color,
+                title.fs=title.fs, legend.fs=legend.fs, axis.fs=axis.fs,
+                label.fs=label.fs, dot.size=dot.size),
+    spatialPlot(ncounts[R,], areas, inter.name=R, rev.y=rev.y, ref.plot=FALSE,
+                x.col=x.col, y.col=y.col,
+                label.col=label.col, idSpatial.col=idSpatial.col,
+                cut.p=cut.p, low.color=low.color,
+                mid.color=mid.color, high.color=high.color,
+                title.fs=title.fs, legend.fs=legend.fs, axis.fs=axis.fs,
+                label.fs=label.fs, dot.size=dot.size)
+  ))
+
+  # display  
+  gridExtra::grid.arrange(grobs=plots, ncol=2, nrow=2)
+
+} # separatedLRPlot
+
+
 #' Statistical association of scores with area labels
 #'
 #' Compute the statistical association of L-R interaction score spatial
@@ -421,8 +554,8 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
 #' @param areas  A data.frame containing at least the x and y
 #' coordinates of the locations, the unique IDs of spatial locations, and
 #' a label column.
-#' @param test  The chosen statistical test, parametric (normal) or
-#' nonparametric (see also details below).
+#' @param test  The chosen statistical test or statistics
+#' (see details below).
 #' @param label.col  Column name in \code{areas} containing area labels.
 #' @param idSpatial.col  Column name in \code{areas} containing the unique
 #' IDs of spatial locations.
@@ -438,9 +571,17 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
 #' one for the statistics and one for a Bonferroni-corrected P-value over
 #' all the labels.
 #'
-#' In case the parametric model is chosen, a linear model followed by ANOVA
-#' are used for the global association test. Individual labels are tested
-#' with T-tests (Bonferroni-corrected).
+#' In case an actual statistical test is chosen, a parametric test (ANOVA) and
+#' a non-parametric test (Kruskal-Wallis) are available for the global analysis.
+#' Individual labels are tested with T-tests or Wilcoxon (Bonferroni-corrected)
+#' accordingly.
+#'
+#' In case a statistics is preferred, Spearman correlation or explained variance
+#' (r2 or coefficient of determination, through linear models) are are available.
+#' They mesure the relationship
+#' between each individual area and \code{scores}. For the explained variance,
+#' a global value (R2) is also computed from a multi-linear model (the same as
+#' what is used for the ANOVA).
 #' @export
 #' @examples
 #' print('spatialAssociation')
@@ -451,7 +592,7 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
 #' }
 #' @import multtest
 #' @importFrom foreach %do%
-spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
+spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA","Spearman","r2"),
                                label.col="label", idSpatial.col="idSpatial",
                                fdr.proc=c("BH", "Bonferroni",
                                           "Holm", "Hochberg", "SidakSS", "SidakSD", "BY",
@@ -484,7 +625,7 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
                        stringsAsFactors=FALSE),
             pvals)
     }
-    else{
+    else if (test == "ANOVA"){
       # ANOVA
       df <- data.frame(score=v, label=labels)
       my.lm <- stats::lm(score ~ label, data=df)
@@ -502,24 +643,63 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
                        F=ano$`F value`[1], stringsAsFactors=FALSE),
             pvals)
     }
+    else if (test=="Spearman") {
+      # Spearman correlation
+      
+      # specific correlations with each label
+      corrs <- foreach::foreach(lab=ul, .combine=c) %do% {
+        local <- rep(0, length(labels))
+        local[labels == lab] <- 1
+        co <- stats::cor(v, local, method="spearman")
+        list(co)
+      }
+      names(corrs) <- ul
+      
+      cbind(data.frame(interaction=inter, stringsAsFactors=FALSE), corrs)
+    }
+    else{
+      # r2 from linear regressions
+      
+      df <- data.frame(score=v, label=labels)
+      my.lm <- stats::lm(score ~ label, data=df)
+      ano <- stats::anova(my.lm)
+      R2 <- ano$`Sum Sq`[1]/sum(ano$`Sum Sq`)
+
+      # specific r2 for each label
+      r2s <- foreach::foreach(lab=ul, .combine=c) %do% {
+        local <- rep(0, length(labels))
+        local[labels == lab] <- 1
+        dfl <- data.frame(score=v, local=local)
+        my.llm <- stats::lm(score ~ local, data=dfl)
+        lano <- stats::anova(my.llm)
+        r2 <- lano$`Sum Sq`[1]/sum(lano$`Sum Sq`)
+        list(r2)
+      }
+      names(r2s) <- ul
+      
+      cbind(data.frame(interaction=inter, global.R2=R2, stringsAsFactors=FALSE),
+            r2s)
+    }
   }
   
   # multiple hypothesis correction on the global association P-values
-  rawp <- res$pval
-  adj <- multtest::mt.rawp2adjp(rawp, fdr.proc)
-  res$qval <- adj$adjp[order(adj$index), fdr.proc]
-  
+  if (test %in% c("Kruskal-Wallis","ANOVA")){
+    rawp <- res$pval
+    adj <- multtest::mt.rawp2adjp(rawp, fdr.proc)
+    res$qval <- adj$adjp[order(adj$index), fdr.proc]
+    label.index.stop <- ncol(res)-1
+    res <- res[, c(1:3, ncol(res), 4:label.index.stop)] # put Q-values in column 4
+  }
+
   rownames(res) <- res$interaction
-  
-  label.index.stop <- ncol(res)-1
-  res[, c(1:3, ncol(res), 4:label.index.stop)] # put label columns at the end
+  res  
   
 } # spatialAssociation
 
 
 #' Heatmap plot of association of scores with area labels
 #'
-#' Plot a heatmap featuring Q-values of statistical association between
+#' Plot a heatmap featuring Q-values or values of statistical association between
 #' L-R interaction score spatial distributions and tissue area labels.
 #'
 #' @param associations  A statistical association data.frame generated
@@ -527,6 +707,9 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
 #' @param qval.thres  The maximum Q-value to consider in the plot (a
 #' L-R interaction must associate with one label at least with a Q-value
 #' smaller or equal to this threshold).
+#' @param absval.thres  The minimum value to consider in the plot (a
+#' L-R interaction must associate with one label at least with an absolute
+#' value larger or equal to this threshold).
 #' @param  colors  A function returning a color for a given value such as
 #' generated by \code{circlize::colorRamp2}.
 #' @details Display a heatmap linking L-R interactions to labels.
@@ -540,22 +723,44 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA"),
 #' }
 #' @import ComplexHeatmap
 #' @importFrom circlize colorRamp2
-spatialAssociationPlot <- function(associations, qval.thres=0.01, colors=NULL){
+spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0,
+                             colors=NULL){
   
   # transform and filter data
-  mat <- data.matrix(associations[, -(1:4)])
-  mat[mat == 0] <- min(mat[mat > 0])
-  mat <- -log10(mat)
-  thres <- -log10(qval.thres)
-  good <- apply(mat, 1, max) >= thres
-  mat <- mat[good, ]
+  if (sum(c("pval","qval") %in% names(associations)) == 2){
+    # log-scale on Q-values
+    mat <- data.matrix(associations[, -(1:4)])
+    mat[mat == 0] <- min(mat[mat > 0])
+    mat <- -log10(mat)
+    thres <- -log10(abs(qval.thres))
+    good <- apply(mat, 1, max) >= thres
+    mat <- mat[good, ]
+  }
+  else{
+    # linear scale
+    if ("global.R2" %in% names(associations))
+      mat <- data.matrix(associations[, -(1:2)])
+    else
+      mat <- data.matrix(associations[, -1])
+    thres <- abs(absval.thres)
+    good <- apply(abs(mat), 1, max) >= thres
+    mat <- mat[good, ]
+  }
   
   if (is.null(colors))
     # create a color scale
-    colscale <- circlize::colorRamp2(breaks=c(0, thres-1e-10,
+    if (min(mat) >= 0)
+      colscale <- circlize::colorRamp2(breaks=c(0, thres-1e-10,
                                               seq(thres, max(mat), length.out=10)),
                                      colors=c("lightgray", "lightgray",
                                               grDevices::hcl.colors(10, "Viridis")))
+    else
+      if (thres == 0)
+        colscale <- circlize::colorRamp2(breaks=c(min(mat), 0, max(mat)),
+                                         colors=c("royalblue", "white", "orangered"))
+      else
+        colscale <- circlize::colorRamp2(breaks=c(min(mat), -thres, thres, max(mat)),
+                                         colors=c("royalblue", "white", "white", "orangered"))
   else
     colscale <- colors
   
