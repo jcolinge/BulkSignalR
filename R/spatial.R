@@ -780,7 +780,8 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
 
 #' 2D-projection of spatial score distributions
 #'
-#' Use PCA or t-SNE to obtain a 2D-projection of a set of spatial scores.
+#' Use PCA or t-SNE to obtain a 2D-projection of a set of spatial scores
+#' or associations.
 #' This plot summarizes the diversity of patterns occuring in a spatial
 #' dataset. Use the function \code{spatialIndexPlot} to create a large
 #' visual index of many spatial distributions.
@@ -792,15 +793,23 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
 #' @param associations  A statistical association data.frame generated
 #' by the function \code{spatialAssociation}.
 #' @param proj  Projection method : 'PCA' or 'tSNE' are available arguements.
+#' @param score.based  A logical indicating whether the plot should be
+#' based on scores or the associations directly.
 #' @param qval.thres  The maximum Q-value to consider in the plot (a
 #' L-R interaction must associate with one label at least with a Q-value
-#' smaller or equal to this threshold).
-#' @param with.names  A Boolean indicating whether L-R names should be plotted.
+#' smaller or equal to this threshold). Relevant for Kruskal-Wallis and
+#' ANOVA tests in \code{spatialAssociation}.
+#' val.thres  The minimum value to consider in the plot (a
+#' L-R interaction must associate with one label at least with a value
+#' larger or equal to this threshold). Relevant for Spearman and r2
+#' associations in \code{spatialAssociation}.
+#' @param with.names  A logical indicating whether L-R names should be plotted.
 #' @param text.fs Point label font size in case \code{with.names} is TRUE.
 #' @param legend.fs Legend items font size.
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param perplexity  Perplexity parameter for t-SNE.
 #' @details Display a 2D-projection of the score spatial distributions.
 #' @export
 #' @examples
@@ -815,31 +824,63 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
 #' @importFrom ggrepel geom_text_repel
 #' @import ggplot2
 spatialDiversityPlot <- function(scores, associations, proj=c("PCA","tSNE"),
-                                 qval.thres=0.01, with.names=FALSE,
-                                 text.fs=2.5, legend.fs=10, axis.fs=10,
-                                 label.fs=12, dot.size=1){
+                           score.based=FALSE,
+                           qval.thres=0.01, val.thres=0, with.names=FALSE,
+                           text.fs=2.5, legend.fs=10, axis.fs=10,
+                           label.fs=12, dot.size=1,
+                           perplexity=10){
   
-  i <- PC1 <- PC2 <- name <- label <- tSNE1 <- tSNE2 <- NULL
+  i <- PC1 <- PC2 <- name <- label <- tSNE1 <- tSNE2 <- log.scale <- remove.col <- NULL
   
   proj <- match.arg(proj)
   
-  # find the strongest association for each L-R interaction
-  labels <- names(associations)[-(1:4)]
+  # adapt to the type of associations
+  if (sum(c("pval","qval") %in% names(associations)) == 2){
+    remove.col <- 1:4
+    log.scale <- TRUE
+  }
+  else{
+    # linear scale
+    if ("global.R2" %in% names(associations))
+      remove.col <- 1:2
+    else
+      remove.col <- 1
+    log.scale <- FALSE
+  }
+  labels <- names(associations)[-remove.col]
+  
   cols <- stats::setNames(c(grDevices::rainbow(length(labels), s=0.5), "lightgray"),
                           c(labels, "non_signif"))
   
+  # find the strongest association for each L-R interaction
   best.label <- foreach::foreach(i=seq_len(nrow(associations)),
                                  .combine=c) %do% {
-                                   qvals <- as.numeric(associations[i, -(1:4)])
-                                   if (min(qvals) > qval.thres)
-                                     "non_signif"
-                                   else
-                                     labels[which.min(qvals)]
+                                   if (log.scale){
+                                     qvals <- as.numeric(associations[i, -remove.col])
+                                     if (min(qvals) > qval.thres)
+                                       "non_signif"
+                                     else
+                                       labels[which.min(qvals)]
+                                   }
+                                   else{
+                                     values <- as.numeric(associations[i, -remove.col])
+                                     if (max(values) < val.thres)
+                                       "non_signif"
+                                     else
+                                       labels[which.max(values)]
+                                   }
                                  }
   
   # the plot itself
   if (proj == "PCA"){
-    pca <- stats::prcomp(scores, scale.=TRUE)
+    if (score.based)
+      pca <- stats::prcomp(scores, scale.=TRUE)
+    else
+      if (log.scale)
+        pca <- stats::prcomp(-log10(data.matrix(associations[, -remove.col])),
+                             scale.=TRUE)
+      else
+        pca <- stats::prcomp(data.matrix(associations[, -remove.col]), scale.=TRUE)
     dat <- data.frame(PC1=pca$x[,1], PC2=pca$x[,2], label=best.label, name=rownames(scores))
     if (with.names)
       p <- ggplot2::ggplot(data=dat, ggplot2::aes(x=PC1, y=PC2, label=name)) +
@@ -857,8 +898,16 @@ spatialDiversityPlot <- function(scores, associations, proj=c("PCA","tSNE"),
     p
   }
   else{
-    tsne <- Rtsne::Rtsne(scores, perplexity=10)
-    dat <- data.frame(tSNE1=tsne$Y[,1], tSNE2=tsne$Y[,2], label=best.label, name=rownames(scores))
+    if (score.based)
+      tsne <- Rtsne::Rtsne(scores, perplexity=perplexity)
+    else
+      if (log.scale)
+        tsne <- Rtsne::Rtsne(-log10(data.matrix(associations[, -remove.col])),
+                             perplexity=perplexity, check_duplicates=FALSE)
+      else
+        tsne <- Rtsne::Rtsne(data.matrix(associations[, -remove.col]),
+                             perplexity=perplexity, check_duplicates=FALSE)
+      dat <- data.frame(tSNE1=tsne$Y[,1], tSNE2=tsne$Y[,2], label=best.label, name=rownames(scores))
     if (with.names)
       p <- ggplot2::ggplot(data=dat, ggplot2::aes(x=tSNE1, y=tSNE2, label=name)) +
       ggrepel::geom_text_repel(size=text.fs) +
