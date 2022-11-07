@@ -815,27 +815,37 @@ inter <- "{CALM1} / {GRM5}"
 # we have to follow the syntax with {} 
 # to be compatible with reduction operations
 
-# with synthetic tissue reference
+# with raw tissue reference
 png("../man/figures/spatialPlot1_clean.png", width=600, height=300)
 spatialPlot(scores.red[inter,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
             image.raster = NULL ,dot.size=1)
 dev.off()
 
-# with raw image reference
+```
+![spatial2](../man/figures/spatialPlot2_clean.png)
+
+```{r spatialrawPlot , eval=FALSE}
+
+# or with synthetic image reference
 png("../man/figures/spatialPlot2_clean.png",width=600,height=300)
 spatialPlot(scores.red[inter,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
             image.raster = my.image.as.raster ,dot.size=1)
 dev.off()
 
-# dissect one interaction
+```
+![spatial1](../man/figures/spatialPlot1_clean.png)
+
+You can dissect one interaction to visualise both ligand and
+receptor expression of the interaction.
+
+```{r spatialseparatedPlot , eval=FALSE}
+
 png("../man/figures/spatialPlot_separated_clean.png",width=600,height=600)
 separatedLRPlot(scores.red, "CALM1", "GRM5", ncounts(bsrdm), areas)
 dev.off()
 
 ```
-
-![spatial1](../man/figures/spatialPlot1_clean.png)
-![spatial2](../man/figures/spatialPlot2_clean.png)
+![spatial1](../man/figures/spatialPlot_separated_clean.png)
 
 The user can generate a large index picturing all these distributions
 for visual inspection and manual selection.   

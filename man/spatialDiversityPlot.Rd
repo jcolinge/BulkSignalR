@@ -8,13 +8,16 @@ spatialDiversityPlot(
   scores,
   associations,
   proj = c("PCA", "tSNE"),
+  score.based = FALSE,
   qval.thres = 0.01,
+  val.thres = 0,
   with.names = FALSE,
   text.fs = 2.5,
   legend.fs = 10,
   axis.fs = 10,
   label.fs = 12,
-  dot.size = 1
+  dot.size = 1,
+  perplexity = 10
 )
 }
 \arguments{
@@ -27,11 +30,19 @@ by the function \code{spatialAssociation}.}
 
 \item{proj}{Projection method : 'PCA' or 'tSNE' are available arguements.}
 
+\item{score.based}{A logical indicating whether the plot should be
+based on scores or the associations directly.}
+
 \item{qval.thres}{The maximum Q-value to consider in the plot (a
 L-R interaction must associate with one label at least with a Q-value
-smaller or equal to this threshold).}
+smaller or equal to this threshold). Relevant for Kruskal-Wallis and
+ANOVA tests in \code{spatialAssociation}.
+val.thres  The minimum value to consider in the plot (a
+L-R interaction must associate with one label at least with a value
+larger or equal to this threshold). Relevant for Spearman and r2
+associations in \code{spatialAssociation}.}
 
-\item{with.names}{A Boolean indicating whether L-R names should be plotted.}
+\item{with.names}{A logical indicating whether L-R names should be plotted.}
 
 \item{text.fs}{Point label font size in case \code{with.names} is TRUE.}
 
@@ -42,9 +53,12 @@ smaller or equal to this threshold).}
 \item{label.fs}{Legend titles and axis names font size.}
 
 \item{dot.size}{Dot size.}
+
+\item{perplexity}{Perplexity parameter for t-SNE.}
 }
 \description{
-Use PCA or t-SNE to obtain a 2D-projection of a set of spatial scores.
+Use PCA or t-SNE to obtain a 2D-projection of a set of spatial scores
+or associations.
 This plot summarizes the diversity of patterns occuring in a spatial
 dataset. Use the function \code{spatialIndexPlot} to create a large
 visual index of many spatial distributions.
