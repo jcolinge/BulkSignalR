@@ -45,5 +45,5 @@ lr2ct <- assignCellTypesToInteractions(bsrdm, bsrinf, tme.scores)
 # cellular network
 g.table <- cellularNetworkTable(lr2ct)
 gSummary <- summarizedCellularNetwork(g.table)
-plot(gSummary, edge.width=1+30*E(gSummary)$score)
+#plot(gSummary, edge.width=1+30*E(gSummary)$score)
 }

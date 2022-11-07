@@ -8,7 +8,7 @@
 \S4method{reduceToReceptor}{BSRInference}(obj)
 }
 \arguments{
-\item{obj}{BRSInfereance object}
+\item{obj}{BRSInference object}
 }
 \value{
 BSRInference object reduced to one row per receptor.

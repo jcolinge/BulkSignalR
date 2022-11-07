@@ -464,18 +464,21 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param legend.dot.factor A factor applied to obtain the legend dot size.
 #' @details A set of spatial plots are generated including an optional
 #' reference tissue plot (image or areas represented), the gene signature
 #' scores, the ligand expression values, and the receptor expression values.
 #' @export
 #' @examples
-#' print('spatialPlot')
+#' print('separatedLRPlot')
 #' if(FALSE){
 #' img <- png::readPNG(path.to.file)
 #'
-#' spatialPlot(v,
+#' separatedLRPlot(v,
+#'     L,
+#'     R,
+#'     ncounts,
 #'     areas,
-#'     inter.name="L->R",
 #'     image.raster=img)
 #' }
 #' @import grid

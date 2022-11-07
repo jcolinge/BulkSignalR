@@ -43,5 +43,5 @@ lr2ct <- assignCellTypesToInteractions(bsrdm, bsrinf, tme.scores)
 # cellular network
 g.table <- cellularNetworkTable(lr2ct)
 gCN <- cellularNetwork(g.table)
-plot(gCN, edge.width=5*E(gCN)$score)
+#plot(gCN, edge.width=5*E(gCN)$score)
 }
