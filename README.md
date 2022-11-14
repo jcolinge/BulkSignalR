@@ -32,7 +32,10 @@ help navigating the predicted interactions.
 # BulkSignalR is not included in BioConductor yet.
 # Installation goes via GitHub:
 # install.packages("devtools")
-devtools::install_github("jcolinge/BulkSignalR")
+devtools::install_github("jcolinge/BulkSignalR",build_vignettes = TRUE)
+
+# To read the vignette
+# browseVignettes("BulkSignalR")
 
 ```
 
