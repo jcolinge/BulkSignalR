@@ -24,10 +24,9 @@ abstract: >
    help navigating the predicted interactions.<br/><br/>
   BulkSignalR package version: `r packageVersion("BulkSignalR")`
 output: 
-  BiocStyle::html_document:
+  rmarkdown::html_vignette:
       self_contained: true
       toc: true
-      toc_float: true
       toc_depth: 4
       highlight: pygments
       fig_height: 3
@@ -53,7 +52,6 @@ knitr::knit_hooks$set(optipng = knitr::hook_optipng)
 library(BulkSignalR)
 library(igraph)
 library(dplyr)
-library(kableExtra)
 ```
 \
 
@@ -307,9 +305,9 @@ bsrinf <- initialInference(bsrdm)
 
 LRinter.dataframe <- LRinter(bsrinf)
 
-knitr::kable(head(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),
-  c("L",  "R" ,"LR.corr", "pw.id",  "pw.name",  "pval"  , "qval")]),row.names = FALSE) %>%
-  kable_material(c("striped", "hover"))
+head(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),
+  c("L",  "R" ,"LR.corr", "pw.id",  "pw.name",  "pval"  , "qval")])
+
 ```
 
 | **L**  | **R** | **LR.corr** | **pw.id**     | **pw.name**                                          |  **pval** |  **qval** |

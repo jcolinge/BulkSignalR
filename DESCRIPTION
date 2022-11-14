@@ -39,13 +39,12 @@ Imports:
     ComplexHeatmap (>= 2.0.0),
     stats,
     scales
+VignetteBuilder: knitr
 Suggests: 
-    grid,
     knitr,
+    grid,
     dplyr,
-    kableExtra,
-    BiocStyle,
     markdown,
     rmarkdown
 RoxygenNote: 7.2.1
-VignetteBuilder: knitr
+
