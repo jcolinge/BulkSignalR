@@ -9,7 +9,7 @@
 ## Overview
 
 BulkSignalR is used to infer ligand-receptor (L-R) interactions from bulk
-expression data (transcriptomics/proteomics) data, or spatial
+expression (transcriptomics/proteomics) data, or spatial
 transcriptomics. Potential L-R interactions are taken from the
 LR*db* database, which is  included in our other package SingleCellSignalR,
 available from Bioconductor [here](https://www.bioconductor.org/packages/release/bioc/html/SingleCellSignalR.html).
