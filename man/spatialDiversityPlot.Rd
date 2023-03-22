@@ -36,8 +36,9 @@ based on scores or the associations directly.}
 \item{qval.thres}{The maximum Q-value to consider in the plot (a
 L-R interaction must associate with one label at least with a Q-value
 smaller or equal to this threshold). Relevant for Kruskal-Wallis and
-ANOVA tests in \code{spatialAssociation}.
-val.thres  The minimum value to consider in the plot (a
+ANOVA tests in \code{spatialAssociation}.}
+
+\item{val.thres}{The minimum value to consider in the plot (a
 L-R interaction must associate with one label at least with a value
 larger or equal to this threshold). Relevant for Spearman and r2
 associations in \code{spatialAssociation}.}

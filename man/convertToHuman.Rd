@@ -4,10 +4,7 @@
 \alias{convertToHuman}
 \title{Transpose to Human Gene Names}
 \usage{
-convertToHuman(
-  counts,
-  dictionary = data.frame(Gene.name = "A", row.names = "B")
-)
+convertToHuman(counts, dictionary)
 }
 \arguments{
 \item{counts}{A table or matrix of read counts.}

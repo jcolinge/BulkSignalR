@@ -4,15 +4,12 @@
 \alias{.geneNameConversion}
 \title{Convert gene symbol to another organism}
 \usage{
-.geneNameConversion(
-  genes,
-  conversion.dict = data.frame(Gene.name = "A", row.names = "B")
-)
+.geneNameConversion(genes, conversion.dict)
 }
 \arguments{
 \item{genes}{genes you want to convert}
 
-\item{conversion.dict}{Dataframe containing
+\item{conversion.dict}{A data frame containing
 gene names for source species and Homo Sapiens.}
 }
 \value{
@@ -22,6 +19,6 @@ tGenes receptors ligands : return list of list of genes
 }
 \description{
 Convert gene symbol to another organism
-based on a dictionnary with human and ortholog species.
+based on a dictionary with human and ortholog species.
 }
 \keyword{internal}

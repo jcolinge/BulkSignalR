@@ -985,7 +985,7 @@ spatialAssociationPlot <- function(associations, qval.thres=0.01, absval.thres=0
 #' L-R interaction must associate with one label at least with a Q-value
 #' smaller or equal to this threshold). Relevant for Kruskal-Wallis and
 #' ANOVA tests in \code{spatialAssociation}.
-#' val.thres  The minimum value to consider in the plot (a
+#' @param val.thres  The minimum value to consider in the plot (a
 #' L-R interaction must associate with one label at least with a value
 #' larger or equal to this threshold). Relevant for Spearman and r2
 #' associations in \code{spatialAssociation}.

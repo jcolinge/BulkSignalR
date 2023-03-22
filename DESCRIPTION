@@ -1,12 +1,13 @@
 Package: BulkSignalR
 Type: Package
-Title: Infer Ligand-Receptor Interactions from Bulk Transcriptomic or Proteomic Data
+Title: Infer Ligand-Receptor Interactions from bulk expression data (transcriptomics/proteomics) data, or spatial transcriptomics
 Version: 0.0.9
 Authors@R: c(
     person("Jacques","Colinge",email="jacques.colinge@inserm.fr",role="aut",comment = c(ORCID = "0000-0003-2466-4824")),
     person("Jean-Philippe","Villemin",email="jpvillemin@gmail.com",role="cre",comment = c(ORCID = "0000-0002-1838-5880")))
 Description: Inference of ligand-receptor (LR) interactions from bulk
-    (transcriptomic or proteomic) data. BulkSignalR bases its inferences
+    expression (transcriptomics/proteomics) data, or spatial transcriptomics.
+    BulkSignalR bases its inferences
     on the LRdb database included in our other package, SingleCellSignalR
     available from Bioconductor. It relies on a statistical model that
     is specific to bulk data sets. Different visualization and data
@@ -39,14 +40,14 @@ Imports:
     ComplexHeatmap (>= 2.0.0),
     stats,
     scales,
-    RANN
+    RANN,
+    scales
+VignetteBuilder: knitr
 Suggests: 
-    grid,
     knitr,
+    grid,
     dplyr,
-    kableExtra,
-    BiocStyle,
     markdown,
     rmarkdown
 RoxygenNote: 7.2.1
-VignetteBuilder: knitr
+

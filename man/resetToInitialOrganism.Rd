@@ -5,10 +5,7 @@
 \alias{resetToInitialOrganism,BSRInference-method}
 \title{Reset gene names to initial organism providen in first instance}
 \usage{
-\S4method{resetToInitialOrganism}{BSRInference}(
-  obj,
-  conversion.dict = data.frame(Gene.name = "A", row.names = "B")
-)
+\S4method{resetToInitialOrganism}{BSRInference}(obj, conversion.dict)
 }
 \arguments{
 \item{obj}{BSRInference object}

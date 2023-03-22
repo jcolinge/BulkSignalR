@@ -12,7 +12,7 @@ author:
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: > 
   <p> BulkSignalR is used to infer ligand-receptor (L-R) interactions from bulk
-   expression data (transcriptomics/proteomics) data, or spatial
+   expression (transcriptomics/proteomics) data, or spatial
    transcriptomics. Potential L-R interactions are taken from the
    LR*db* database, which is  included in our other package SingleCellSignalR,
    available from
@@ -24,10 +24,9 @@ abstract: >
    help navigating the predicted interactions.<br/><br/>
   BulkSignalR package version: `r packageVersion("BulkSignalR")`
 output: 
-  BiocStyle::html_document:
+  rmarkdown::html_vignette:
       self_contained: true
       toc: true
-      toc_float: true
       toc_depth: 4
       highlight: pygments
       fig_height: 3
@@ -53,7 +52,6 @@ knitr::knit_hooks$set(optipng = knitr::hook_optipng)
 library(BulkSignalR)
 library(igraph)
 library(dplyr)
-library(kableExtra)
 ```
 \
 
@@ -307,9 +305,9 @@ bsrinf <- initialInference(bsrdm)
 
 LRinter.dataframe <- LRinter(bsrinf)
 
-knitr::kable(head(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),
-  c("L",  "R" ,"LR.corr", "pw.id",  "pw.name",  "pval"  , "qval")]),row.names = FALSE) %>%
-  kable_material(c("striped", "hover"))
+head(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),
+  c("L",  "R" ,"LR.corr", "pw.id",  "pw.name",  "pval"  , "qval")])
+
 ```
 
 | **L**  | **R** | **LR.corr** | **pw.id**     | **pw.name**                                          |  **pval** |  **qval** |
@@ -752,7 +750,7 @@ counts <- read.csv(glue("{bench.dir}/Brain_count.export.tsv"),
 areas <- read.csv(glue("{bench.dir}/Brain_label.export.tsv"),
                   sep="\t", stringsAsFactors=FALSE)
 
-image_low_res_path <-glue("{bench.dir}/Brain_image.export.png"))
+image_low_res_path <-glue("{bench.dir}/Brain_image.export.png")
 
 # Load from disk and manipulate as a raster object.
 my.image.as.raster <- rasterizeFromFile(image_low_res_path)
@@ -780,7 +778,8 @@ head(areas)
 # prepare data =================================================
 
 bsrdm <- prepareDataset(counts,symbol.col=1, 
-                              min.count=1, 
+                              min.count=1,
+                              prop=0.01,
                               method="TC")
 
 bsrdm <- learnParameters(bsrdm, quick=FALSE,
@@ -795,9 +794,12 @@ bsrinf <- initialInference(bsrdm, min.cor=-1)
 bsrinf.red <- reduceToBestPathway(bsrinf)
 pairs.red <- LRinter(bsrinf.red)
 thres <- 0.01
+min.corr <- 0.01
+pairs.red <- pairs.red[pairs.red$qval < thres & pairs.red$LR.corr > min.corr,]
 
 s.red  <- getLRGeneSignatures(bsrinf.red, qval.thres=thres)
-scores <- scoreLRGeneSignatures(bsrdm,s.red)
+scores.red <- scoreLRGeneSignatures(bsrdm,s.red)
+
 ```
 
 From here, one can start to explore the data 
@@ -807,31 +809,48 @@ through different plots.
  # Visualization ============================================
 
 # plot one specific interaction
-rownames(scores) <- gsub("->","/",rownames(scores))
-inter <- gsub("\\}","",gsub("\\{","",rownames(scores)[27]))
+inter <- "{CALM1} / {GRM5}" 
+# we have to follow the syntax with {} 
+# to be compatible with reduction operations
 
-# with synthetic tissue reference
-svg(glue("../man/figures/spatialPlot_synthref.svg"), width=13, height=7)
-spatialPlot(scores[27,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
+# with raw tissue reference
+png("../man/figures/spatialPlot1_clean.png", width=600, height=300)
+spatialPlot(scores.red[inter,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
             image.raster = NULL ,dot.size=1)
 dev.off()
 
-# with raw image reference
-svg(glue("../man/figures/spatialPlot_rawref.svg"),width=13,height=7)
-spatialPlot(scores.red[27,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
+```
+![spatial2](../man/figures/spatialPlot2_clean.png)
+
+```{r spatialrawPlot , eval=FALSE}
+
+# or with synthetic image reference
+png("../man/figures/spatialPlot2_clean.png",width=600,height=300)
+spatialPlot(scores.red[inter,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
             image.raster = my.image.as.raster ,dot.size=1)
 dev.off()
-```
 
+```
 ![spatial1](../man/figures/spatialPlot1_clean.png)
-![spatial2](../man/figures/spatialPlot2_clean.png)
+
+You can dissect one interaction to visualise both ligand and
+receptor expression of the interaction.
+
+```{r spatialseparatedPlot , eval=FALSE}
+
+png("../man/figures/spatialPlot_separated_clean.png",width=600,height=600)
+separatedLRPlot(scores.red, "CALM1", "GRM5", ncounts(bsrdm), areas)
+dev.off()
+
+```
+![spatial1](../man/figures/spatialPlot_separated_clean.png)
 
 The user can generate a large index picturing all these distributions
 for visual inspection and manual selection.   
 
 ```{r spatialIndexPlot , eval=FALSE}
 # generate visual index on disk
-spatialIndexPlot(scores, areas, "../man/figures/bigplot-BSR.pdf")
+spatialIndexPlot(scores.red, areas, "../man/figures/bigplot-BSR.pdf")
 ```
 ![spatialIndexPlot](../man/figures/spatialIndexPlot_clean.png)
 
@@ -845,12 +864,15 @@ latter in the form of a heatmap.
 \
 
 ```{r spatialAssociation , eval=FALSE}
-# statistical association with tissue areas
-assoc.bsr <- spatialAssociation(scores, areas)
 
-svg("../man/figures/spatialAssociationPlot.svg",width=12,height=12)
-spatialAssociationPlot(assoc.bsr)
+# statistical association with tissue areas based on correlations
+# For display purpose, we only use a subset here
+assoc.bsr.corr <- spatialAssociation(scores.red[c(1:25),], areas, test="Spearman")
+
+png("../man/figures/spatialAssociation_clean.png",width=400,height=400)
+spatialAssociationPlot(assoc.bsr.corr)
 dev.off()
+
 ```
 ![spatialAssociation](../man/figures/spatialAssociation_clean.png)
 
@@ -862,6 +884,8 @@ We also provide 2D-projections (see  `spatialDiversityPlot` function) to
 assess diversity among L-R interaction spatial distributions over
 an entire dataset. Other function as `generateSpatialPlots` can generate on disk
 multiple individual spatial plots.
+Note that we also describe more diverse use cases in the 
+[BulkSignalR github companion](https://github.com/jcolinge/BulkSignalR_companion). 
 
 See the reference manual for all the details.
 

@@ -953,7 +953,7 @@ if (!isGeneric("resetToInitialOrganism")) {
 #'bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
 #'
 setMethod("resetToInitialOrganism", "BSRInference", function(obj,
-                  conversion.dict=data.frame(Gene.name="A",row.names = "B") ){
+                  conversion.dict){
 
      print("resetToInitialOrganism")
      # Need to check conversion.dict format
@@ -975,18 +975,17 @@ setMethod("resetToInitialOrganism", "BSRInference", function(obj,
 #' @title Convert gene symbol to another organism
 #'
 #' @description Convert gene symbol to another organism
-#' based on a dictionnary with human and ortholog species.
+#' based on a dictionary with human and ortholog species.
 #'
 #' @param genes genes you want to convert
-#' @param conversion.dict Dataframe containing
+#' @param conversion.dict A data frame containing
 #' gene names for source species and Homo Sapiens.
 #'
 #' @return Depend type of input genes
 #' LRinter return a vector of genes
 #' tGenes receptors ligands : return list of list of genes
 #' @keywords internal
-.geneNameConversion <- function(genes,conversion.dict=
-                                  data.frame(Gene.name="A", row.names = "B")){
+.geneNameConversion <- function(genes, conversion.dict){
 
     #print(".geneNameConversion")
     if(typeof(genes) == "character"){

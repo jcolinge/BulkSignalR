@@ -303,7 +303,7 @@ findOrthoGenes<- function(from_organism, from_values,
 #' matrix.expression.human <- convertToHuman(counts = bodyMap.mouse,   
 #' dictionary = ortholog.dict)
 #'
-convertToHuman <- function(counts,dictionary=data.frame(Gene.name="A",row.names = "B")) {
+convertToHuman <- function(counts, dictionary) {
 
           # Should test counts have rownames.
           if(all(row.names(counts)==seq(1, nrow(counts))))

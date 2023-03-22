@@ -9,7 +9,7 @@
 ## Overview
 
 BulkSignalR is used to infer ligand-receptor (L-R) interactions from bulk
-expression data (transcriptomics/proteomics) data, or spatial
+expression (transcriptomics/proteomics) data, or spatial
 transcriptomics. Potential L-R interactions are taken from the
 LR*db* database, which is  included in our other package SingleCellSignalR,
 available from Bioconductor [here](https://www.bioconductor.org/packages/release/bioc/html/SingleCellSignalR.html).
@@ -32,7 +32,10 @@ help navigating the predicted interactions.
 # BulkSignalR is not included in BioConductor yet.
 # Installation goes via GitHub:
 # install.packages("devtools")
-devtools::install_github("jcolinge/BulkSignalR")
+devtools::install_github("jcolinge/BulkSignalR",build_vignettes = TRUE)
+
+# To read the vignette
+# browseVignettes("BulkSignalR")
 
 ```
 
