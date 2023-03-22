@@ -40,7 +40,7 @@ Imports:
     ComplexHeatmap (>= 2.0.0),
     stats,
     scales,
-    RANN,
+    RANN
 VignetteBuilder: knitr
 Suggests: 
     knitr,
