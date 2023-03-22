@@ -41,7 +41,6 @@ Imports:
     stats,
     scales,
     RANN,
-    scales
 VignetteBuilder: knitr
 Suggests: 
     knitr,
