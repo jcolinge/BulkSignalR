@@ -12,8 +12,8 @@ convertToHuman(
 \arguments{
 \item{counts}{A table or matrix of read counts.}
 
-\item{dictionary}{A data frame where first column belong to 
-organism of study & row names are the human gene names.}
+\item{dictionary}{A data frame where the first column is made of gene symbols
+for the actual organism and row names are the ortholog human gene symbols.}
 }
 \value{
 Return a counts matrix transposed for Human.
@@ -21,7 +21,7 @@ Return a counts matrix transposed for Human.
 \description{
 By default, BulkSignalR is designed to work with Homo sapiens.
 In order to work with other organisms, gene names need to be first converted
-to human following an orthology mapping process.
+to human by orthology.
 }
 \examples{
 print('convertToHuman')

@@ -1,3 +1,186 @@
+#' Smooth spatial expression data
+#'
+#' @param bsrdm  A BSRDataModel object containing the expression data to smooth.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations.
+#' @param nnn    Number of nearest-neighbor locations to use for smoothing
+#' each location. In case \code{radius} is set, then it is the maximum number
+#' of nearest neighbors within the radius.
+#' @param radius  A maximal distance to include neighbors in the smoothing.
+#' @param weight.ratio  The weight given to the central location.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' 
+#' @details The expression data contained in a BSRDataModel object are
+#' smoothed using a weighted average of nearby locations.
+#' 
+#' Two strategies are available to identify the neighbors. It is possible to
+#' simply set the number of nearest-neighbors (parameter \code{nnn}). An
+#' alternative consists in providing a distance radius (\code{radius}) along
+#' with a a maximum number of nearest-neighbors within the radius
+#' (\code{nnn.radius}). To properly define the radius, the user must know the
+#' location coordinates. The strategy with the radius enables having corner
+#' locations with two neighbors only and border locations with three
+#' neighbors only, whereas to simply set a maximum of four neighbors for
+#' instance would retrieve the four closest neighbors in every case.
+#' 
+#' For each location, its nearest-neighbors are found and a weighted average
+#' computed with \code{weight.ratio} given to the central location itself
+#' and a total weight of 1-\code{weight.ratio} shared within the neighbors
+#' based on the inverse of their distances. In case \code{radius} is set,
+#' some locations may have less than \code{nnn} neighbors (see above).
+#' At such locations, the weight given to
+#' the central location is augmented according to
+#' 1-(1-\code{weight.ratio})*(number of neighbors)/\code{nnn}.
+#' 
+#' @export
+#'
+#' @return A BSRDataModel object containing the smoothed ncounts.
+#'   
+#' @importFrom RANN nn2
+#'
+#' @examples
+#' print('smoothSpatialCounts')
+#' if (FALSE){
+#'
+#' sm.bsrdm <- smoothSpatialCounts(bsrdm, areas, radius=1.2, nnn.radius=4)
+#'
+#' }
+smoothSpatialCounts <- function(bsrdm, areas, nnn=4,
+                                radius=NULL, weight.ratio=0.5,
+                                x.col="array_col", y.col="array_row"){
+  
+  if (!is.null(param(bsrdm)$spatial.smooth) && (param(bsrdm)$spatial.smooth))
+    warning("Spatial smoothing or ligand max has been already applied to these data")
+  if (!all(c(x.col, y.col) %in% names(areas)))
+    stop("One of x.col or y.col is not in names(areas)")
+  if ((weight.ratio >= 1) || (weight.ratio <= 0))
+    stop("weight.ratio must lie in ]0 ; 1[")
+  
+  # gets neighbor spots and their distances
+  spots <- areas[, c(x.col, y.col)]
+  if (is.null(radius))
+    # RANN standard search
+    neighb <- RANN::nn2(spots, k=nnn+1)
+  else
+    # RANN radius search
+    neighb <- RANN::nn2(spots, k=nnn+1, radius=radius, searchtype="radius")
+  
+  # determine weights
+  c <- neighb$nn.idx
+  c[, 1] <- 0
+  c[c > 0] <- 1
+  ratios <- 1 - (1-weight.ratio)*rowSums(c)/nnn
+  d <- 1 / (neighb$nn.dists * c)[, -1]
+  d[is.infinite(d)] <- 0
+  tot <- rowSums(d) / (1 - ratios)
+  weights <- sweep(d, 1, tot, "/")
+  weights[is.nan(weights)] <- 0
+  weights <- cbind(ratios, weights)
+  
+  # smooth the transcriptomes
+  orig <- ncounts(bsrdm)
+  smooth <- orig
+  for (i in seq_len(ncol(orig))){
+    used <- neighb$nn.idx[i,] > 0
+    if (sum(used) > 1)
+      smooth[, i] <- orig[, neighb$nn.idx[i, used]] %*% weights[i, used]
+    else
+      smooth[, i] <- orig[, neighb$nn.idx[i, used]] * weights[i, used]
+  }
+
+  ncounts(bsrdm) <- smooth
+  bsrdm@param$spatial.smooth <- TRUE
+  bsrdm
+  
+} # smoothSpatialCounts
+
+
+#' Get maximal ligand expression at nearby locations
+#'
+#' @param bsrdm  A BSRDataModel object containing the expression data to smooth.
+#' @param areas  A data.frame containing at least the x and y
+#' coordinates of the locations.
+#' @param nnn    Number of nearest-neighbor locations to use for smoothing
+#' each location. In case \code{radius} is set, then it is the maximum number
+#' of nearest neighbors within the radius.
+#' @param radius  A maximal distance to include neighbors in the smoothing.
+#' @param x.col  Column name in \code{areas} containing x coordinates.
+#' @param y.col  Column name in \code{areas} containing y coordinates.
+#' 
+#' @details Ligand expression data contained in a BSRDataModel object are
+#' modified to consider the possibility that the ligand of a L-R interaction
+#' might be expressed at nearby locations. This is achieved replacing each
+#' ligand expression by its maximum over the central location and its
+#' neighbors. Since ligands and receptors are never used as gene targets
+#' in computing the receptor downstream signal correlations, this
+#' substitution is compatible with our statistical model. Moreover,
+#' the reciprocal configuration where the ligand is expressed at the
+#' central location and hits a receptors at a neighbor location is
+#' covered when the same ligand maximization scheme is applied to
+#' the neighbor. L-R localization and gene signature scoring is defined
+#' by the location at which the receptor is expressed after applying
+#' this function.
+#' 
+#' Two strategies are available to identify the neighbors. It is possible to
+#' simply set the number of nearest-neighbors (parameter \code{nnn}). An
+#' alternative consists in providing a distance radius (\code{radius}) along
+#' with a a maximum number of nearest-neighbors within the radius
+#' (\code{nnn.radius}). To properly define the radius, the user must know the
+#' location coordinates. The strategy with the radius enables having corner
+#' locations with two neighbors only and border locations with three
+#' neighbors only, whereas to simply set a maximum of four neighbors for
+#' instance would retrieve the four closest neighbors in every case.
+#' 
+#' @export
+#'
+#' @return A BSRDataModel object containing the maximized ligand expressions.
+#'   
+#' @importFrom RANN nn2
+#'
+#' @examples
+#' print('maxLigandSpatialCounts')
+#' if (FALSE){
+#'
+#' max.bsrdm <- maxLigandSpatialCounts(bsrdm, areas, radius=1.2, nnn.radius=4)
+#'
+#' }
+maxLigandSpatialCounts <- function(bsrdm, areas, nnn=4, radius=NULL,
+                                   x.col="array_col", y.col="array_row"){
+  
+  if (!is.null(param(bsrdm)$spatial.smooth) && (param(bsrdm)$spatial.smooth))
+    warning("Spatial smoothing or ligand max has been already applied to these data")
+  if (!all(c(x.col, y.col) %in% names(areas)))
+    stop("One of x.col or y.col is not in names(areas)")
+  
+  # gets neighbor spots and their distances
+  spots <- areas[, c(x.col, y.col)]
+  if (is.null(radius))
+    # RANN standard search
+    neighb <- RANN::nn2(spots, k=nnn+1)
+  else
+    # RANN radius search
+    neighb <- RANN::nn2(spots, k=nnn+1, radius=radius, searchtype="radius")
+  
+  # maximize ligands in the transcriptomes
+  orig <- ncounts(bsrdm)
+  maxi <- orig
+  ligands <- intersect(LRdb$ligand, rownames(orig))
+  for (i in seq_len(ncol(orig))){
+    used <- neighb$nn.idx[i,] > 0
+    if (sum(used) > 1)
+      maxi[ligands, i] <- apply(orig[ligands, neighb$nn.idx[i, used]], 1, max)
+    else
+      maxi[ligands, i] <- orig[ligands, i]
+  }
+  
+  bsrdm@ncounts <- maxi
+  bsrdm@param$spatial.smooth <- TRUE
+  bsrdm
+  
+} # maxLigandSpatialCounts
+
+
 #' Rasterize raw image from filepath 
 #'
 #' @param path.to.file Path to an image file.

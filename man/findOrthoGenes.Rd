@@ -5,8 +5,8 @@
 \title{Orthologs Gene Names}
 \usage{
 findOrthoGenes(
-  from_organism = "mmusculus",
-  from_values = c("TP53"),
+  from_organism,
+  from_values,
   method = c("gprofiler", "homologene", "babelgene")
 )
 }

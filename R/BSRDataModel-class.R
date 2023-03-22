@@ -35,8 +35,7 @@ setClass("BSRDataModel",
              ncounts=matrix(1.0,nrow=2,ncol=1,dimnames=list(c("A","B"),"C")),
              log.transformed=FALSE,
              normalization="UQ",
-             param=list()
-
+             param=list(spatial.smooth=FALSE)
          ))
 
 setValidity("BSRDataModel",
@@ -285,7 +284,6 @@ setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = FALSE,
       null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical",
                      "empirical", "stable"), filename = "distribution") {
-
    
     obj@param$n.rand.LR <- as.integer(n.rand.LR)
     if (obj@param$n.rand.LR < 1)

@@ -4,23 +4,23 @@
 \alias{resetLRdb}
 \title{Modify LRdb database}
 \usage{
-resetLRdb(db = data.frame(ligand = "A2M", receptor = "LRP1"), switch = FALSE)
+resetLRdb(db, switch = FALSE)
 }
 \arguments{
-\item{db}{A dataframe with 2 column names :
+\item{db}{A dataframe with 2 columns named
 ligand and receptor.}
 
-\item{switch}{By default set to FALSE, it extends the
-existing LRdb database. If TRUE, LRdb is replaced by user}
+\item{switch}{A logical indicating whether LRdb should be extended only
+(FALSE, default) or completely replaced (TRUE).}
 }
 \description{
-User can define a dataframe with 2 columns named
-respectively ligand and receptor.
-This can be used to extand or replace the existing
+User can provide a data frame with 2 columns named
+ligand and receptor.
+This can be used to extend or replace the existing
 LRdb.
 }
 \examples{
 print('resetLRdb')
 data(sdc,package='BulkSignalR')
-resetLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
+resetLRdb(db=data.frame(ligand="A2M", receptor="LRP1"), switch=FALSE)
 }

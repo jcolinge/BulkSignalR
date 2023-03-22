@@ -1,15 +1,14 @@
 #' Modify LRdb database
 #'
-#' User can define a dataframe with 2 columns named
-#' respectively ligand and receptor.
-#' This can be used to extand or replace the existing
+#' User can provide a data frame with 2 columns named
+#' ligand and receptor.
+#' This can be used to extend or replace the existing
 #' LRdb.
 #'
-#' @param db     A dataframe with 2 column names :
+#' @param db     A dataframe with 2 columns named
 #' ligand and receptor.
-#' @param switch  By default set to FALSE, it extends the
-#' existing LRdb database. If TRUE, LRdb is replaced by user 
-# provided database.
+#' @param switch  A logical indicating whether LRdb should be extended only
+#' (FALSE, default) or completely replaced (TRUE).
 #'
 #' @return NULL
 #'
@@ -17,31 +16,34 @@
 #' @examples
 #' print('resetLRdb')
 #' data(sdc,package='BulkSignalR')
-#' resetLRdb(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE)
-resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE ) {
+#' resetLRdb(db=data.frame(ligand="A2M", receptor="LRP1"), switch=FALSE)
+resetLRdb <- function(db, switch=FALSE) {
 
-    if(colnames(db)[1]=='ligand' &  colnames(db)[2]=='receptor'){
+    if(colnames(db)[1]=='ligand' & colnames(db)[2]=='receptor'){
       
         if(switch){
             # envir = .GlobalEnv
-            assign("LRdb", unique(db[,c('ligand','receptor')]), envir = as.environment("LRdbEnv"))
+            assign("LRdb", unique(db[, c('ligand', 'receptor')]),
+                   envir=as.environment("LRdbEnv"))
         }
         else {  
-            updated.LRdb <- rbind(LRdb[,c('ligand','receptor')],db[,c('ligand','receptor')])
+            updated.LRdb <- rbind(LRdb[, c('ligand', 'receptor')],
+                                  db[, c('ligand', 'receptor')])
             # envir = .GlobalEnv
-            assign("LRdb", unique(updated.LRdb), envir = as.environment("LRdbEnv"))
+            assign("LRdb", unique(updated.LRdb), envir=as.environment("LRdbEnv"))
         }
     } else {
-      stop(paste0("db should be a dataframe with ",
-            "2 columns named : 'ligand' and 'receptor'."))
+      stop(paste0("db should be a data frame with ",
+            "2 columns named 'ligand' and 'receptor'."))
     }
     
-}
+} # resetLRdb
+
 
 #' Prepare a BSRDataModel object from expression data
 #'
 #' Take a matrix or data frame containing RNA sequencing,
-#' microarray, or expression proteomics data and returns a BSRDataModel
+#' microarray, or expression proteomics data and return a BSRDataModel
 #' object ready for subsequent training. Normally, BSRDataModel objects
 #' are not instantiated directly, but through this function.
 #'
@@ -56,7 +58,8 @@ resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE )
 #' @param prop       The minimum proportion of samples where a gene must be
 #'   expressed higher than \code{min.count} to keep that gene.
 #' @param method     The normalization method ('UQ' for upper quartile or 'TC'
-#'   for total count).
+#'   for total count). If \code{normalize==FALSE}, then method must be
+#'   used to document the name of the normalization method applied by the user.
 #' @param UQ.pc      Percentile for upper-quartile normalization, number
 #' between 0 and 1 (in case the default 0.75 - hence the name - is not
 #' appropriate).
@@ -66,13 +69,13 @@ resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE )
 #'   \code{count} row names after eliminating the rows containing too many
 #'   zeros according to \code{min.count} and \code{prop}.
 #' @param conversion.dict  Correspondence table of HUGO gene symbols
-#' human/nonhuman. Not used unless the organism is not human.
+#' human/nonhuman. Not used unless the organism is different from human.
 #'
 #' @return A BSRModelData object with empty model parameters.
 #'
 #' @details The \code{counts} matrix or table should be provided with expression
 #'   levels of protein coding genes in each samples (column) and
-#'   \code{rownames(counts)} set to HUGO offcial gene symbols. For commodity, it
+#'   \code{rownames(counts)} set to HUGO official gene symbols. For commodity, it
 #'   is also possible to provide \code{counts} with the
 #'   gene symbols stored in one of its columns. This column must be specified
 #'   with \code{symbol.col}. In such a case, \code{prepareDataset} will extract
@@ -90,7 +93,9 @@ resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE )
 #'   If \code{normalize} is \code{TRUE} then normalization is performed
 #'   according to \code{method}. If those two simple methods are not satisfying,
 #'   then it is possible to provide a pre-normalized matrix setting
-#'   \code{normalize} to \code{FALSE}.
+#'   \code{normalize} to \code{FALSE}. In such a case, the parameter
+#'   \code{method} must be used to document the name of the normalization
+#'   algorithm used.
 #'
 #'   In case proteomic or microarray data are provided, \code{min.count} must be
 #'   understood as its equivalent with respect to those data.
@@ -105,12 +110,14 @@ resetLRdb <- function(db=data.frame(ligand="A2M",receptor="LRP1"),switch=FALSE )
 #'
 prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.count = 10,
     prop = 0.1, method = c("UQ", "TC"), log.transformed = FALSE, min.LR.found = 80, 
-    species = "hsapiens",conversion.dict = data.frame(Gene.name="A",row.names = "B"),
-     UQ.pc = 0.75 ) {
+    species = "hsapiens", conversion.dict = NULL,
+    UQ.pc = 0.75) {
 
 
     if (prop < 0 || prop > 1)
         stop("prop must lie in [0;1]")
+    if (UQ.pc <= 0 || UQ.pc > 1)
+        stop("UQ.pc must lie in ]0;1]")
     if (min.count < 0)
         stop("min.count must be positive")
     if (normalize)
@@ -235,8 +242,7 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
 #' ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
 #'                                     from_values = rownames(bodyMap.mouse))
 #'
-findOrthoGenes<- function(from_organism ="mmusculus",
-        from_values=c("TP53"),
+findOrthoGenes<- function(from_organism, from_values,
         method = c("gprofiler","homologene","babelgene")) {
 
         method <- match.arg(method)
@@ -279,10 +285,10 @@ findOrthoGenes<- function(from_organism ="mmusculus",
 #'
 #' @description By default, BulkSignalR is designed to work with Homo sapiens.
 #' In order to work with other organisms, gene names need to be first converted
-#' to human following an orthology mapping process.
-#' @param counts     A table or matrix of read counts.
-#' @param dictionary   A data frame where first column belong to 
-#'  organism of study & row names are the human gene names.
+#' to human by orthology.
+#' @param counts  A table or matrix of read counts.
+#' @param dictionary   A data frame where the first column is made of gene symbols
+#' for the actual organism and row names are the ortholog human gene symbols.
 #'
 #' @return Return a counts matrix transposed for Human.
 #'

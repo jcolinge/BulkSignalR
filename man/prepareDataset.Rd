@@ -14,7 +14,7 @@ prepareDataset(
   log.transformed = FALSE,
   min.LR.found = 80,
   species = "hsapiens",
-  conversion.dict = data.frame(Gene.name = "A", row.names = "B"),
+  conversion.dict = NULL,
   UQ.pc = 0.75
 )
 }
@@ -34,7 +34,8 @@ in a sample.}
 expressed higher than \code{min.count} to keep that gene.}
 
 \item{method}{The normalization method ('UQ' for upper quartile or 'TC'
-for total count).}
+for total count). If \code{normalize==FALSE}, then method must be
+used to document the name of the normalization method applied by the user.}
 
 \item{log.transformed}{A logical indicating whether expression data were
 already log2-transformed, e.g., some microarray data.}
@@ -46,7 +47,7 @@ zeros according to \code{min.count} and \code{prop}.}
 \item{species}{Data were obtained for this organism.}
 
 \item{conversion.dict}{Correspondence table of HUGO gene symbols
-human/nonhuman. Not used unless the organism is not human.}
+human/nonhuman. Not used unless the organism is different from human.}
 
 \item{UQ.pc}{Percentile for upper-quartile normalization, number
 between 0 and 1 (in case the default 0.75 - hence the name - is not
@@ -57,14 +58,14 @@ A BSRModelData object with empty model parameters.
 }
 \description{
 Take a matrix or data frame containing RNA sequencing,
-microarray, or expression proteomics data and returns a BSRDataModel
+microarray, or expression proteomics data and return a BSRDataModel
 object ready for subsequent training. Normally, BSRDataModel objects
 are not instantiated directly, but through this function.
 }
 \details{
 The \code{counts} matrix or table should be provided with expression
   levels of protein coding genes in each samples (column) and
-  \code{rownames(counts)} set to HUGO offcial gene symbols. For commodity, it
+  \code{rownames(counts)} set to HUGO official gene symbols. For commodity, it
   is also possible to provide \code{counts} with the
   gene symbols stored in one of its columns. This column must be specified
   with \code{symbol.col}. In such a case, \code{prepareDataset} will extract
@@ -82,7 +83,9 @@ The \code{counts} matrix or table should be provided with expression
   If \code{normalize} is \code{TRUE} then normalization is performed
   according to \code{method}. If those two simple methods are not satisfying,
   then it is possible to provide a pre-normalized matrix setting
-  \code{normalize} to \code{FALSE}.
+  \code{normalize} to \code{FALSE}. In such a case, the parameter
+  \code{method} must be used to document the name of the normalization
+  algorithm used.
 
   In case proteomic or microarray data are provided, \code{min.count} must be
   understood as its equivalent with respect to those data.

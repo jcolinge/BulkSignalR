@@ -38,7 +38,8 @@ Imports:
     circlize (>= 0.4.14),
     ComplexHeatmap (>= 2.0.0),
     stats,
-    scales
+    scales,
+    RANN
 Suggests: 
     grid,
     knitr,
