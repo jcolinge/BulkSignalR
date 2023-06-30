@@ -26,7 +26,8 @@ generateSpatialPlots(
   legend.fs = 10,
   axis.fs = 10,
   label.fs = 12,
-  dot.size = 0.5
+  dot.size = 0.5,
+  ref.colors = NULL
 )
 }
 \arguments{
@@ -82,6 +83,9 @@ IDs of spatial locations.}
 \item{label.fs}{Legend titles and axis names font size.}
 
 \item{dot.size}{Dot size.}
+
+\item{ref.colors}{A vector of colors to bypass those automatically chosen
+by ggplot2 for the tissue areas in the reference plot.}
 }
 \description{
 Generate a series of individual spatial score plots in a folder.

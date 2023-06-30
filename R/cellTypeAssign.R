@@ -485,4 +485,4 @@ cellTypeFrequency <- function(rel, lr, min.n.genes=1){
   names(s) <- names(t)
   list(t=t, s=s)
   
-} # relateToCellTypes
+} # cellTypeFrequency

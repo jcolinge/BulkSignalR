@@ -27,7 +27,8 @@ separatedLRPlot(
   axis.fs = 10,
   label.fs = 12,
   dot.size = 0.5,
-  legend.dot.factor = 10
+  legend.dot.factor = 10,
+  ref.colors = NULL
 )
 }
 \arguments{
@@ -89,6 +90,9 @@ IDs of spatial locations.}
 \item{dot.size}{Dot size.}
 
 \item{legend.dot.factor}{A factor applied to obtain the legend dot size.}
+
+\item{ref.colors}{A vector of colors to bypass those automatically chosen
+by ggplot2 for the tissue areas in the reference plot.}
 }
 \description{
 Generate a detailed view related to a chosen interaction made of series of

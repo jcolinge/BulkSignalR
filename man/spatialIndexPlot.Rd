@@ -8,6 +8,7 @@ spatialIndexPlot(
   scores,
   areas,
   out.file,
+  ref.plot = TRUE,
   image.raster = NULL,
   x.col = "array_col",
   y.col = "array_row",
@@ -24,7 +25,8 @@ spatialIndexPlot(
   dot.size = 0.25,
   ratio = 1.25,
   base.v = 2.5,
-  base.h = 3
+  base.h = 3,
+  ref.colors = NULL
 )
 }
 \arguments{
@@ -37,6 +39,9 @@ coordinates of the locations, the unique IDs of spatial locations, and
 a tissue label column.}
 
 \item{out.file}{File name for the output PDF.}
+
+\item{ref.plot}{A Boolean indicating whether a reference map of the tissue
+with area labels should be plot first.}
 
 \item{image.raster}{Raster object image to plot raw tissue image as
 reference.}
@@ -73,6 +78,9 @@ IDs of spatial locations.}
 \item{base.v}{Height of each plot.}
 
 \item{base.h}{Width of each plot.}
+
+\item{ref.colors}{A vector of colors to bypass those automatically chosen
+by ggplot2 for the tissue areas in the reference plot.}
 }
 \description{
 Generate an index made of series of small individual spatial score plots

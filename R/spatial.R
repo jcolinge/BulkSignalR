@@ -307,6 +307,8 @@ scalesReverse <- function(rasterImage, axis = "x") {
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
 #' @param legend.dot.factor A factor applied to obtain the legend dot size.
+#' @param ref.colors A vector of colors to bypass those automatically chosen
+#' by ggplot2 for the tissue areas in the reference plot.
 #' @details A single (scores) or side-by-side (reference tissue & scores) plot
 #' is generated.
 #' @export
@@ -331,7 +333,8 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
                         cut.p=0.01, low.color="royalblue3",
                         mid.color="white", high.color="orange",
                         title.fs=12, legend.fs=10, axis.fs=10,
-                        label.fs=12, dot.size=0.5, legend.dot.factor=10){
+                        label.fs=12, dot.size=0.5, legend.dot.factor=10,
+                        ref.colors=NULL){
   
   x <- y <- label <- score <- NULL
   
@@ -364,7 +367,7 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
   
   # reference tissue areas are required on the side
   if (ref.plot || ref.plot.only){
-    if (is.null(image.raster))
+    if (is.null(image.raster)){
       ref <- ggplot2::ggplot(data=tissue, ggplot2::aes(x=x, y=y)) +
         ggplot2::ggtitle("Reference tissue") +
         ggplot2::geom_point(ggplot2::aes(color=label), size=dot.size) +
@@ -376,6 +379,12 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
         ggplot2::theme(plot.title=ggplot2::element_text(size=title.fs)) +
         ggplot2::guides(colour=ggplot2::guide_legend(
                         override.aes=list(size=dot.size*legend.dot.factor)))
+        if (!is.null(ref.colors)){
+          if (length(unique(tissue$label)) != length(ref.colors))
+            stop("The number of reference colors do not match the number of labels")
+          ref <- ref + ggplot2::scale_color_manual(values=ref.colors)
+        }
+      }
     else
       ref <- grid::rasterGrob(image.raster)
   }
@@ -464,6 +473,8 @@ spatialPlot <- function(v, areas, inter.name, rev.y=TRUE, ref.plot=FALSE,
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param ref.colors A vector of colors to bypass those automatically chosen
+#' by ggplot2 for the tissue areas in the reference plot.
 #' @details A set of PDF files are created in the provided folder.
 #' @export
 #' @examples
@@ -480,7 +491,7 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
                                  cut.p=0.01, low.color="royalblue3",
                                  mid.color="white", high.color="orange",
                                  title.fs=12, legend.fs=10, axis.fs=10,
-                                 label.fs=12, dot.size=0.5){
+                                 label.fs=12, dot.size=0.5,ref.colors=NULL){
   
   for (i in seq_len(nrow(scores))){
     inter <- gsub("\\}","",gsub("\\{","",rownames(scores)[i]))
@@ -496,7 +507,7 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
                 cut.p=cut.p, low.color=low.color, mid.color=mid.color,
                 high.color=high.color, title.fs=title.fs,
                 legend.fs=legend.fs, axis.fs=axis.fs, label.fs=label.fs,
-                dot.size=dot.size)
+                dot.size=dot.size,ref.colors=ref.colors)
     if(ref.plot)
       figure
     else 
@@ -523,6 +534,8 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @param out.file File name for the output PDF.
 #' @param image.raster  Raster object image to plot raw tissue image as
 #' reference.
+#' @param ref.plot  A Boolean indicating whether a reference map of the tissue
+#' with area labels should be plot first.
 #' @param cut.p  Proportion of top and bottom values for thresholding.
 #' @param low.color  Color for low score values.
 #' @param mid.color  Color for score = 0.
@@ -532,6 +545,8 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param ref.colors A vector of colors to bypass those automatically chosen
+#' by ggplot2 for the tissue areas in the reference plot.
 #' @param x.col  Column name in \code{areas} containing x coordinates.
 #' @param y.col  Column name in \code{areas} containing y coordinates.
 #' @param label.col  Column name in \code{areas} containing area labels.
@@ -551,30 +566,32 @@ generateSpatialPlots <- function(scores, areas, plot.folder, width=5, height=3,
 #' }
 #' @import grid
 #' @importFrom gridExtra grid.arrange
-spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
+spatialIndexPlot <- function(scores, areas, out.file, ref.plot=TRUE,
+                             image.raster = NULL,
                              x.col="array_col", y.col="array_row",
                              label.col="label", idSpatial.col="idSpatial",
                              cut.p=0.01,low.color="royalblue3",
                              mid.color="white", high.color="orange",
                              title.fs=12, legend.fs=10, axis.fs=10,
-                             label.fs=12,
-                             dot.size=0.25,ratio=1.25,
-                             base.v=2.5, base.h=3){
+                             label.fs=12, dot.size=0.25,ratio=1.25,
+                             base.v=2.5, base.h=3, ref.colors=NULL){
   
   # one reference plot at the beginning
-  if(is.null(image.raster))
-    plots <- list(spatialPlot(scores[1,], areas, "",
-                  x.col=x.col, y.col=y.col,
-                  label.col=label.col, idSpatial.col=idSpatial.col,
-                  ref.plot.only=TRUE,cut.p=cut.p,
-                  low.color=low.color,
-                  mid.color=mid.color, high.color=high.color,
-                  title.fs=title.fs, legend.fs=legend.fs, 
-                  axis.fs=axis.fs,
-                  label.fs=label.fs,
-                  dot.size=dot.size))
-  else 
-    plots <- list(grid::rasterGrob(image.raster) )
+  if (ref.plot)
+    if(is.null(image.raster))
+      plots <- list(spatialPlot(scores[1,], areas, "",
+                    x.col=x.col, y.col=y.col,
+                    label.col=label.col, idSpatial.col=idSpatial.col,
+                    ref.plot.only=TRUE,cut.p=cut.p,
+                    low.color=low.color,
+                    mid.color=mid.color, high.color=high.color,
+                    title.fs=title.fs, legend.fs=legend.fs, 
+                    axis.fs=axis.fs, label.fs=label.fs,
+                    dot.size=dot.size, ref.colors=ref.colors))
+    else 
+      plots <- list(grid::rasterGrob(image.raster))
+  else
+    plots <- list()
 
   # actual plots
   for (i in seq_len(nrow(scores))){
@@ -647,6 +664,8 @@ spatialIndexPlot <- function(scores, areas, out.file, image.raster = NULL,
 #' @param axis.fs Axis ticks font size.
 #' @param label.fs Legend titles and axis names font size.
 #' @param dot.size Dot size.
+#' @param ref.colors A vector of colors to bypass those automatically chosen
+#' by ggplot2 for the tissue areas in the reference plot.
 #' @param legend.dot.factor A factor applied to obtain the legend dot size.
 #' @details A set of spatial plots are generated including an optional
 #' reference tissue plot (image or areas represented), the gene signature
@@ -673,7 +692,8 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
                             cut.p=0.01, low.color="royalblue3",
                             mid.color="white", high.color="orange",
                             title.fs=12, legend.fs=10, axis.fs=10,
-                            label.fs=12, dot.size=0.5, legend.dot.factor=10){
+                            label.fs=12, dot.size=0.5, legend.dot.factor=10,
+                            ref.colors=NULL){
 
   if (is.matrix(v))
     v <- v[paste0("{",L,"} / {",R,"}"),]
@@ -687,7 +707,8 @@ separatedLRPlot <- function(v, L, R, ncounts, areas, inter.name=NULL, rev.y=TRUE
                                 x.col=x.col, y.col=y.col,
                                 label.col=label.col, idSpatial.col=idSpatial.col,
                                 dot.size=dot.size,
-                                legend.dot.factor=legend.dot.factor))
+                                legend.dot.factor=legend.dot.factor,
+                                ref.colors=ref.colors))
     else 
       plots <- list(grid::rasterGrob(image.raster))
   else
@@ -788,6 +809,8 @@ spatialAssociation <- function(scores, areas, test=c("Kruskal-Wallis","ANOVA","S
   fdr.proc <- match.arg(fdr.proc)
   if (!(label.col %in% names(areas)))
     stop("label.col is not in names(areas)")
+  if (!(idSpatial.col %in% names(areas)))
+    stop("idSpatial.col is not in names(areas)")
   
   labels <- factor(areas[[label.col]])
   ul <- unique(labels)
