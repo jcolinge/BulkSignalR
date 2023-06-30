@@ -1,6 +1,6 @@
 Package: BulkSignalR
 Type: Package
-Title: Infer Ligand-Receptor Interactions from bulk expression data (transcriptomics/proteomics) data, or spatial transcriptomics
+Title: Infer Ligand-Receptor Interactions from bulk expression (transcriptomics/proteomics) data, or spatial transcriptomics
 Version: 0.0.9
 Authors@R: c(
     person("Jacques","Colinge",email="jacques.colinge@inserm.fr",role="aut",comment = c(ORCID = "0000-0003-2466-4824")),
@@ -40,8 +40,7 @@ Imports:
     ComplexHeatmap (>= 2.0.0),
     stats,
     scales,
-    RANN,
-    scales
+    RANN
 VignetteBuilder: knitr
 Suggests: 
     knitr,
