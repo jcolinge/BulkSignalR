@@ -16,5 +16,5 @@
 \description{
 Target gene correlations accessor
 
-Target genes accessor
+Target gene correlations accessor
 }

@@ -52,7 +52,7 @@ setMethod("show", "BSRSignature", function(object) {
                    pathways=object@pathways,
                    tGenes=sapply(object@t.genes, function(x) paste(x,collapse=";"))
 
-        )[5,]
+        )[seq_len(min(5, length(object@ligands))),]
     )
 })
 
@@ -126,7 +126,7 @@ if (!isGeneric("tgCorr")) {
         fun <- function(x) standardGeneric("tgCorr")
     setGeneric("tgCorr", fun)
 }
-#' Target genes accessor
+#' Target gene correlations accessor
 #'
 #' @name tgCorr
 #' @aliases tgCorr,BSRSignature-method

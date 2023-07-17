@@ -489,7 +489,7 @@ if (!isGeneric("initialInference")) {
 #'   receptors.
 #'
 #' @details Perform the initial ligand-receptor inference. Initial means that
-#' reduction is applied, all the (ligand, receptor, downstream pathway)
+#' no reduction is applied. All the (ligand, receptor, downstream pathway)
 #' triples are reported, i.e., a given LR pair may appear multiple times
 #' with different pathways downstream the receptor. Specific reduction
 #' functions are available from the package to operate subsequent

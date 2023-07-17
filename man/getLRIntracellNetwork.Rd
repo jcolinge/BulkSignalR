@@ -9,18 +9,22 @@ getLRIntracellNetwork(
   pval.thres = NULL,
   qval.thres = NULL,
   min.cor = 0.25,
+  max.pval = NULL,
   restrict.pw = NULL,
   node.size = 5
 )
 }
 \arguments{
-\item{bsrinf}{A BSRInference object.}
+\item{bsrinf}{A BSRInference or BSRInference Comp object.}
 
-\item{pval.thres}{P-value threshold.}
+\item{pval.thres}{P-value LR interaction threshold.}
 
-\item{qval.thres}{Q-value threshold.}
+\item{qval.thres}{Q-value LR interaction threshold.}
 
 \item{min.cor}{Minimum correlation required for the target genes.}
+
+\item{max.pval}{Maximum P-value required for the target genes in case
+a BSRInferenceComp object is provided.}
 
 \item{restrict.pw}{A vector of pathway IDs to which receptor downstream
 signaling is restricted.}

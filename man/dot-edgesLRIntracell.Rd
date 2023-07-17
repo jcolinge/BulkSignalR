@@ -11,7 +11,9 @@
   tg.corr,
   id.col,
   gene.col,
-  min.cor = 0.25
+  min.cor = 0.25,
+  tg.pval = NULL,
+  max.pval = NULL
 )
 }
 \arguments{
@@ -30,12 +32,20 @@ output by \code{tgCorr(BSRInference)}.}
 
 \item{gene.col}{Column index or name in \code{pw} for the gene symbols.}
 
-\item{min.cor}{Minimum correlation required for the target genes.
-to correlation absolute values (\code{FALSE}) or not (\code{TRUE}).}
+\item{min.cor}{Minimum correlation required for the target genes.}
+
+\item{tg.pval}{Target gene P-value list such as returned by
+\code{ tgPval(BSRInferenceComp)}.}
+
+\item{max.pval}{Maximum (regulation) P-value for target genes in case
+A BSRInferenceComp object is used to generate the network.}
 }
 \value{
 An \code{igraph} object featuring the ligand-receptor-downstream
-signaling network. Default colors and node sizes are assigned.
+signaling network. Default colors and node sizes are assigned. In case
+the \code{max.pval} parameter is set, it is assumed that \code{tg.pval}
+is set as well and downstream signaling genes are selected by their
+P-values in the comparison of clusters of samples.
 }
 \description{
 Internal function to generate a ligand-receptor-downstream signaling network

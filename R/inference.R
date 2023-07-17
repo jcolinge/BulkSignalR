@@ -193,7 +193,6 @@
     conf.pairs$pwid <- reg.proc[conf.pairs$R, "pathways"]
     conf.pairs$target.corr <- reg.proc[conf.pairs$R, "target.corr"]
     conf.pairs$len <- reg.proc[conf.pairs$R, "len"]
-    conf.pairs$corr.pw <- reg.proc[conf.pairs$R, "corr"]
     conf.pairs$target.genes <- reg.proc[conf.pairs$R, "target.genes"]
     pw.name <- unique(pw[,c(id.col, pw.col)])
     pw2name <- stats::setNames(pw.name[[2]], pw.name[[1]])
@@ -282,8 +281,8 @@
                 react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
         )
         results$reactome.pairs <- .downstreamSignaling(lr, react, pw.size,
-                ncounts(ds)[corgenes,], "Reactome ID", "Gene name",
-                "Reactome name", min.positive, with.complex=with.complex)
+                ncounts(ds)[corgenes,], id.col="Reactome ID", gene.col="Gene name",
+                pw.col="Reactome name", min.positive, with.complex=with.complex)
     }
 
     # GOBP
@@ -299,7 +298,7 @@
                         go[go$`GO ID` %in% names(pw.size), "Gene name"])
         )
         results$gobp.pairs <- .downstreamSignaling(lr, go, pw.size,
-                ncounts(ds)[corgenes,], "GO ID", "Gene name", "GO name",
+                ncounts(ds)[corgenes,], id.col="GO ID", gene.col="Gene name", pw.col="GO name",
                 min.positive, with.complex=with.complex)
     }
 
@@ -338,7 +337,8 @@
 #' @param fdr.proc      The procedure for adjusting P-values according to
 #'   \code{\link[multtest]{mt.rawp2adjp}}.
 #'
-#' @return A BSRInference object.
+#' @return A data.frame with the data in \code{pairs} complemented with
+#' P-values and adjusted P-values.
 #' @keywords internal
 .pValuesLR <- function(pairs, param, rank.p = 0.75,
                       fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg",
@@ -392,6 +392,11 @@
             spears <- as.numeric(strsplit(spear[k],split=";")[[1]])
             r <- min(max(1,trunc(rank.p*len[k])),len[k])
             rank.corr <- spears[r]
+            # r-1 correlations are < rank.corr, prob to have r-1 or less
+            # corr < rank.corr is given by a binomial with success rate
+            # equal to the probability to get a corr < rank.corr, i.e.,
+            # cdf(rank.corr, RT.par). If rank.corr is high, it becomes
+            # difficult to get as little as r-1 corr < rank.corr by chance!
             p.rt <- stats::pbinom(r-1, len[k], cdf(rank.corr, RT.par))
             res <- rbind(res,data.frame(pairs[i,c("L","R")],
                         LR.corr=pairs[i,"corr"], pw.id=pwid[k],

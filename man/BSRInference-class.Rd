@@ -8,8 +8,8 @@
 An S4 class to represent inferred ligand-receptor interactions.
 }
 \details{
-This class is a container for inferred LR interactions along with
-their statistical confidence. Data representation supports subsequent
+This class contains inferred LR interactions along with
+their statistical significance. Data representation supports subsequent
 reductions to pathways, etc. See reduction functions
 \code{"\link[=BSRInference-class]{reduceToBestPathway}"},
 \code{"\link[=BSRInference-class]{reduceToLigand}"},

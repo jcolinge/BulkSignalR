@@ -13,8 +13,8 @@ library(methods)
 #' entry per interaction
 #' @slot inf.param  The parameters used for the inference.
 #'
-#' @details This class is a container for inferred LR interactions along with
-#' their statistical confidence. Data representation supports subsequent
+#' @details This class contains inferred LR interactions along with
+#' their statistical significance. Data representation supports subsequent
 #' reductions to pathways, etc. See reduction functions
 #' \code{"\link[=BSRInference-class]{reduceToBestPathway}"},
 #' \code{"\link[=BSRInference-class]{reduceToLigand}"},
@@ -34,9 +34,7 @@ setClass("BSRInference",
          prototype=list(
              LRinter=data.frame(L="A", R="B", LR.corr=0.6, pw.id="123",
                                 pw.name="one pw", rank=2, len=50,
-                                rank.corr=0.6, target.genes="a;b;c",
-                                target.corr="-0.5;0.1;0.8",
-                                pval=1.0, qval=1.0,
+                                rank.corr=0.6, pval=1.0, qval=1.0,
                                 stringsAsFactors=FALSE),
              ligands=list("A"),
              receptors=list("B"),
@@ -515,7 +513,7 @@ if (!isGeneric("reduceToBestPathway")) {
 #' ligand-receptor pair. The pathway with the
 #' smallest P-value is selected.
 #'
-#' @details During the execution of \code{pValuesLR}, ligand-receptor pairs
+#' @details Ligand-receptor pairs
 #' are evaluated in relation with pathways that allow checking receptor
 #' downstream correlations. It is thus possible
 #' that several pathways are reported for a same LR pair.
@@ -592,7 +590,7 @@ if (!isGeneric("reduceToReceptor")) {
 #'
 #' @return BSRInference object reduced to one row per receptor.
 #' All the ligands are combined in a
-#' semi-colon-separated list surrounded by curly braces in the tabular
+#' semi-colon-separated list surrounded by curly brackets in the tabular
 #' slot \code{LRinter}, and in vectors in the \code{ligands} (list) slot.
 #'
 #' The reported P-value and target genes are those from the line with the
@@ -671,7 +669,7 @@ if (!isGeneric("reduceToLigand")) {
 #'
 #' @return A BSRInference object but reduced to one row per ligand.
 #' All the receptors are combined in a
-#' semi-colon-separated list surrounded by curly braces in the tabular
+#' semi-colon-separated list surrounded by curly brackets in the tabular
 #' slot \code{LRinter}, and in vectors in the \code{ligands} (list) slot.
 #'
 #' The reported P-value and target genes are those from the pathway with
@@ -757,7 +755,7 @@ if (!isGeneric("reduceToPathway")) {
 #' the best ligand-receptor pair that
 #' was in this pathway.
 #' Receptors and ligands are combined in two semi-colon-separated
-#' lists surrounded by curly braces in the tabular slot \code{LRinter},
+#' lists surrounded by curly brackets in the tabular slot \code{LRinter},
 #' while the list representation slots (\code{ligands} and
 #' \code{receptors}) are update accordingly.
 #'
@@ -850,8 +848,6 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' for each pair is automatically performed and the gene signature is
 #' comprised of the ligand, the receptor,
 #' and all the target genes with rank equal or superior to \code{pairs$rank}.
-#' In case \code{signed==TRUE},
-#' the rank is defined for correlation absolute values.
 #' @export
 #' @examples
 #' print('getLRGeneSignatures')
@@ -903,7 +899,7 @@ setMethod("getLRGeneSignatures", "BSRInference", function(obj,
     }
 
     new("BSRSignature", pathways=pathways, ligands=ligands,
-        receptors=receptors, t.genes=t.genes,tg.corr=t.corrs)
+        receptors=receptors, t.genes=t.genes, tg.corr=t.corrs)
 
 }) # getLRGeneSignatures
 
