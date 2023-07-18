@@ -11,8 +11,7 @@
   with.complex = TRUE,
   max.pw.size = 200,
   min.pw.size = 5,
-  min.positive = 4,
-  seed = 123
+  min.positive = 4
 )
 }
 \arguments{
@@ -34,8 +33,6 @@ reference.}
 
 \item{min.positive}{Minimum number of target genes to be found in a given
 pathway.}
-
-\item{seed}{Seed to reproduce exact same sampling.}
 }
 \value{
 A list of \code{n.rand} tables such as output by

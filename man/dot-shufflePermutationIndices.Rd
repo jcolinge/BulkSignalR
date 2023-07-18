@@ -4,13 +4,11 @@
 \alias{.shufflePermutationIndices}
 \title{Internal function to shuffle permutation indices}
 \usage{
-.shufflePermutationIndices(pind, seed)
+.shufflePermutationIndices(pind)
 }
 \arguments{
 \item{pind}{Permutation indices such as returned by
 \code{\link{.buildPermutationIndices}}.}
-
-\item{seed}{Seed to reproduce exact same sampling.}
 }
 \value{
 A list with same structure as \code{pind} with shuffled indices

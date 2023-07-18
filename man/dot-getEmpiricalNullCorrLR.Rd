@@ -4,7 +4,7 @@
 \alias{.getEmpiricalNullCorrLR}
 \title{Sampling of ligand-receptor correlation null distribution}
 \usage{
-.getEmpiricalNullCorrLR(ncounts, n.rand = 5, min.cor = -1, seed = 123)
+.getEmpiricalNullCorrLR(ncounts, n.rand = 5, min.cor = -1)
 }
 \arguments{
 \item{ncounts}{A matrix or table of normalized read counts.}
@@ -12,8 +12,6 @@
 \item{n.rand}{The number of repetitions.}
 
 \item{min.cor}{The minimum ligand-receptor correlation required.}
-
-\item{seed}{Seed to reproduce exact same sampling.}
 }
 \value{
 A list of \code{n.rand} tables such as output by

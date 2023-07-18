@@ -41,12 +41,11 @@ Imports:
     stats,
     scales,
     RANN
-VignetteBuilder: knitr
 Suggests: 
     knitr,
     grid,
     dplyr,
     markdown,
     rmarkdown
-RoxygenNote: 7.2.1
-
+RoxygenNote: 7.2.3
+VignetteBuilder: knitr
