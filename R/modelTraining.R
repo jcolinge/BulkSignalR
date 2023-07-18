@@ -27,16 +27,14 @@
 #'
 #' @param pind      Permutation indices such as returned by
 #'   \code{\link{.buildPermutationIndices}}.
-#' @param seed      Seed to reproduce exact same sampling.
 #'
 #' @return A list with same structure as \code{pind} with shuffled indices
 #'   within each bin.
 #'
 #' @importFrom foreach %do% %dopar%
 #' @keywords internal
-.shufflePermutationIndices <- function(pind,seed) {
+.shufflePermutationIndices <- function(pind) {
 
-    set.seed(seed)
     lapply(pind,
            function(x) sample(x, length(x))
     )
@@ -49,16 +47,15 @@
 #' @param ncounts    A matrix of normalized read counts.
 #' @param pind      Permutation indices such as returned by
 #'   \code{\link{.buildPermutationIndices}}.
-#' @param seed      Seed to reproduce exact same sampling.
 #'
 #' @return \code{ncount} with shuffled row names (gene symbols). Shuffling is
 #'   performed within rows of comparable average expression.
 #'
 #' @keywords internal
-.buildPermutatedCountMatrix <- function(ncounts, pind,seed) {
+.buildPermutatedCountMatrix <- function(ncounts, pind) {
 
     symbols <- rownames(ncounts)
-    rind <- .shufflePermutationIndices(pind,seed)
+    rind <- .shufflePermutationIndices(pind)
 
     for (i in seq_len(length(pind)))
         symbols[pind[[i]]] <- symbols[rind[[i]]]
@@ -531,7 +528,6 @@
 #'   pathway.
 #' @param with.complex    A logical indicating whether receptor co-complex
 #'   members should be included in the target genes.
-#' @param seed      Seed to reproduce exact same sampling.
 #'
 #' @return A list of \code{n.rand} tables such as output by
 #'   \code{.checkReceptorSignaling}. Each table is computed from a randomized
@@ -549,13 +545,13 @@
 #' @keywords internal
 .getEmpiricalNull <- function(ncounts, n.rand = 5, min.cor = -1,
                              with.complex = TRUE, max.pw.size = 200,
-                             min.pw.size = 5, min.positive = 4,seed=123) {
+                             min.pw.size = 5, min.positive = 4) {
 
     pindices <- .buildPermutationIndices(ncounts)
     r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY")
     if (foreach::getDoParWorkers() > 1)
         foreach::foreach(k = seq_len(n.rand), .combine = c) %dopar% {
-            ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices,seed)
+            ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices)
             r.LR <- .getCorrelatedLR(r.ds, min.cor = min.cor)
             list(.checkReceptorSignaling(r.ds, r.LR,
                         with.complex = with.complex, max.pw.size = max.pw.size,
@@ -564,7 +560,7 @@
         }
     else
         foreach::foreach(k = seq_len(n.rand), .combine = c) %do% {
-            ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices,seed)
+            ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices)
             r.LR <- .getCorrelatedLR(r.ds, min.cor = min.cor)
             list(.checkReceptorSignaling(r.ds, r.LR,
                          with.complex = with.complex, max.pw.size = max.pw.size,
@@ -583,7 +579,6 @@
 #' @param ncounts         A matrix or table of normalized read counts.
 #' @param n.rand          The number of repetitions.
 #' @param min.cor         The minimum ligand-receptor correlation required.
-#' @param seed      Seed to reproduce exact same sampling.
 #'
 #' @return A list of \code{n.rand} tables such as output by
 #'   \code{\link{.getCorrelatedLR}}. Each table is computed from a randomized
@@ -598,7 +593,7 @@
 #'
 #' @importFrom foreach %do% %dopar%
 #' @keywords internal
-.getEmpiricalNullCorrLR <- function(ncounts, n.rand = 5, min.cor = -1,seed=123) {
+.getEmpiricalNullCorrLR <- function(ncounts, n.rand = 5, min.cor = -1) {
 
     pindices <- .buildPermutationIndices(ncounts)
     r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY")
@@ -607,12 +602,12 @@
         foreach::foreach(k = seq_len(n.rand), .combine = 'c',
             .packages="BulkSignalR"
             ) %dopar% {
-            ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices,seed)
+            ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices)
             list(.getCorrelatedLR(r.ds, min.cor = min.cor))
         }
     else
     foreach::foreach(k = seq_len(n.rand), .combine = c) %do% {
-        ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices,seed)
+        ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices)
         list(.getCorrelatedLR(r.ds, min.cor = min.cor))
     }
 
