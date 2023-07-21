@@ -49,7 +49,6 @@
   
   # compute all the correlations at once
   corlr <- stats::cor(t(ncounts(ds)[lrgenes, ]), method = "spearman")
-  
   # get the pairs
   pairs <- NULL
   for (i in seq_len(nrow(LRdb))){
@@ -72,6 +71,9 @@
       }
     }
   }
+
+  if(is.null(pairs))
+    stop("Dataframe `pairs` from `.getRegulatedLR` is NULL.")
 
   pairs
   
@@ -395,7 +397,9 @@
   if (rank.p < 0 || rank.p > 1)
     stop("rank.p must lie in [0;1]")
   fdr.proc <- match.arg(fdr.proc)
-  
+  if(is.null(pairs))
+    stop("Dataframe `pairs` from `.checkRegulatedReceptorSignaling` is NULL.")
+
   # estimate P-values
   res <- NULL
   for (i in seq_len(nrow(pairs))){

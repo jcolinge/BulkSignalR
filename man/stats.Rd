@@ -8,7 +8,7 @@
 \S4method{stats}{BSRClusterComp}(x)
 }
 \arguments{
-\item{x}{BSRClusterComp oject}
+\item{x}{BSRClusterComp object}
 }
 \description{
 Cluster comparison statistics accessor

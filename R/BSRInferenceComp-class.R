@@ -38,7 +38,7 @@ library(methods)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1,"random.example")
 #' 
 setClass("BSRInferenceComp",
          contains="BSRInference",
@@ -191,7 +191,7 @@ if (!isGeneric("rescoreInference")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' # rescore
 #' bsrinf.less <- rescoreInference(bsrinf, param=param(bsrdm.comp), rank.p=0.75)
@@ -294,7 +294,7 @@ if (!isGeneric("reduceToBestPathway")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' # reduction
 #' bsrinf.redBP  <- reduceToBestPathway(bsrinf)
@@ -386,7 +386,7 @@ if (!isGeneric("reduceToReceptor")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' # reduction
 #' bsrinf.redR  <- reduceToReceptor(bsrinf)  
@@ -479,7 +479,7 @@ if (!isGeneric("reduceToLigand")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' # reduction
 #' bsrinf.redL  <- reduceToLigand(bsrinf)  
@@ -578,7 +578,7 @@ if (!isGeneric("reduceToPathway")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' # reduction
 #' bsrinf.redP  <- reduceToPathway(bsrinf)  
@@ -680,7 +680,7 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' # reductions
 #' bsrinf.redP  <- reduceToPathway(bsrinf)  

@@ -48,8 +48,6 @@ whose z-score averages might hide actual activity).}
 \item{rownames.LRP}{A logical indicating, in case \code{name.by.pathway}
 was set to TRUE, whether ligand and receptor names should be added on top.
 No role if \code{name.by.pathway} was set to FALSE.}
-
-\item{cmp.name}{The name of the chosen comparison.}
 }
 \value{
 A matrix containing the scores of each ligand-receptor gene
@@ -98,7 +96,7 @@ bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 
 # infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp, "random.example")
+bsrinf <- initialInference(bsrdm.comp,max.pval=1,  "random.example")
 
 # reduction
 bsrinf.red <- reduceToBestPathway(bsrinf)

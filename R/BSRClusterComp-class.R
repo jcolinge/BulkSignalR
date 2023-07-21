@@ -14,11 +14,14 @@ library(methods)
 #' @export
 #' @examples
 #' bsrdm <- new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=4,
-#'              dimnames=list(c("A","B","C","D"), c("E","F"))),
+#'              dimnames=list(c("A","B"), c("E","F","G","H"))),
 #'              log.transformed=TRUE, normalization="TC")
 #' bsrdm.comp <- as.BSRDataModelComp(bsrdm)
 #' colA <- as.integer(1:2)
 #' colB <- as.integer(3:4)
+#' n <- nrow(ncounts(bsrdm.comp))
+#' edger.stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' rownames(edger.stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, edger.stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "my_comparison")
 #' 
@@ -148,7 +151,7 @@ if (!isGeneric("stats")) {
 #'
 #' @name stats
 #' @aliases stats,BSRClusterComp-method
-#' @param x BSRClusterComp oject
+#' @param x BSRClusterComp object
 #' @export
 setMethod("stats", "BSRClusterComp", function(x) x@stats)
 

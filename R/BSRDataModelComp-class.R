@@ -25,7 +25,7 @@ library(methods)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp, max.pval=1,"random.example")
 #' 
 setClass("BSRDataModelComp",
          contains=c("BSRDataModel"),
@@ -188,7 +188,7 @@ if (!isGeneric("defineClusterComp")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp, max.pval=1,"random.example")
 #' 
 #' @importFrom methods new
 setMethod("defineClusterComp", "BSRDataModelComp", function(obj, colA,
@@ -264,7 +264,7 @@ if (!isGeneric("addClusterComp")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' 
 #' @importFrom methods new
 setMethod("addClusterComp", "BSRDataModelComp", function(obj, cmp,
@@ -379,7 +379,7 @@ if (!isGeneric("initialInference")) {
 #'   and the receptor.
 #' @param min.logFC       The maximum log2 fold-change allowed for
 #'   both the receptor and the ligand.
-#' @param neg.receptrs     A logical indicating whether receptors are only
+#' @param neg.receptors     A logical indicating whether receptors are only
 #'   allowed to be upregulated (FALSE), or up- and downregulated (TRUE).
 #' @param fdr.proc      The procedure for adjusting P-values according to
 #' \code{\link[multtest]{mt.rawp2adjp}}.
@@ -432,7 +432,7 @@ if (!isGeneric("initialInference")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' @importFrom methods new
 setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p=0.55,
                                                          max.pval=0.01, min.logFC=1, neg.receptors=FALSE,
@@ -450,7 +450,8 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   
   # retrieve the BSRClusterComp object
   cc <- comp(obj)[[cmp.name]]
-  
+  print(cc)
+
   inf.param <- list()
   inf.param$colA <- colA(cc)
   inf.param$colB <- colB(cc)
@@ -514,7 +515,6 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #'
 #' @param obj           A BSRDataModelComp object.
 #' @param sig           A BSRSignatureComp object.
-#' @param cmp.name      The name of the chosen comparison.
 #' @param LR.weight    A number between 0 and 1 defining the relative weight
 #' of the ligand and the receptor in the signature.
 #' @param robust       A logical indicating that z-scores should be computed
@@ -548,7 +548,7 @@ if (!isGeneric("scoreLRGeneSignatures")) {
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 #' 
 #' # infer ligand-receptor interactions from the comparison
-#' bsrinf <- initialInference(bsrdm.comp, "random.example")
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1,  "random.example")
 #' 
 #' # reduction
 #' bsrinf.red <- reduceToBestPathway(bsrinf)

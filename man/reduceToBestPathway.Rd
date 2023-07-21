@@ -70,7 +70,7 @@ bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 
 # infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp, "random.example")
+bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 
 # reduction
 bsrinf.redBP  <- reduceToBestPathway(bsrinf)

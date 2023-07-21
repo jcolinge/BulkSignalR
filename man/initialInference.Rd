@@ -83,7 +83,7 @@ and the receptor.}
 \item{min.logFC}{The maximum log2 fold-change allowed for
 both the receptor and the ligand.}
 
-\item{neg.receptrs}{A logical indicating whether receptors are only
+\item{neg.receptors}{A logical indicating whether receptors are only
 allowed to be upregulated (FALSE), or up- and downregulated (TRUE).}
 }
 \value{
@@ -163,5 +163,5 @@ bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
 
 # infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp, "random.example")
+bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 }
