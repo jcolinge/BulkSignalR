@@ -113,15 +113,15 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     species = "hsapiens", conversion.dict = NULL,
     UQ.pc = 0.75) {
 
-
-    if (prop < 0 || prop > 1)
-        stop("prop must lie in [0;1]")
-    if (UQ.pc <= 0 || UQ.pc > 1)
-        stop("UQ.pc must lie in ]0;1]")
-    if (min.count < 0)
-        stop("min.count must be positive")
-    if (normalize)
+    if (normalize){
+        if (prop < 0 || prop > 1)
+            stop("prop must lie in [0;1]")
+        if (UQ.pc <= 0 || UQ.pc > 1)
+            stop("UQ.pc must lie in ]0;1]")
+        if (min.count < 0)
+            stop("min.count must be positive")
         method <- match.arg(method)
+    }
     else
         if (nchar(method) == 0)
             stop(paste0("In case of user-normalized counts, the name of the ",
