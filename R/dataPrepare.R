@@ -163,7 +163,7 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
         counts <- data.matrix(counts)
 
     # avoid empty rows even if no normalization is performed here
-    counts <- counts[rowSums(counts) > 0, ]
+    counts <- counts[rowSums(abs(counts)) > 0, ]
 
     if (normalize) {
         good.c <- rowSums(counts >= min.count) >= prop * ncol(counts)
