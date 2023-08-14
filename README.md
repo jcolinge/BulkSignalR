@@ -41,19 +41,13 @@ devtools::install_github("jcolinge/BulkSignalR",build_vignettes = TRUE)
 
 ## Notes
 
-For a version history/change logs, see the [NEWS file](https://github.com/zhefrench/BulksignalR/blob/master/NEWS.md).
+For a version history/change logs, see the [NEWS file](https://github.com/jcolinge/BulksignalR/blob/master/NEWS.md).
 
 
 **BulkSignalR** has been successfully installed on Mac OS X, Linux, and Windows using R version 4.2.
 
-<!-- badges: start -->
-[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
-[![macOS](https://svgshare.com/i/ZjP.svg)](https://svgshare.com/i/ZjP.svg)
-[![Windows](https://svgshare.com/i/ZhY.svg)](https://svgshare.com/i/ZhY.svg)
-<!-- badges: end -->
 
-
-The code in this repository is published with the [CeCILL](https://github.com/zhefrench/BulksignalR/blob/master/LICENSE.md) License.
+The code in this repository is published with the [CeCILL](https://github.com/jcolinge/BulksignalR/blob/master/LICENSE.md) License.
 
 
 <!-- badges: start -->

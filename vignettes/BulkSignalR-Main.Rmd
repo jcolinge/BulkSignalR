@@ -34,7 +34,7 @@ output:
       fig_caption: no
       code_folding: show
 vignette: >
-  %\VignetteIndexEntry{BulkSignalR}
+  %\VignetteIndexEntry{BulkSignalR-Main}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

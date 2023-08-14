@@ -1,6 +1,12 @@
-BulkSignalR v0.0.0.9000  (Release data: 2022-04-23)
-========================
+BulkSignalR 0.99.0  (First release: 2022-03-22)
+==============================================
 
-Changes:
 
-* Initial code with S4 objects.
+* This is the first release of BulkSignalR.
+
+
+BulkSignalR 0.99.0  (2023-07-17)
+==============================================
+
+
+* Code redesign : Major update to add the derived classes enabling the comparisons of groups of samples
