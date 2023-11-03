@@ -1,0 +1,138 @@
+---
+title: "`BulkSignalR` : </br> Inference of ligand-receptor interactions from bulk data or spatial transcriptomics"
+author:
+  - name: Jean-Philippe Villemin
+    affiliation:
+    - Institut de Recherche en Cancérologie de Montpellier, Inserm, Montpellier, France 
+    email: jean-philippe.villemin@inserm.fr
+  - name: Jacques Colinge
+    affiliation:
+    - Institut de Recherche en Cancérologie de Montpellier, Inserm, Montpellier, France 
+    email: jacques.colinge@inserm.fr
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+output: 
+  rmarkdown::html_vignette:
+      self_contained: true
+      toc: true
+      toc_depth: 4
+      highlight: pygments
+      fig_height: 3
+      fig_width: 3
+      fig_caption: no
+      code_folding: show
+vignette: >
+  %\VignetteIndexEntry{BulkSignalR-Differential}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE, 
+  comment = "##"
+)
+knitr::knit_hooks$set(optipng = knitr::hook_optipng)
+```
+
+BulkSignalR package version: `r packageVersion("BulkSignalR")`
+
+## Differential mode 
+
+`BulkSignalR` now allows the user to request different pairwise
+comparisons from a large cohort of samples.
+  
+In this mode, ligand-receptor interactions are inferred based on gene or protein
+regulation-associated P-values when comparing two clusters of samples. 
+
+The user must first perform a differential expression analysis 
+(using the tool of his choice as DESeq2, EdgeR...) between a 
+pair of sample clusters.
+
+
+In the next chunk of code, we describe an application to 
+Salivary Duct Carcinoma (SDC) samples where we compare two clusters 
+of patients.
+
+```{r diffmode,eval=FALSE}
+library(BulkSignalR)
+
+data(sdc,package='BulkSignalR')
+normal <- grep("^N", names(sdc))
+bsrdm <- prepareDataset(sdc[,-normal])
+
+# define the comparison
+
+bsrdm.comp <- as.BSRDataModelComp(bsrdm)
+colA <- as.integer(1:5)
+colB <- as.integer(8:15)
+
+# As an example here, we generate random values 
+# but user should provide his own logFC and
+# associated pvalues from DGE ouputs. 
+
+n <- nrow(ncounts(bsrdm.comp))
+stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+rownames(stats) <- rownames(ncounts(bsrdm.comp))
+
+# we first define the cluster comparison and add it
+# to the BSRDataModelComp object.
+
+bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
+bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
+
+# finally we infer ligand-receptor interactions from the comparison
+
+bsrinf.comp <- initialInference(bsrdm.comp, max.pval=1,"random.example")
+
+
+```  
+
+##  Technical notes
+
+Three previously described S4 objects (BSR-DataModel, BSR-Inference, BSR-Signature) 
+have been extented :  
+
+\
+  
+
+* **BSR-DataModelComp**, denoted `bsrdm.comp` is an extension from 
+**BSR-DataModel**, previously denoted `bsrdm`  
+* **BSR-InferenceComp**, denoted `bsrinf.comp` is an extension from 
+**BSR-Inference**, previously denoted `bsrinf` 
+* **BSR-SignatureComp**, denoted `bsrsig.comp` is an extension from 
+**BSR-Signature**, previously denoted `bsrsig` 
+
+A new S4 object **BSR-ClusterComp** representing the comparison of two clusters
+of samples to infer LR interactions based on the resulting P-values and
+log-fold-changes (logFC) has been added.
+
+This new desgin let us handle sample cluster comparisons.
+
+
+`as.BSRDataModelComp` converts of **BSR-DataModel** into **BSR-DataModelComp** 
+In case ligand-receptor inferences should be obtained
+based on gene/protein regulation P-values comparing two clusters of
+samples, it is necessary to first promote the **BSR-DataModel** object that
+contains the count matrix into a **BSR-DataModelComp** object able to contain
+a list of such cluster pairs comparisons. This function performs this
+promotion, adding an empty list of comparisons.  
+
+`defineClusterComp` is used to define the comparison between two clusters of samples
+by using defined column indexes of the expression matrix that belong to each cluster,
+and storing the result of the cluster difference statistical analysis
+obtained by an external tool such as edgeR, DESeq2, etc.
+
+`addClusterComp` add a comparison between two clusters of samples 
+to a **BSR-DataModelComp** object.
+
+Several comparison can be defined and added sequentially.  
+
+\
+ 
+Thank you for reading this guide and for using `BulkSignalR`.  
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```
