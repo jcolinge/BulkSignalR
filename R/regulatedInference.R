@@ -48,7 +48,7 @@
     lrgenes <- intersect(lrgenes, restrict.genes)
   
   # compute all the correlations at once
-  corlr <- stats::cor(t(ncounts(ds)[lrgenes, ]), method = "spearman")
+  corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colB(cc))]), method = "spearman")
   # get the pairs
   pairs <- NULL
   for (i in seq_len(nrow(LRdb))){
@@ -327,7 +327,7 @@
                          react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
     )
     results$reactome.pairs <- .downstreamRegulatedSignaling(lr, react, pw.size,
-                 ncounts(ds)[corgenes,], stats(cc)[corgenes,],
+                 ncounts(ds)[corgenes, c(colA(cc),colB(cc))], stats(cc)[corgenes,],
                  id.col="Reactome ID", gene.col="Gene name",
                  pw.col="Reactome name", min.positive=min.positive,
                  with.complex=with.complex)
@@ -346,7 +346,7 @@
                          go[go$`GO ID` %in% names(pw.size), "Gene name"])
     )
     results$gobp.pairs <- .downstreamRegulatedSignaling(lr, go, pw.size,
-                 ncounts(ds)[corgenes,], stats(cc)[corgenes,],
+                 ncounts(ds)[corgenes, c(colA(cc),colB(cc))], stats(cc)[corgenes,],
                  id.col="GO ID", gene.col="Gene name", pw.col="GO name",
                  min.positive=min.positive, with.complex=with.complex)
   }
