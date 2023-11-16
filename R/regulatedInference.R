@@ -192,7 +192,6 @@
             pv <- pv[o]
             target.genes <- target.genes[o]
             c <- corrg[r, target.genes]
-            c <- c[o]
             data.frame(pathway=p, target.pval=paste(pv,collapse=";"),
                        target.genes=paste(target.genes,collapse=";"),
                        target.corr=paste(c, collapse=";"),
