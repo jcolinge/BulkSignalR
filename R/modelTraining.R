@@ -548,7 +548,8 @@
                              min.pw.size = 5, min.positive = 4) {
 
     pindices <- .buildPermutationIndices(ncounts)
-    r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY")
+    r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY",
+                           min.LR.found = 0)
     if (foreach::getDoParWorkers() > 1)
         foreach::foreach(k = seq_len(n.rand), .combine = c) %dopar% {
             ncounts(r.ds) <- .buildPermutatedCountMatrix(ncounts, pindices)
@@ -596,7 +597,8 @@
 .getEmpiricalNullCorrLR <- function(ncounts, n.rand = 5, min.cor = -1) {
 
     pindices <- .buildPermutationIndices(ncounts)
-    r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY")
+    r.ds <- prepareDataset(ncounts, normalize = FALSE, method = "ALREADY",
+                           min.LR.found = 0)
 
     if (foreach::getDoParWorkers() > 1)
         foreach::foreach(k = seq_len(n.rand), .combine = 'c',

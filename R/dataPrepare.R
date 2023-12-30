@@ -113,6 +113,9 @@ prepareDataset <- function(counts, normalize = TRUE, symbol.col = NULL, min.coun
     species = "hsapiens", conversion.dict = NULL,
     UQ.pc = 0.75) {
 
+    if ((species != "hsapiens") && is.null(conversion.dict))
+        stop("Non-human species but no conversion.dict provided")
+    
     if (normalize){
         if (prop < 0 || prop > 1)
             stop("prop must lie in [0;1]")
@@ -305,11 +308,18 @@ findOrthoGenes<- function(from_organism, from_values,
 #'
 convertToHuman <- function(counts, dictionary) {
 
-          # Should test counts have rownames.
+          # we need counts to be a data.frame
+          if (is.matrix(counts)){
+            was.matrix <- TRUE
+            counts <- as.data.frame(counts)
+          }
+          else
+            was.matrix <- FALSE
+          # counts should have row names
           if(all(row.names(counts)==seq(1, nrow(counts))))
             stop("Rownames should be set as human gene names for counts.", call. = FALSE)
          if(all(row.names(dictionary)==seq(1, nrow(dictionary))))
-            stop("Rownames should be set ashuman gene names dictionary.", call. = FALSE)
+            stop("Rownames should be set as human gene names dictionary.", call. = FALSE)
           if(dim(dictionary)[2]!=1)
             stop("Unique column must be set for dictionary.", call. = FALSE)
          if(! all(apply(counts, 2, function(x) is.numeric(x)))) 
@@ -333,7 +343,11 @@ convertToHuman <- function(counts, dictionary) {
 
           rownames(counts.transposed) <- counts.transposed[,1]
           counts.transposed           <- counts.transposed[,-1]
-        
-          counts.transposed
+
+          if (was.matrix)
+            # convert back to a matrix
+            data.matrix(counts.transposed)
+          else
+            counts.transposed
 
  } # convertToHuman
