@@ -17,5 +17,5 @@
 \description{
 Target gene P-values accessor
 
-Target genes accessor
+Target gene P-values accessor
 }

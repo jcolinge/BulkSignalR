@@ -574,8 +574,8 @@ setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.55,
     inf.param$receptor.reduced <- FALSE
     inf.param$pathway.reduced <- FALSE
 
-    new("BSRInference", LRinter=inter[,c("L","R","LR.corr","pw.id","pw.name",
-        "rank","len","rank.corr","pval","qval")], ligands=ligands,
+    new("BSRInference", LRinter=inter[,c("L","R","pw.id","pw.name","pval","qval",
+        "LR.corr","rank","len","rank.corr")], ligands=ligands,
         receptors=receptors, t.genes=tg, tg.corr=tgcorr,
         inf.param=inf.param)
 

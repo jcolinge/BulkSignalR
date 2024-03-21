@@ -106,7 +106,16 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' @param tg.pval       Target gene P-value list such as returned by
 #' \code{ tgPval(BSRInferenceComp)}.
 #' @param max.pval     Maximum (regulation) P-value for target genes in case
-#' A BSRInferenceComp object is used to generate the network.
+#' a BSRInferenceComp object is used to generate the network.
+#' @param min.logFC     Minimum logFC required for the target genes in case
+#' a BSRInferenceComp object is used to generate the network.
+#' @param pos.targets   A logical imposing that all the network targets must
+#' display positive correlation or logFC a BSRInferenceComp object is used to
+#' generate the network.
+#' @param neg.targets   A logical imposing that all the network targets must
+#' display negative correlation or logFC a BSRInferenceComp object is used to
+#' generate the network. Correlations must be <= -min.cor or logFC <= - min.logFC
+#' with this option activated.
 #'
 #' @return An \code{igraph} object featuring the ligand-receptor-downstream
 #' signaling network. Default colors and node sizes are assigned. In case
@@ -117,7 +126,9 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' @importFrom foreach %do% %dopar%
 #' @keywords internal
 .edgesLRIntracell <- function(pairs, pw, t.genes, tg.corr, id.col, gene.col,
-                              min.cor=0.25, tg.pval=NULL, max.pval=NULL){
+                              min.cor=0.25, pos.targets=FALSE,
+                              neg.targets=FALSE, tg.pval=NULL,
+                              max.pval=NULL, tg.logFC=NULL, min.logFC=0){
 
     # local binding
     i <- NULL
@@ -132,13 +143,27 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
         r <- pairs$R[i]
         p <- pairs$pw.id[i]
         tg <- t.genes[[i]]
-        if (is.null(max.pval) || is.null(tg.pval)){
+        if (is.null(max.pval) && is.null(min.logFC)){
+            # selection on correlations
             corr <- tg.corr[[i]]
-            targets <- tg[abs(corr) >= min.cor]
+            if (pos.targets)
+                targets <- tg[corr >= min.cor]
+            else if (neg.targets)
+                targets <- tg[corr <= -min.cor]
+            else
+                targets <- tg[abs(corr) >= min.cor]
         }
         else{
+            # selection on P-values and logFC
             pval <- tg.pval[[i]]
-            targets <- tg[pval <= max.pval]
+            logFC <- tg.logFC[[i]]
+            if (pos.targets)
+                targets <- tg[pval <= max.pval & logFC >= min.logFC]
+            else
+            if (neg.targets)
+                targets <- tg[pval <= max.pval & logFC <= -min.logFC]
+            else
+                targets <- tg[pval <= max.pval  & abs(logFC) >= min.logFC]
         }
 
         # build a hybrid directed/undirected graph
@@ -199,6 +224,14 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #' @param min.cor       Minimum correlation required for the target genes.
 #' @param max.pval      Maximum P-value required for the target genes in case
 #'   a BSRInferenceComp object is provided.
+#' @param min.logFC     Minimum logFC required for the target genes in case
+#'   a BSRInferenceComp object is provided.
+#' @param pos.targets   A logical imposing that all the network targets must
+#'   display positive correlation or logFC in case of a BSRInferenceComp object.
+#' @param neg.targets   A logical imposing that all the network targets must
+#'   display negative correlation or logFC in case of a BSRInferenceComp object.
+#'   Correlations must be <= -min.cor or logFC <= - min.logFC
+#'   with this option activated.
 #' @param restrict.pw   A vector of pathway IDs to which receptor downstream
 #' signaling is restricted.
 #' @param node.size     Default node size in the network.
@@ -238,19 +271,25 @@ getLRNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
 #'           # format="graphml")
 #'
 getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
-                                  min.cor=0.25, max.pval=NULL, restrict.pw=NULL,
-                                  node.size=5){
+                                  min.cor=0.25, max.pval=NULL, min.logFC=0,
+                                  pos.targets=FALSE, neg.targets=FALSE,
+                                  restrict.pw=NULL, node.size=5){
 
-    if (!is(bsrinf, "BSRInference") && !is(bsrinf, "BSRInferenceComp"))
+    comp.obj <- is(bsrinf, "BSRInferenceComp")
+    if (!is(bsrinf, "BSRInference") && !comp.obj)
         stop("bsrinf must be a BSRInference or BSRInferenceComp object")
-    if (!is.null(max.pval) && !is(bsrinf, "BSRInferenceComp"))
+    if (!is.null(max.pval) && !comp.obj)
         stop("max.pval can only be specified for a BSRInferenceComp object")
+    if (!is.null(min.logFC) && !comp.obj)
+        stop("min.logFC can only be specified for a BSRInferenceComp object")
     if (is.null(pval.thres) && is.null(qval.thres))
         stop("Either a P- or a Q-value threshold must be provided")
     ipar <- infParam(bsrinf)
     if (ipar$ligand.reduced || ipar$receptor.reduced)
         stop(paste0("Does not work with inferences already reduced to the ",
                     "ligands or the receptors"))
+    if (neg.targets && pos.targets)
+        stop("neg.targets and pos.targets cannot be TRUE simultaneously")
 
     # get unique LR pairs with required statistical significance
     pairs <- LRinter(bsrinf)
@@ -263,8 +302,10 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
     pairs <- pairs[good,]
     t.genes <- t.genes[good]
     tg.corr <- tg.corr[good]
-    if (!is.null(max.pval))
+    if (comp.obj){
         tg.pval <- tgPval(bsrinf)[good]
+        tg.logFC <- tgLogFC(bsrinf)[good]
+    }
 
     pool <- unique(c(pairs$L, pairs$R))
     all.edges <- NULL
@@ -274,15 +315,19 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
     pairs.react <- pairs[i.react,]
     t.genes.react <- t.genes[i.react]
     tg.corr.react <- tg.corr[i.react]
-    if (!is.null(max.pval))
+    if (comp.obj){
         tg.pval.react <- tg.pval[i.react]
+        tg.logFC.react <- tg.logFC[i.react]
+    }
     if (!is.null(restrict.pw)){
         i.react <- which(pairs.react$pw.id %in% restrict.pw)
         pairs.react <- pairs.react[i.react,]
         t.genes.react <- t.genes.react[i.react]
         tg.corr.react <- tg.corr.react[i.react]
-        if (!is.null(max.pval))
+        if (comp.obj){
             tg.pval.react <- tg.pval.react[i.react]
+            tg.logFC.react <- tg.logFC.react[i.react]
+        }
     }
     if (nrow(pairs.react)>0){
         ids <- unique(reactome[reactome$`Gene name` %in% pool, "Reactome ID"])
@@ -291,7 +336,8 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
             react <- react[react$`Reactome ID` %in% restrict.pw,]
         all.edges <- .edgesLRIntracell(pairs.react, react, t.genes.react,
                         tg.corr.react, "Reactome ID", "Gene name", min.cor,
-                        tg.pval.react, max.pval)
+                        pos.targets, neg.targets, tg.pval.react, max.pval,
+                        tg.logFC.react, min.logFC)
     }
 
     # GOBP
@@ -299,15 +345,19 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
     pairs.go <- pairs[i.go,]
     t.genes.go <- t.genes[i.go]
     tg.corr.go <- tg.corr[i.go]
-    if (!is.null(max.pval))
+    if (comp.obj){
         tg.pval.go <- tg.pval[i.go]
+        tg.logFC.go <- tg.logFC[i.go]
+    }
     if (!is.null(restrict.pw)){
         i.go <- which(pairs.go$pw.id %in% restrict.pw)
         pairs.go <- pairs.go[i.go,]
         t.genes.go <- t.genes.go[i.go]
         tg.corr.go <- tg.corr.go[i.go]
-        if (!is.null(max.pval))
+        if (comp.obj){
             tg.pval.go <- tg.pval.go[i.go]
+            tg.logFC.go <- tg.logFC.go[i.go]
+        }
     }
     if (nrow(pairs.go)>0){
         ids <- unique(gobp[gobp$`Gene name` %in% pool, "GO ID"])
@@ -317,7 +367,8 @@ getLRIntracellNetwork <- function(bsrinf, pval.thres=NULL, qval.thres=NULL,
         all.edges <- unique(rbind(all.edges,
                         .edgesLRIntracell(pairs.go, go, t.genes.go,
                             tg.corr.go, "GO ID", "Gene name", min.cor,
-                            tg.pval.go, max.pval)))
+                            pos.targets, neg.targets, tg.pval.go, max.pval,
+                            tg.logFC.go, min.logFC)))
     }
 
     # generate igraph object -------------------

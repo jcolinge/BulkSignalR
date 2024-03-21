@@ -10,6 +10,9 @@ getLRIntracellNetwork(
   qval.thres = NULL,
   min.cor = 0.25,
   max.pval = NULL,
+  min.logFC = 0,
+  pos.targets = FALSE,
+  neg.targets = FALSE,
   restrict.pw = NULL,
   node.size = 5
 )
@@ -25,6 +28,17 @@ getLRIntracellNetwork(
 
 \item{max.pval}{Maximum P-value required for the target genes in case
 a BSRInferenceComp object is provided.}
+
+\item{min.logFC}{Minimum logFC required for the target genes in case
+a BSRInferenceComp object is provided.}
+
+\item{pos.targets}{A logical imposing that all the network targets must
+display positive correlation or logFC in case of a BSRInferenceComp object.}
+
+\item{neg.targets}{A logical imposing that all the network targets must
+display negative correlation or logFC in case of a BSRInferenceComp object.
+Correlations must be <= -min.cor or logFC <= - min.logFC
+with this option activated.}
 
 \item{restrict.pw}{A vector of pathway IDs to which receptor downstream
 signaling is restricted.}

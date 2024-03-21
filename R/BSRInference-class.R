@@ -32,9 +32,9 @@ setClass("BSRInference",
                  tg.corr="list",
                  inf.param="list"),
          prototype=list(
-             LRinter=data.frame(L="A", R="B", LR.corr=0.6, pw.id="123",
-                                pw.name="one pw", rank=2, len=50,
-                                rank.corr=0.6, pval=1.0, qval=1.0,
+             LRinter=data.frame(L="A", R="B", pw.id="123", pw.name="one pw",
+                                pval=1.0, qval=1.0, LR.corr=0.6, rank=2,
+                                len=50, rank.corr=0.6,
                                 stringsAsFactors=FALSE),
              ligands=list("A"),
              receptors=list("B"),
@@ -371,6 +371,7 @@ setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.55,
         rank.corr <- spears[r]
         p.rt <- stats::pbinom(r-1, len, cdf(rank.corr, RT.par))
         pairs$pval[i] <- p.lr*p.rt
+        pairs$rank.corr[i] <- rank.corr
     }
 
     # recompute the Q-values

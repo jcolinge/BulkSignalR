@@ -377,7 +377,7 @@ if (!isGeneric("initialInference")) {
 #'   considered target genes.
 #' @param max.pval        The maximum P-value imposed to both the ligand
 #'   and the receptor.
-#' @param min.logFC       The maximum log2 fold-change allowed for
+#' @param min.logFC       The minimum log2 fold-change allowed for
 #'   both the receptor and the ligand.
 #' @param neg.receptors     A logical indicating whether receptors are only
 #'   allowed to be upregulated (FALSE), or up- and downregulated (TRUE).
@@ -482,16 +482,18 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   tg <- strsplit(inter$target.genes, ";")
   tgpval <- lapply(strsplit(inter$target.pval, ";"),
                    function(x) as.numeric(x))
+  tglogFC <- lapply(strsplit(inter$target.logFC, ";"),
+                   function(x) as.numeric(x))
   tgcorr <- lapply(strsplit(inter$target.corr, ";"),
                    function(x) as.numeric(x))
   inf.param$ligand.reduced <- FALSE
   inf.param$receptor.reduced <- FALSE
   inf.param$pathway.reduced <- FALSE
   
-  new("BSRInferenceComp", LRinter=inter[,c("L","R","LR.pval","LR.corr","L.logFC","R.logFC","pw.id","pw.name",
-                                         "rank","len","rank.pval","rank.corr","pval","qval")],
+  new("BSRInferenceComp", LRinter=inter[,c("L","R","pw.id","pw.name","pval","qval","L.logFC","R.logFC","LR.pval","LR.corr",
+                                         "rank","len","rank.pval","rank.corr")],
       ligands=ligands, receptors=receptors, t.genes=tg, tg.corr=tgcorr,
-      tg.pval=tgpval, inf.param=inf.param, cmp.name=cmp.name)
+      tg.pval=tgpval, tg.logFC=tglogFC, inf.param=inf.param, cmp.name=cmp.name)
   
 }) # initialInference
 

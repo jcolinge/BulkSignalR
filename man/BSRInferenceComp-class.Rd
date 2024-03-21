@@ -26,6 +26,9 @@ object comp list.}
 
 \item{\code{tg.pval}}{A list of target gene P-values, one
 entry per interaction}
+
+\item{\code{tg.logFC}}{A list of target gene logFC, one
+entry per interaction}
 }}
 
 \examples{

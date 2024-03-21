@@ -726,8 +726,8 @@ scoreSignatures <- function(ds, ref.signatures, robust=FALSE){
 #' plot in pdf format.
 #' @param path directory where to plot file.
 #' @param filename file name, NULL by default (plot on screen).
-#' @param width width of image in cm.
-#' @param height height of image in cm. 
+#' @param width width of image in inches.
+#' @param height height of image in inches. 
 #' @return NULL
 #'
 #' This is a convenience function that relies on the \code{ggalluvial}
@@ -850,8 +850,8 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #' @param limit Number of interactions you can visualize.
 #  Maximum set to 30.
 #' @param format pdf / png / svg. 
-#' @param width width of image in cm. 
-#' @param height height of image in cm.
+#' @param width width of image in inches. 
+#' @param height height of image in inches.
 #' @return Circos Plot on the screen or a file
 #'
 #' @import ComplexHeatmap
@@ -882,7 +882,7 @@ alluvialPlot <- function(bsrinf, keywords, type=c("L","R","pw.id"),
 #'                  height=4.5
 #'    )
 chordDiagramLR  <- function(bsrinf,
-    pw.id.filter, qval.thres=1,
+    pw.id.filter=NULL, qval.thres=1,
     ligand=NULL, receptor=NULL,
     path="./", filename=NULL,
     limit=20, format=c("pdf","svg","png"),

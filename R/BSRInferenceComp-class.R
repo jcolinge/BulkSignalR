@@ -10,6 +10,8 @@ library(methods)
 #' object comp list.
 #' @slot tg.pval  A list of target gene P-values, one
 #' entry per interaction
+#' @slot tg.logFC  A list of target gene logFC, one
+#' entry per interaction
 #'
 #' @details This class is contains inferred LR interactions along with
 #' their statistical significance. Data representation supports subsequent
@@ -43,15 +45,17 @@ library(methods)
 setClass("BSRInferenceComp",
          contains="BSRInference",
          slots=c(cmp.name="character",
-                 tg.pval="list"),
+                 tg.pval="list",
+                 tg.logFC="list"),
          prototype=list(
            cmp.name="happy",
-           LRinter=data.frame(L="A", R="B", LR.pval=0.6, LR.corr=0.5,
-                              L.logFC=2, R.logFC=1.5, pw.id="123",
-                              pw.name="one pw", rank=2, len=50,
-                              rank.pval=0.6, rank.corr=0.34, pval=1.0, qval=1.0,
+           LRinter=data.frame(L="A", R="B", pw.id="123",
+                              pw.name="one pw", pval=1.0, qval=1.0, L.logFC=2,
+                              R.logFC=1.5, LR.pval=0.6, LR.corr=0.5,
+                              rank=2, len=50, rank.pval=0.6, rank.corr=0.34,
                               stringsAsFactors=FALSE),
-           tg.pval=list(c(0.05,0.1,0.008))
+           tg.pval=list(c(0.05,0.1,0.008)),
+           tg.logFC=list(c(-1,0,2))
          ))
 
 setValidity("BSRInferenceComp",
@@ -62,6 +66,8 @@ setValidity("BSRInferenceComp",
                 return("cmp.name must have a length > 0")
               if (!is.list(object@tg.pval))
                 return("tg.pval is not a list")
+              if (!is.list(object@tg.logFC))
+                return("tg.logFC is not a list")
               
               TRUE
             }
@@ -143,6 +149,39 @@ setMethod("tgPval<-", "BSRInferenceComp", function(x, value){
 })
 
 
+if (!isGeneric("tgLogFC")) {
+  if (is.function("tgLogFC"))
+    fun <- tgLogFC
+  else
+    fun <- function(x) standardGeneric("tgLogFC")
+  setGeneric("tgLogFC", fun)
+}
+#' Target gene logFC accessor
+#'
+#' @name tgLogFC
+#' @aliases tgLogFC,BSRInferenceComp-method
+#' @param x BSRInferenceComp object
+#' @export
+setMethod("tgLogFC", "BSRInferenceComp", function(x) x@tg.logFC)
+
+if (!isGeneric("tgLogFC<-")) {
+  if (is.function("tgLogFC<-"))
+    fun <- `tgLogFC<-`
+  else
+    fun <- function(x,value) standardGeneric("tgLogFC<-")
+  setGeneric("tgLogFC<-", fun)
+}
+#' Target gene logFC setter (internal use only)
+#' @param x BSRInferenceComp object
+#' @param value value to be set for bsrinf
+#' @keywords internal
+setMethod("tgLogFC<-", "BSRInferenceComp", function(x, value){
+  x@tg.logFC <- value
+  methods::validObject(x)
+  x
+})
+
+
 # Rescoring ====================================================================
 
 if (!isGeneric("rescoreInference")) {
@@ -208,6 +247,7 @@ setMethod("rescoreInference", "BSRInferenceComp", function(obj, param, rank.p=0.
   pairs <- LRinter(obj)
   t.genes <- tGenes(obj)
   tg.pval <- tgPval(obj)
+  tg.corr <- tgCorr(obj)
   
   # recompute P-values
   for (i in 1:nrow(pairs)){
@@ -229,6 +269,8 @@ setMethod("rescoreInference", "BSRInferenceComp", function(obj, param, rank.p=0.
     # it becomes difficult to get as little as r-1 P-values > rank.pval by chance!
     p.rt <- stats::pbinom(r-1, len, 1-rank.pval) # cdf is punif here!
     pairs$pval[i] <- p.lr*p.rt
+    pairs$rank.pval[i] <- rank.pval
+    pairs$rank.corr[i] <- tg.corr[[i]][r]
   }
   
   # recompute the Q-values
@@ -311,6 +353,7 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
   t.genes <- list()
   tg.corr <- list()
   tg.pval <- list()
+  lg.logFC <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   LR <- unique(pairs[, c("L","R")])
@@ -327,6 +370,7 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
     t.genes <- c(t.genes, obj@t.genes[j])
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
+    tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
     LRinter <- rbind(LRinter, pairs[j,])
   }
   
@@ -337,6 +381,7 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
   obj@t.genes <- t.genes
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
+  obj@tg.logFC <- tg.logFC
   obj@inf.param$pathway.reduced <- TRUE
   
   obj
@@ -406,6 +451,7 @@ setMethod("reduceToReceptor", "BSRInferenceComp", function(obj){
   t.genes <- list()
   tg.corr <- list()
   tg.pval <- list()
+  tg.logFC <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   for (R in unique(pairs$R)){
@@ -417,6 +463,7 @@ setMethod("reduceToReceptor", "BSRInferenceComp", function(obj){
     t.genes <- c(t.genes, obj@t.genes[j])
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
+    tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
     to.add <- pairs[j,]
     to.add[1, "L"] <- paste0("{", paste(unique(lig$L), collapse=";"), "}")
     LRinter <- rbind(LRinter, to.add)
@@ -429,6 +476,7 @@ setMethod("reduceToReceptor", "BSRInferenceComp", function(obj){
   obj@t.genes <- t.genes
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
+  obj@tg.logFC <- tg.logFC
   obj@inf.param$pathway.reduced <- TRUE
   obj@inf.param$ligand.reduced <- TRUE
   
@@ -499,6 +547,7 @@ setMethod("reduceToLigand", "BSRInferenceComp", function(obj){
   t.genes <- list()
   tg.corr <- list()
   tg.pval <- list()
+  tg.logFC <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   for (L in unique(pairs$L)){
@@ -510,6 +559,7 @@ setMethod("reduceToLigand", "BSRInferenceComp", function(obj){
     t.genes <- c(t.genes, obj@t.genes[j])
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
+    tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
     to.add <- pairs[j,]
     to.add[1, "R"] <- paste0("{", paste(unique(rec$R), collapse=";"), "}")
     LRinter <- rbind(LRinter, to.add)
@@ -522,6 +572,7 @@ setMethod("reduceToLigand", "BSRInferenceComp", function(obj){
   obj@t.genes <- t.genes
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
+  obj@tg.logFC <- tg.logFC
   obj@inf.param$pathway.reduced <- TRUE
   obj@inf.param$receptor.reduced <- TRUE
   
@@ -599,6 +650,7 @@ setMethod("reduceToPathway", "BSRInferenceComp", function(obj){
   t.genes <- list()
   tg.corr <- list()
   tg.pval <- list()
+  tg.logFC <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   for (p in unique(pairs$pw.id)){
@@ -608,6 +660,7 @@ setMethod("reduceToPathway", "BSRInferenceComp", function(obj){
     t.genes <- c(t.genes, obj@t.genes[j])
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
+    tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
     to.add <- pairs[j,]
     to.add[1, "L"] <- paste0("{", paste(unique(pairs$L[pairs$pw.id==p]),
                                         collapse=";"), "}")
@@ -623,6 +676,7 @@ setMethod("reduceToPathway", "BSRInferenceComp", function(obj){
   obj@t.genes <- t.genes
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
+  obj@tg.logFC <- tg.logFC
   obj@inf.param$ligand.reduced <- TRUE
   obj@inf.param$receptor.reduced <- TRUE
   
@@ -713,6 +767,7 @@ setMethod("getLRGeneSignatures", "BSRInferenceComp", function(obj,
   t.genes <- tGenes(obj)[selected]
   t.corrs <- tgCorr(obj)[selected]
   t.pvals <- tgPval(obj)[selected]
+  t.logFCs <- tgLogFC(obj)[selected]
   
   for (i in seq_len(nrow(pairs))){
     tg <- t.genes[[i]]
@@ -721,11 +776,14 @@ setMethod("getLRGeneSignatures", "BSRInferenceComp", function(obj,
     t.corrs[[i]] <- tc[pairs$rank[i]:length(tc)]
     tp <- t.pvals[[i]]
     t.pvals[[i]] <- tp[pairs$rank[i]:length(tp)]
+    tl <- t.logFCs[[i]]
+    t.logFCs[[i]] <- tl[pairs$rank[i]:length(tl)]
   }
   
   new("BSRSignatureComp", pathways=pathways, ligands=ligands,
       receptors=receptors, t.genes=t.genes, tg.corr=t.corrs,
-      tg.pval=t.pvals, cmp.name=cmpName(obj))
+      tg.pval=t.pvals, tg.logFC=t.logFCs,
+      cmp.name=cmpName(obj))
   
 }) # getLRGeneSignatures
 

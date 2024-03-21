@@ -80,7 +80,7 @@ the inference.}
 \item{max.pval}{The maximum P-value imposed to both the ligand
 and the receptor.}
 
-\item{min.logFC}{The maximum log2 fold-change allowed for
+\item{min.logFC}{The minimum log2 fold-change allowed for
 both the receptor and the ligand.}
 
 \item{neg.receptors}{A logical indicating whether receptors are only

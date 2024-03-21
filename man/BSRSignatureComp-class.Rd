@@ -15,6 +15,8 @@ of samples. This class inherits from BSRSignature.
 \item{\code{cmp.name}}{The name of the comparison.}
 
 \item{\code{tg.pval}}{A list of target genes P-values.}
+
+\item{\code{tg.logFC}}{A list of target genes logFC.}
 }}
 
 \examples{

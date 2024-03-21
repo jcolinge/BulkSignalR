@@ -190,11 +190,14 @@
             pv <- stats[target.genes, "pval"]
             o <- order(pv, decreasing=TRUE)
             pv <- pv[o]
+            lfc <- stats[target.genes, "logFC"]
+            lfc <- lfc[o]
             target.genes <- target.genes[o]
             c <- corrg[r, target.genes]
             data.frame(pathway=p, target.pval=paste(pv,collapse=";"),
                        target.genes=paste(target.genes,collapse=";"),
                        target.corr=paste(c, collapse=";"),
+                       target.logFC=paste(lfc, collapse=";"),
                        len=length(c), stringsAsFactors=FALSE)
           }
           else
@@ -210,6 +213,7 @@
                    target.pval=paste(best.2nd$target.pval, collapse='|'),
                    target.genes=paste(best.2nd$target.genes, collapse='|'),
                    target.corr=paste(best.2nd$target.corr, collapse='|'),
+                   target.logFC=paste(best.2nd$target.logFC, collapse='|'),
                    len=paste(best.2nd$len, collapse='|'),
                    stringsAsFactors=FALSE)
       else
@@ -227,6 +231,7 @@
   conf.pairs$len <- reg.proc[conf.pairs$R, "len"]
   conf.pairs$target.genes <- reg.proc[conf.pairs$R, "target.genes"]
   conf.pairs$target.corr <- reg.proc[conf.pairs$R, "target.corr"]
+  conf.pairs$target.logFC <- reg.proc[conf.pairs$R, "target.logFC"]
   pw.name <- unique(pw[,c(id.col, pw.col)])
   pw2name <- stats::setNames(pw.name[[2]], pw.name[[1]])
   conf.pairs$pwname <- foreach::foreach(pl=conf.pairs$pwid,.combine=c) %do% {
@@ -240,7 +245,7 @@
   
   conf.pairs[,c("L", "R", "LR.pval", "corr", "L.logFC", "R.logFC",
                 "pwid", "pwname", "len", "target.genes",
-                "target.pval", "target.corr")]
+                "target.pval", "target.logFC", "target.corr")]
   
 }  # .downstreamRegulatedSignaling
 
@@ -409,6 +414,7 @@
     pwname <- unlist(strsplit(pairs$pwname[i],split="\\|"))
     tg <- unlist(strsplit(pairs$target.genes[i],split="\\|"))
     spval <- unlist(strsplit(pairs$target.pval[i],split="\\|"))
+    slfc <- unlist(strsplit(pairs$target.logFC[i],split="\\|"))
     spear <- unlist(strsplit(pairs$target.corr[i],split="\\|"))
     len <- as.numeric(unlist(strsplit(pairs$len[i],split="\\|")))
     
@@ -420,6 +426,7 @@
     for (k in seq_len(length(len))){
       spvals <- as.numeric(strsplit(spval[k],split=";")[[1]])
       spears <- as.numeric(strsplit(spear[k],split=";")[[1]])
+      slfcs <- as.numeric(strsplit(slfc[k],split=";")[[1]])
       r <- min(max(1,trunc(rank.p*len[k])),len[k])
       rank.pval <- spvals[r]
       rank.corr <- spears[r]
@@ -432,8 +439,9 @@
       res <- rbind(res,data.frame(pairs[i,c("L","R","LR.pval","corr","L.logFC","R.logFC")],
                                   pw.id=pwid[k], pw.name=pwname[k], rank=r,
                                   len=len[k], rank.pval=rank.pval,
-                                  rank.corr=rank.corr, target.genes=tg[k],
-                                  target.pval=spval[k], target.corr=spear[k],
+                                  rank.corr=rank.corr,
+                                  target.genes=tg[k], target.pval=spval[k],
+                                  target.logFC=slfc[k], target.corr=spear[k],
                                   pval=p.lr*p.rt, stringsAsFactors=FALSE))
     }
   }
