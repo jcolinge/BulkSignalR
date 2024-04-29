@@ -32,9 +32,9 @@ plot in pdf format.}
 
 \item{filename}{file name, NULL by default (plot on screen).}
 
-\item{width}{width of image in cm.}
+\item{width}{width of image in inches.}
 
-\item{height}{height of image in cm.}
+\item{height}{height of image in inches.}
 }
 \value{
 NULL

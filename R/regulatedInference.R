@@ -99,6 +99,12 @@
 #'   names.
 #' @param min.positive    Minimum number of target genes to be found in a given
 #'   pathway.
+#' @param min.t.logFC     The minimum log2 fold-change allowed for
+#'   targets in case pos.targets or neg.targets are used.
+#' @param pos.targets   A logical imposing that all the network targets must
+#'   display positive logFC, i.e. logFC >= min.t.logFC.
+#' @param neg.targets   A logical imposing that all the network targets must
+#'   display negative logFC, i.e. logFC <= - min.t.logFC.
 #' @param with.complex    A logical indicating whether receptor co-complex
 #'   members should be included in the target genes.
 #'
@@ -111,12 +117,18 @@
 #' @keywords internal
 .downstreamRegulatedSignaling <- function(lr, pw, pw.size, rncounts, stats,
                                           id.col, gene.col, pw.col,
-                                          min.positive, with.complex = TRUE) {
+                                          min.positive, pos.targets=FALSE,
+                                          neg.targets=FALSE, min.t.logFC=0.5,
+                                          with.complex = TRUE) {
 
   if (!is.data.frame(stats))
     stop("stats must be a data.frame")
   if (!('pval' %in% names(stats)))
     stop("stats must contain a column named 'pval'")
+  if (neg.targets && pos.targets)
+    stop("neg.targets and pos.targets cannot be TRUE simultaneously")
+  if (min.t.logFC <= 0)
+    stop("min.t.logFC must be >0")
   
   # local binding
   r <- p <- pl <- id <- NULL
@@ -154,18 +166,19 @@
           SingleCellSignalR::PwC_ReactomeKEGG$a.gn %in% pw[pw[[id.col]]==p,gene.col] &
             SingleCellSignalR::PwC_ReactomeKEGG$b.gn %in% pw[pw[[id.col]]==p,gene.col],
         ]
-        directed <- int$type %in% directed.int
-        
-        # double the undirected interactions and generate a directed graph
-        ret <- int[!directed,c("a.gn", "b.gn")]
-        from <- ret$a.gn
-        ret$a.gn <- ret$b.gn
-        ret$b.gn <- from
-        d.int <- unique(rbind(int[,c("a.gn", "b.gn")],ret))
-        g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
-        
+
         # extract the target genes of receptor r
-        if (r %in% d.int$a.gn || r %in% d.int$b.gn){
+        if (r %in% int$a.gn || r %in% int$b.gn){
+
+          # double the undirected interactions and generate a directed graph
+          directed <- int$type %in% directed.int
+          ret <- int[!directed,c("a.gn", "b.gn")]
+          from <- ret$a.gn
+          ret$a.gn <- ret$b.gn
+          ret$b.gn <- from
+          d.int <- unique(rbind(int[,c("a.gn", "b.gn")],ret))
+          g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
+          
           # putative targets in the pathway
           target.genes <- setdiff(c(
             int[int$type %in% correlated.int & int$a.gn==r, "b.gn"],
@@ -175,11 +188,23 @@
           )
           
           # reduce putative to reachable from the receptor
-          sp <- igraph::shortest.paths(g, r, target.genes)
+          sp <- igraph::distances(g, r, target.genes)
           target.genes <- colnames(sp)[!is.infinite(sp[r,])]
           
           # eliminate ligands of the receptor if present
-          target.genes <- setdiff(target.genes, receptor.ligands)
+          # and intersect with detected genes in case use.full.network
+          # parameter was set to TRUE in .checkRegulatedReceptorSignaling
+          target.genes <- intersect(rownames(stats),
+                                    setdiff(target.genes, receptor.ligands))
+          
+          # check fold-change direction if required
+          if (pos.targets || neg.targets){
+            lfc <- stats[target.genes, "logFC"]
+            if (pos.targets)
+              target.genes <- target.genes[lfc >= min.t.logFC]
+            else
+              target.genes <- target.genes[lfc <= -min.t.logFC]
+          }
           
           if (length(target.genes) >= min.positive){
             # if all conditions are met, list all target genes with
@@ -274,6 +299,14 @@
 #'   the function.
 #' @param with.complex    A logical indicating whether receptor co-complex
 #'   members should be included in the target genes.
+#' @param min.t.logFC     The minimum log2 fold-change allowed for
+#'   targets in case pos.targets or neg.targets are used.
+#' @param pos.targets   A logical imposing that all the network targets must
+#'   display positive logFC, i.e. logFC >= min.t.logFC.
+#' @param neg.targets   A logical imposing that all the network targets must
+#'   display negative logFC, i.e. logFC <= - min.t.logFC.
+#' @param use.full.network  A logical to avoid limiting the reference network
+#'   to the detected genes and use the whole reference network.
 #' @return A data frame extending \code{lr} content with the pathways found to
 #' contain the receptors and data about receptor target gene regulations
 #' Strings in semi-colon-separated format are used to report
@@ -304,7 +337,9 @@
 #' @keywords internal
 .checkRegulatedReceptorSignaling <- function(ds, cc, lr,
                                 reference=c("REACTOME-GOBP","REACTOME","GOBP"),
-                                max.pw.size=200, min.pw.size=5,
+                                pos.targets=FALSE, neg.targets=FALSE, min.t.logFC=0.5,
+                                use.full.network=TRUE,
+                                max.pw.size=1000, min.pw.size=10,
                                 min.positive=4, restrict.pw=NULL,
                                 with.complex=TRUE){
   
@@ -314,44 +349,58 @@
     stop("ds must be a BSRDataModelComp object")
   if (!all(rownames(stats(cc)) %in% rownames(ncounts(ds))))
     stop("The row names of stats(cc) and ncounts(ds) must match exactly")
-
+  if (neg.targets && pos.targets)
+    stop("neg.targets and pos.targets cannot be TRUE simultaneously")
+  if (min.t.logFC <= 0)
+    stop("min.t.logFC must be >0")
+  
   reference <- match.arg(reference)
   results <- list()
   
   # Reactome pathways
   if (reference %in% c("REACTOME-GOBP","REACTOME")){
-    react <- reactome[reactome$`Gene name` %in% rownames(stats(cc)),]
+    pw.size <- table(reactome$`Reactome ID`)
+    pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
+    if (use.full.network)
+      react <- reactome
+    else
+      react <- reactome[reactome$`Gene name` %in% rownames(stats(cc)),]
     if (!is.null(restrict.pw))
       react <- react[react$`Reactome ID` %in% restrict.pw,]
-    pw.size <- table(react$`Reactome ID`)
-    pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
     contains.receptors <- react[react$`Gene name` %in% lr$R, "Reactome ID"]
     pw.size <- pw.size[names(pw.size) %in% contains.receptors]
-    corgenes <- unique(c(lr$R,
-                         react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
+    corgenes <- intersect(rownames(stats(cc)),
+                          c(lr$R, react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
     )
     results$reactome.pairs <- .downstreamRegulatedSignaling(lr, react, pw.size,
                  ncounts(ds)[corgenes, c(colA(cc),colB(cc))], stats(cc)[corgenes,],
                  id.col="Reactome ID", gene.col="Gene name",
                  pw.col="Reactome name", min.positive=min.positive,
+                 pos.targets=pos.targets, neg.targets=neg.targets,
+                 min.t.logFC=min.t.logFC,
                  with.complex=with.complex)
   }
   
   # GOBP
   if (reference %in% c("REACTOME-GOBP","GOBP")){
-    go <- gobp[gobp$`Gene name` %in% rownames(stats(cc)),]
+    pw.size <- table(gobp$`GO ID`)
+    pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
+    if (use.full.network)
+      go <- gobp
+    else
+      go <- gobp[gobp$`Gene name` %in% rownames(stats(cc)),]
     if (!is.null(restrict.pw))
       go <- go[go$`GO ID` %in% restrict.pw,]
-    pw.size <- table(go$`GO ID`)
-    pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
     contains.receptors <- go[go$`Gene name` %in% lr$R, "GO ID"]
     pw.size <- pw.size[names(pw.size) %in% contains.receptors]
-    corgenes <- unique(c(lr$R,
-                         go[go$`GO ID` %in% names(pw.size), "Gene name"])
+    corgenes <- intersect(rownames(stats(cc)),
+                          c(lr$R, go[go$`GO ID` %in% names(pw.size), "Gene name"])
     )
     results$gobp.pairs <- .downstreamRegulatedSignaling(lr, go, pw.size,
                  ncounts(ds)[corgenes, c(colA(cc),colB(cc))], stats(cc)[corgenes,],
                  id.col="GO ID", gene.col="Gene name", pw.col="GO name",
+                 pos.targets=pos.targets, neg.targets=neg.targets,
+                 min.t.logFC=min.t.logFC,
                  min.positive=min.positive, with.complex=with.complex)
   }
   

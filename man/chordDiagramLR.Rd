@@ -6,7 +6,7 @@
 \usage{
 chordDiagramLR(
   bsrinf,
-  pw.id.filter,
+  pw.id.filter = NULL,
   qval.thres = 1,
   ligand = NULL,
   receptor = NULL,
@@ -42,9 +42,9 @@ on screen.}
 
 \item{format}{pdf / png / svg.}
 
-\item{width}{width of image in cm.}
+\item{width}{width of image in inches.}
 
-\item{height}{height of image in cm.}
+\item{height}{height of image in inches.}
 }
 \value{
 Circos Plot on the screen or a file

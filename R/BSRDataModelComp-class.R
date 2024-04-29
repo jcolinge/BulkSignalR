@@ -394,10 +394,18 @@ if (!isGeneric("initialInference")) {
 #'   pathway.
 #' @param with.complex    A logical indicating whether receptor co-complex
 #'   members should be included in the target genes.
+#' @param min.t.logFC     The minimum log2 fold-change allowed for
+#'   targets in case pos.targets or neg.targets are used.
+#' @param pos.targets   A logical imposing that all the network targets must
+#'   display positive logFC, i.e. logFC >= min.t.logFC.
+#' @param neg.targets   A logical imposing that all the network targets must
+#'   display negative logFC, i.e. logFC <= - min.t.logFC.
 #' @param restrict.pw     A list of pathway IDs to restrict the application of
 #'   the function.
 #' @param restrict.genes  A list of gene symbols that restricts ligands and
 #'   receptors.
+#' @param use.full.network  A logical to avoid limiting the reference network
+#' to the detected genes and use the whole reference network.
 #'
 #' @details Perform the initial ligand-receptor inference. Initial means that
 #' no reduction is applied. All the (ligand, receptor, downstream pathway)
@@ -410,6 +418,14 @@ if (!isGeneric("initialInference")) {
 #' regulation-associated P-values when comparing two clusters of samples. Since
 #' a BSRDataModelComp object can contain several such comparisons, the name
 #' of the comparison to use must be specified (parameter \code{cmp.name}).
+#' 
+#' Note that since the introduction of the use.full.network parameter
+#' (April 29, 2024), the pathway sizes are always computed before potential
+#' intersection with the observed data (use.full.network set to FALSE) for
+#' consistency. Accordingly, the minimum and maximum pathway default values
+#' have been raised from 5 & 200 to 10 & 1000 respectively. By default,
+#' use.full.network is set to TRUE, meaning no intersection and hence larger
+#' pathways.
 #'
 #' @return A BSRInferenceComp object with initial inferences set.
 #'
@@ -436,21 +452,30 @@ if (!isGeneric("initialInference")) {
 #' @importFrom methods new
 setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p=0.55,
                                                          max.pval=0.01, min.logFC=1, neg.receptors=FALSE,
-                                                         restrict.genes=NULL, reference=c("REACTOME-GOBP","REACTOME","GOBP"),
-                                                         max.pw.size=200, min.pw.size=5, min.positive=4, restrict.pw=NULL,
-                                                         with.complex=TRUE, fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
-                                                                                       "SidakSS","SidakSD","BY","ABH","TSBH")){
+                                                         pos.targets=FALSE, neg.targets=FALSE,
+                                                         min.t.logFC=0.5, restrict.genes=NULL,
+                                                         use.full.network=TRUE,
+                                                         reference=c("REACTOME-GOBP","REACTOME","GOBP"),
+                                                         max.pw.size=1000, min.pw.size=10, min.positive=4,
+                                                         restrict.pw=NULL, with.complex=TRUE,
+                                                         fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
+                                                                    "SidakSS","SidakSD","BY","ABH","TSBH")){
   
   if (!(cmp.name %in% names(comp(obj))))
     stop("cmp.name must exist in the names of comparisons contained in obj")
   reference <- match.arg(reference)
   fdr.proc <- match.arg(fdr.proc)
+  if (min.logFC <= 0)
+    stop("min.logFC must be >0")
+  if (min.t.logFC <= 0)
+    stop("min.t.logFC must be >0")
   if (rank.p < 0 || rank.p > 1)
     stop("rank.p must lie in [0;1]")
+  if (neg.targets && pos.targets)
+    stop("neg.targets and pos.targets cannot be TRUE simultaneously")
   
   # retrieve the BSRClusterComp object
   cc <- comp(obj)[[cmp.name]]
-  print(cc)
 
   inf.param <- list()
   inf.param$colA <- colA(cc)
@@ -458,7 +483,11 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   inf.param$max.pval <- max.pval
   inf.param$min.logFC <- min.logFC
   inf.param$neg.receptors <- neg.receptors
+  inf.param$pos.targets <- pos.targets
+  inf.param$neg.targets <- neg.targets
+  inf.param$min.t.logFC <- min.t.logFC
   inf.param$restrict.genes <- restrict.genes
+  inf.param$use.full.network <- use.full.network
   lr <- .getRegulatedLR(obj, cc, max.pval=max.pval, min.logFC=min.logFC,
                         neg.receptors=neg.receptors, restrict.genes=restrict.genes)
   
@@ -469,6 +498,8 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   inf.param$min.positive <- min.positive
   inf.param$restrict.pw <- restrict.pw
   pairs <- .checkRegulatedReceptorSignaling(obj, cc, lr, reference=reference,
+                                            pos.targets=pos.targets, neg.targets=neg.targets,
+                                            min.t.logFC=min.logFC, use.full.network=use.full.network,
                                             min.pw.size=min.pw.size, max.pw.size=max.pw.size,
                                             min.positive=min.positive, with.complex=with.complex,
                                             restrict.pw=restrict.pw)

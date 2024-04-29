@@ -29,10 +29,14 @@
   max.pval = 0.01,
   min.logFC = 1,
   neg.receptors = FALSE,
+  pos.targets = FALSE,
+  neg.targets = FALSE,
+  min.t.logFC = 0.5,
   restrict.genes = NULL,
+  use.full.network = TRUE,
   reference = c("REACTOME-GOBP", "REACTOME", "GOBP"),
-  max.pw.size = 200,
-  min.pw.size = 5,
+  max.pw.size = 1000,
+  min.pw.size = 10,
   min.positive = 4,
   restrict.pw = NULL,
   with.complex = TRUE,
@@ -85,6 +89,18 @@ both the receptor and the ligand.}
 
 \item{neg.receptors}{A logical indicating whether receptors are only
 allowed to be upregulated (FALSE), or up- and downregulated (TRUE).}
+
+\item{pos.targets}{A logical imposing that all the network targets must
+display positive logFC, i.e. logFC >= min.t.logFC.}
+
+\item{neg.targets}{A logical imposing that all the network targets must
+display negative logFC, i.e. logFC <= - min.t.logFC.}
+
+\item{min.t.logFC}{The minimum log2 fold-change allowed for
+targets in case pos.targets or neg.targets are used.}
+
+\item{use.full.network}{A logical to avoid limiting the reference network
+to the detected genes and use the whole reference network.}
 }
 \value{
 A BSRInference object with initial inferences set.
@@ -133,6 +149,14 @@ Here, ligand-receptor interactions are inferred based on gene or protein
 regulation-associated P-values when comparing two clusters of samples. Since
 a BSRDataModelComp object can contain several such comparisons, the name
 of the comparison to use must be specified (parameter \code{cmp.name}).
+
+Note that since the introduction of the use.full.network parameter
+(April 29, 2024), the pathway sizes are always computed before potential
+intersection with the observed data (use.full.network set to FALSE) for
+consistency. Accordingly, the minimum and maximum pathway default values
+have been raised from 5 & 200 to 10 & 1000 respectively. By default,
+use.full.network is set to TRUE, meaning no intersection and hence larger
+pathways.
 }
 \examples{
 print('prepareDataset')
