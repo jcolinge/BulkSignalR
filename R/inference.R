@@ -126,18 +126,19 @@
                     SingleCellSignalR::PwC_ReactomeKEGG$a.gn %in% pw[pw[[id.col]]==p,gene.col] &
                     SingleCellSignalR::PwC_ReactomeKEGG$b.gn %in% pw[pw[[id.col]]==p,gene.col],
                 ]
-                directed <- int$type %in% directed.int
-
-                # double the undirected interactions and generate a directed graph
-                ret <- int[!directed,c("a.gn", "b.gn")]
-                from <- ret$a.gn
-                ret$a.gn <- ret$b.gn
-                ret$b.gn <- from
-                d.int <- unique(rbind(int[,c("a.gn", "b.gn")],ret))
-                g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
 
                 # extract the target genes of receptor r
-                if (r %in% d.int$a.gn || r %in% d.int$b.gn){
+                if (r %in% int$a.gn || r %in% int$b.gn){
+                
+                    # double the undirected interactions and generate a directed graph
+                    directed <- int$type %in% directed.int
+                    ret <- int[!directed,c("a.gn", "b.gn")]
+                    from <- ret$a.gn
+                    ret$a.gn <- ret$b.gn
+                    ret$b.gn <- from
+                    d.int <- unique(rbind(int[,c("a.gn", "b.gn")],ret))
+                    g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
+
                     # putative targets in the pathway
                     target.genes <- setdiff(c(
                         int[int$type %in% correlated.int & int$a.gn==r, "b.gn"],
@@ -147,11 +148,12 @@
                     )
 
                     # reduce putative to reachable from the receptor
-                    sp <- igraph::shortest.paths(g, r, target.genes)
+                    sp <- igraph::distances(g, r, target.genes)
                     target.genes <- colnames(sp)[!is.infinite(sp[r,])]
 
                     # eliminate ligands of the receptor if present
-                    target.genes <- setdiff(target.genes, receptor.ligands)
+                    target.genes <- intersect(rownames(rncounts),
+                                              setdiff(target.genes, receptor.ligands))
 
                     if (length(target.genes) >= min.positive){
                         # if all conditions are met, list all target genes with
@@ -233,6 +235,8 @@
 #'   the function.
 #' @param with.complex    A logical indicating whether receptor co-complex
 #'   members should be included in the target genes.
+#' @param use.full.network  A logical to avoid limiting the reference network
+#'   to the detected genes and use the whole reference network.
 #' @return A data frame extending \code{lr} content with the pathways found to
 #' contain the receptors and data about target gene correlations with those
 #' receptors. Strings in semi-colon-separated format are used to report
@@ -258,9 +262,9 @@
 #' @keywords internal
 .checkReceptorSignaling <- function(ds, lr, reference=c("REACTOME-GOBP",
                                                      "REACTOME","GOBP"),
-                                    max.pw.size=200, min.pw.size=5,
-                                    min.positive=4, restrict.pw=NULL,
-                                    with.complex=TRUE){
+                                    max.pw.size=600, min.pw.size=10,
+                                    min.positive=4, use.full.network=FALSE,
+                                    restrict.pw=NULL, with.complex=TRUE){
 
     if (!is(ds, "BSRDataModel"))
         stop("ds must be a BSRDataModel object")
@@ -270,15 +274,18 @@
 
     # Reactome pathways
     if (reference %in% c("REACTOME-GOBP","REACTOME")){
-        react <- reactome[reactome$`Gene name` %in% rownames(ncounts(ds)),]
+        pw.size <- table(reactome$`Reactome ID`)
+        pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
+        if (use.full.network)
+            react <- reactome
+        else
+            react <- reactome[reactome$`Gene name` %in% rownames(ncounts(ds)),]
         if (!is.null(restrict.pw))
             react <- react[react$`Reactome ID` %in% restrict.pw,]
-        pw.size <- table(react$`Reactome ID`)
-        pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
         contains.receptors <- react[react$`Gene name` %in% lr$R, "Reactome ID"]
         pw.size <- pw.size[names(pw.size) %in% contains.receptors]
-        corgenes <- unique(c(lr$R,
-                react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
+        corgenes <- intersect(rownames(ncounts(ds)),
+                              c(lr$R, react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
         )
         results$reactome.pairs <- .downstreamSignaling(lr, react, pw.size,
                 ncounts(ds)[corgenes,], id.col="Reactome ID", gene.col="Gene name",
@@ -287,15 +294,18 @@
 
     # GOBP
     if (reference %in% c("REACTOME-GOBP","GOBP")){
-        go <- gobp[gobp$`Gene name` %in% rownames(ncounts(ds)),]
+        pw.size <- table(gobp$`GO ID`)
+        pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
+        if (use.full.network)
+            go <- gobp
+        else
+            go <- gobp[gobp$`Gene name` %in% rownames(ncounts(ds)),]
         if (!is.null(restrict.pw))
             go <- go[go$`GO ID` %in% restrict.pw,]
-        pw.size <- table(go$`GO ID`)
-        pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
         contains.receptors <- go[go$`Gene name` %in% lr$R, "GO ID"]
         pw.size <- pw.size[names(pw.size) %in% contains.receptors]
-        corgenes <- unique(c(lr$R,
-                        go[go$`GO ID` %in% names(pw.size), "Gene name"])
+        corgenes <- intersect(rownames(ncounts(ds)),
+                              c(lr$R, go[go$`GO ID` %in% names(pw.size), "Gene name"])
         )
         results$gobp.pairs <- .downstreamSignaling(lr, go, pw.size,
                 ncounts(ds)[corgenes,], id.col="GO ID", gene.col="Gene name", pw.col="GO name",

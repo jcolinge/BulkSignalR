@@ -423,7 +423,7 @@ if (!isGeneric("initialInference")) {
 #' (April 29, 2024), the pathway sizes are always computed before potential
 #' intersection with the observed data (use.full.network set to FALSE) for
 #' consistency. Accordingly, the minimum and maximum pathway default values
-#' have been raised from 5 & 200 to 10 & 1000 respectively. By default,
+#' have been raised from 5 & 200 to 10 & 600 respectively. By default,
 #' use.full.network is set to TRUE, meaning no intersection and hence larger
 #' pathways.
 #'
@@ -456,7 +456,7 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
                                                          min.t.logFC=0.5, restrict.genes=NULL,
                                                          use.full.network=TRUE,
                                                          reference=c("REACTOME-GOBP","REACTOME","GOBP"),
-                                                         max.pw.size=1000, min.pw.size=10, min.positive=4,
+                                                         max.pw.size=600, min.pw.size=10, min.positive=4,
                                                          restrict.pw=NULL, with.complex=TRUE,
                                                          fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
                                                                     "SidakSS","SidakSD","BY","ABH","TSBH")){

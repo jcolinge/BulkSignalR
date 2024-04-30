@@ -258,6 +258,15 @@ if (!isGeneric("learnParameters")) {
 #'   selection mode, the choice of the actual model will be done based on
 #'   the L-R null assuming a similar shape for the R-T null (with
 #'   different parameters though, unless \code{quick} was set to \code{TRUE}).
+#' 
+#' Note that since the introduction of the use.full.network parameter
+#' (April 29, 2024) in the initialInference method parameters,
+#' the pathway sizes are always computed before potential
+#' intersection with the observed data (use.full.network set to FALSE) for
+#' consistency. Accordingly, the minimum and maximum pathway default values
+#' have been raised from 5 & 200 to 10 & 600 respectively. By default,
+#' use.full.network is set to TRUE, meaning no intersection and hence larger
+#' pathways.
 #'
 #' @return A BSRDataModel object with trained model parameters
 #'
@@ -281,7 +290,7 @@ if (!isGeneric("learnParameters")) {
 #' @importFrom methods new
 setMethod("learnParameters", "BSRDataModel", function(obj, plot.folder = NULL,
       verbose = FALSE, n.rand.LR = 5L, n.rand.RT = 2L, with.complex = TRUE,
-      max.pw.size = 200, min.pw.size = 5, min.positive = 4, quick = FALSE,
+      max.pw.size = 600, min.pw.size = 10, min.positive = 4, quick = FALSE,
       null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical",
                      "empirical", "stable"), filename = "distribution") {
    
@@ -487,6 +496,8 @@ if (!isGeneric("initialInference")) {
 #'   the function.
 #' @param restrict.genes  A list of gene symbols that restricts ligands and
 #'   receptors.
+#' @param use.full.network  A logical to avoid limiting the reference network
+#'   to the detected genes and use the whole reference network.
 #'
 #' @details Perform the initial ligand-receptor inference. Initial means that
 #' no reduction is applied. All the (ligand, receptor, downstream pathway)
@@ -526,9 +537,10 @@ if (!isGeneric("initialInference")) {
 #' bsrinf
 #' @importFrom methods new
 setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.55,
-        min.cor = 0.25,
-        restrict.genes = NULL, reference=c("REACTOME-GOBP","REACTOME","GOBP"),
-        max.pw.size=NULL, min.pw.size=NULL, min.positive=NULL, restrict.pw=NULL,
+        min.cor = 0.25, restrict.genes = NULL,
+        reference=c("REACTOME-GOBP","REACTOME","GOBP"),
+        max.pw.size=NULL, min.pw.size=NULL, min.positive=NULL, 
+        use.full.network=FALSE, restrict.pw=NULL,
         with.complex=NULL, fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
                                       "SidakSS","SidakSD","BY","ABH","TSBH")){
 
@@ -540,6 +552,8 @@ setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.55,
         min.positive <- param(obj)$min.positive
     if (is.null(with.complex))
         with.complex <- param(obj)$with.complex
+    if (is.null(use.full.network))
+        use.full.network <- param(obj)$use.full.network
     reference <- match.arg(reference)
     fdr.proc <- match.arg(fdr.proc)
     if (rank.p < 0 || rank.p > 1)
@@ -555,11 +569,12 @@ setMethod("initialInference", "BSRDataModel", function(obj, rank.p=0.55,
     inf.param$max.pw.size <- max.pw.size
     inf.param$with.complex <- with.complex
     inf.param$min.positive <- min.positive
+    inf.param$use.full.network <- use.full.network
     inf.param$restrict.pw <- restrict.pw
     pairs <- .checkReceptorSignaling(obj, lr, reference=reference,
                          min.pw.size=min.pw.size, max.pw.size=max.pw.size,
                          min.positive=min.positive, with.complex=with.complex,
-                         restrict.pw=restrict.pw)
+                         use.full.network=use.full.network, restrict.pw=restrict.pw)
 
     inf.param$fdr.proc <- fdr.proc
     inf.param$rank.p <- rank.p

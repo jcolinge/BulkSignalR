@@ -16,6 +16,7 @@
   max.pw.size = NULL,
   min.pw.size = NULL,
   min.positive = NULL,
+  use.full.network = FALSE,
   restrict.pw = NULL,
   with.complex = NULL,
   fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY", "ABH",
@@ -35,7 +36,7 @@
   restrict.genes = NULL,
   use.full.network = TRUE,
   reference = c("REACTOME-GOBP", "REACTOME", "GOBP"),
-  max.pw.size = 1000,
+  max.pw.size = 600,
   min.pw.size = 10,
   min.positive = 4,
   restrict.pw = NULL,
@@ -69,6 +70,9 @@ reference.}
 \item{min.positive}{Minimum number of target genes to be found in a given
 pathway.}
 
+\item{use.full.network}{A logical to avoid limiting the reference network
+to the detected genes and use the whole reference network.}
+
 \item{restrict.pw}{A list of pathway IDs to restrict the application of
 the function.}
 
@@ -98,9 +102,6 @@ display negative logFC, i.e. logFC <= - min.t.logFC.}
 
 \item{min.t.logFC}{The minimum log2 fold-change allowed for
 targets in case pos.targets or neg.targets are used.}
-
-\item{use.full.network}{A logical to avoid limiting the reference network
-to the detected genes and use the whole reference network.}
 }
 \value{
 A BSRInference object with initial inferences set.
@@ -154,7 +155,7 @@ Note that since the introduction of the use.full.network parameter
 (April 29, 2024), the pathway sizes are always computed before potential
 intersection with the observed data (use.full.network set to FALSE) for
 consistency. Accordingly, the minimum and maximum pathway default values
-have been raised from 5 & 200 to 10 & 1000 respectively. By default,
+have been raised from 5 & 200 to 10 & 600 respectively. By default,
 use.full.network is set to TRUE, meaning no intersection and hence larger
 pathways.
 }

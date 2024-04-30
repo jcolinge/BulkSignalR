@@ -8,9 +8,10 @@
   ds,
   lr,
   reference = c("REACTOME-GOBP", "REACTOME", "GOBP"),
-  max.pw.size = 200,
-  min.pw.size = 5,
+  max.pw.size = 600,
+  min.pw.size = 10,
   min.positive = 4,
+  use.full.network = FALSE,
   restrict.pw = NULL,
   with.complex = TRUE
 )
@@ -32,6 +33,9 @@ reference.}
 
 \item{min.positive}{Minimum number of target genes to be found in a given
 pathway.}
+
+\item{use.full.network}{A logical to avoid limiting the reference network
+to the detected genes and use the whole reference network.}
 
 \item{restrict.pw}{A list of pathway IDs to restrict the application of
 the function.}

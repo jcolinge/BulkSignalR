@@ -339,7 +339,7 @@
                                 reference=c("REACTOME-GOBP","REACTOME","GOBP"),
                                 pos.targets=FALSE, neg.targets=FALSE, min.t.logFC=0.5,
                                 use.full.network=TRUE,
-                                max.pw.size=1000, min.pw.size=10,
+                                max.pw.size=600, min.pw.size=10,
                                 min.positive=4, restrict.pw=NULL,
                                 with.complex=TRUE){
   
