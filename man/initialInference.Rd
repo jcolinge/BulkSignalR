@@ -26,6 +26,7 @@
 \S4method{initialInference}{BSRDataModelComp}(
   obj,
   cmp.name,
+  src.cmp.name = NULL,
   rank.p = 0.55,
   max.pval = 0.01,
   min.logFC = 1,
@@ -82,8 +83,12 @@ members should be included in the target genes.}
 \item{fdr.proc}{The procedure for adjusting P-values according to
 \code{\link[multtest]{mt.rawp2adjp}}.}
 
-\item{cmp.name}{The name of the cluster comparison that should be used for
-the inference.}
+\item{cmp.name}{The name of the cluster comparison that should be used
+for the inference. Autocrine interactions if only this comparison name is
+provided, paracrine if a source comparison name is provided as well.}
+
+\item{src.cmp.name}{The name of the source cluster comparison that should
+be used for paracrine interaction inferences.}
 
 \item{max.pval}{The maximum P-value imposed to both the ligand
 and the receptor.}
@@ -113,11 +118,8 @@ Computes putative LR interactions along with their statistical confidence.
 In this initial inference, all the relevant pathways are reported,
 see reduction functions to reduce this list.
 
-Computes putative LR interactions along with their statistical confidence.
-The analysis is based on P-values associated to the regulation of
-genes/proteins in a comparison of two clusters of samples.
-In this initial inference, all the relevant pathways are reported,
-see reduction functions to reduce this list.
+This method supports two configurations that we refer to
+as paracrine and autocrine.
 }
 \details{
 Perform the initial ligand-receptor inference. Initial means that
@@ -138,6 +140,35 @@ values at the time of inference sounds like a bad idea, although this
 could be used to explore without retraining the underlying model.
 Retraining of the model with adjusted parameters is advised following
 such an exploration.
+
+In the autocrine case, a single cluster comparison name is provided.
+In the corresponding cluster comparison, a group of samples A was
+compared to a group of samples B to determine fold-changes and associated
+P-values. The inferred ligand-receptor interactions take place in the
+samples of group A. They are paracrine interactions in the case of
+single-cell data or they take place in the same tissue represented by
+cluster A. A typical single-cell example would be a population of
+macrophages (group A) compared to all the other populations (group B) to
+represent specific increased or decreased expression in macrophages. The
+resulting ligand-receptor interactions will be autocrine interactions
+that are exacerbated (or reduced depending on the chosen parameters) in
+macrophages.
+
+In the paracrine case, two cluster comparison names must be provided.
+For instance, a first comparison coul involved macrophages versus all
+the other cell populations as above. The second comparison could be
+B-cells against all the other populations. Now, calling initialInference()
+with comparison macrophages vs. the rest and, as source comparison, B-cells
+vs. the rest, will result in inferring interactions between B-cells
+(ligands) and macrophages (receptors and downstream pathways). To obtain
+macrophages to B-cells paracrine interactions, it is necessary to call the
+method a second time with permuted cluster comparison names. Another example
+in spatial transcriptomics could be two thin bands at the boundary of two
+tissue regions, one emitting the ligand and the other one expressing the
+receptor.
+
+In this initial inference, all the receptor-containing pathways are reported,
+see reduction functions to reduce this list.
 
 Perform the initial ligand-receptor inference. Initial means that
 no reduction is applied. All the (ligand, receptor, downstream pathway)

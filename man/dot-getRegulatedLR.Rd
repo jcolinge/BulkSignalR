@@ -7,6 +7,7 @@
 .getRegulatedLR(
   ds,
   cc,
+  scc = NULL,
   max.pval = 0.01,
   min.logFC = 1,
   neg.receptors = FALSE,
@@ -17,6 +18,9 @@
 \item{ds}{A BSRDataModel object}
 
 \item{cc}{A BSRClusterComp object.}
+
+\item{scc}{An optional BSRClusterComp object in case ligand
+regulation was assessed in a separate cluster comparison.}
 
 \item{max.pval}{The maximum P-value imposed to both the ligand
 and the receptor.}

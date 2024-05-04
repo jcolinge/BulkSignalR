@@ -8,6 +8,9 @@ library(methods)
 #'
 #' @slot cmp.name  The name of the BSRClusterComp object in a BSRDataModelComp
 #' object comp list.
+#' @slot src.cmp.name  The name of an optional BSRClusterComp object in a
+#' BSRDataModelComp object comp list in case paracrine inferences were
+#' performed.
 #' @slot tg.pval  A list of target gene P-values, one
 #' entry per interaction
 #' @slot tg.logFC  A list of target gene logFC, one
@@ -45,10 +48,12 @@ library(methods)
 setClass("BSRInferenceComp",
          contains="BSRInference",
          slots=c(cmp.name="character",
+                 src.cmp.name="character",
                  tg.pval="list",
                  tg.logFC="list"),
          prototype=list(
            cmp.name="happy",
+           src.cmp.name="",
            LRinter=data.frame(L="A", R="B", pw.id="123",
                               pw.name="one pw", pval=1.0, qval=1.0, L.logFC=2,
                               R.logFC=1.5, LR.pval=0.6, LR.corr=0.5,
@@ -62,6 +67,8 @@ setValidity("BSRInferenceComp",
             function(object) {
               if (!is.character(object@cmp.name))
                 return("cmp.name is not of character type")
+              if (!is.character(object@src.cmp.name))
+                return("src.cmp.name is not of character type")
               if (length(object@cmp.name) == 0)
                 return("cmp.name must have a length > 0")
               if (!is.list(object@tg.pval))
@@ -77,6 +84,7 @@ setMethod("show", "BSRInferenceComp",
           function(object) {
             callNextMethod()
             cat("Cluster comparison name:", object@cmp.name, "\n")
+            cat("Source cluster comparison name:", object@src.cmp.name, "\n")
           }
 )
 
@@ -111,6 +119,39 @@ if (!isGeneric("cmpName<-")) {
 #' @keywords internal
 setMethod("cmpName<-", "BSRInferenceComp", function(x, value){
   x@cmp.name <- value
+  methods::validObject(x)
+  x
+})
+
+
+if (!isGeneric("srcCmpName")) {
+  if (is.function("srcCmpName"))
+    fun <- srcCmpName
+  else
+    fun <- function(x) standardGeneric("srcCmpName")
+  setGeneric("srcCmpName", fun)
+}
+#' Source comparison name accessor
+#'
+#' @name srcCmpName
+#' @aliases srcCmpName,BSRInferenceComp-method
+#' @param x BSRInferenceComp object
+#' @export
+setMethod("srcCmpName", "BSRInferenceComp", function(x) x@src.cmp.name)
+
+if (!isGeneric("srcCmpName<-")) {
+  if (is.function("srcCmpName<-"))
+    fun <- `srcCmpName<-`
+  else
+    fun <- function(x,value) standardGeneric("srcCmpName<-")
+  setGeneric("srcCmpName<-", fun)
+}
+#' Source comparison name setter (internal use only)
+#' @param x BSRInferenceComp object
+#' @param value value to be set for bsrinf
+#' @keywords internal
+setMethod("srcCmpName<-", "BSRInferenceComp", function(x, value){
+  x@src.cmp.name <- value
   methods::validObject(x)
   x
 })

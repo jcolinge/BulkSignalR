@@ -361,18 +361,47 @@ if (!isGeneric("initialInference")) {
 }
 #' Inference of ligand-receptor interactions based on regulation
 #'
-#' Computes putative LR interactions along with their statistical confidence.
-#' The analysis is based on P-values associated to the regulation of
-#' genes/proteins in a comparison of two clusters of samples.
-#' In this initial inference, all the relevant pathways are reported,
-#' see reduction functions to reduce this list.
+#' This method supports two configurations that we refer to
+#' as paracrine and autocrine.
+#' 
+#' In the autocrine case, a single cluster comparison name is provided.
+#' In the corresponding cluster comparison, a group of samples A was
+#' compared to a group of samples B to determine fold-changes and associated
+#' P-values. The inferred ligand-receptor interactions take place in the
+#' samples of group A. They are paracrine interactions in the case of
+#' single-cell data or they take place in the same tissue represented by
+#' cluster A. A typical single-cell example would be a population of
+#' macrophages (group A) compared to all the other populations (group B) to
+#' represent specific increased or decreased expression in macrophages. The
+#' resulting ligand-receptor interactions will be autocrine interactions
+#' that are exacerbated (or reduced depending on the chosen parameters) in
+#' macrophages.
+#' 
+#' In the paracrine case, two cluster comparison names must be provided.
+#' For instance, a first comparison coul involved macrophages versus all
+#' the other cell populations as above. The second comparison could be
+#' B-cells against all the other populations. Now, calling initialInference()
+#' with comparison macrophages vs. the rest and, as source comparison, B-cells
+#' vs. the rest, will result in inferring interactions between B-cells
+#' (ligands) and macrophages (receptors and downstream pathways). To obtain
+#' macrophages to B-cells paracrine interactions, it is necessary to call the
+#' method a second time with permuted cluster comparison names. Another example
+#' in spatial transcriptomics could be two thin bands at the boundary of two
+#' tissue regions, one emitting the ligand and the other one expressing the
+#' receptor.
 #'
+#' In this initial inference, all the receptor-containing pathways are reported,
+#' see reduction functions to reduce this list.
+#' 
 #' @name initialInference
 #' @aliases initialInference,BSRDataModelComp-method
 #'
 #' @param obj       A BSRDataModelComp object.
-#' @param cmp.name        The name of the cluster comparison that should be used for
-#'   the inference.
+#' @param cmp.name        The name of the cluster comparison that should be used
+#' for the inference. Autocrine interactions if only this comparison name is
+#' provided, paracrine if a source comparison name is provided as well.
+#' @param src.cmp.name    The name of the source cluster comparison that should
+#' be used for paracrine interaction inferences.
 #' @param rank.p        A number between 0 and 1 defining the rank of the last
 #'   considered target genes.
 #' @param max.pval        The maximum P-value imposed to both the ligand
@@ -450,7 +479,7 @@ if (!isGeneric("initialInference")) {
 #' # infer ligand-receptor interactions from the comparison
 #' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
 #' @importFrom methods new
-setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p=0.55,
+setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cmp.name=NULL, rank.p=0.55,
                                                          max.pval=0.01, min.logFC=1, neg.receptors=FALSE,
                                                          pos.targets=FALSE, neg.targets=FALSE,
                                                          min.t.logFC=0.5, restrict.genes=NULL,
@@ -463,6 +492,8 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   
   if (!(cmp.name %in% names(comp(obj))))
     stop("cmp.name must exist in the names of comparisons contained in obj")
+  if (!is.null(src.cmp.name) && !(src.cmp.name %in% names(comp(obj))))
+    stop("src.cmp.name must exist in the names of comparisons contained in obj")
   reference <- match.arg(reference)
   fdr.proc <- match.arg(fdr.proc)
   if (min.logFC <= 0)
@@ -474,12 +505,23 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   if (neg.targets && pos.targets)
     stop("neg.targets and pos.targets cannot be TRUE simultaneously")
   
-  # retrieve the BSRClusterComp object
+  # retrieve the BSRClusterComp object(s)
   cc <- comp(obj)[[cmp.name]]
+  if (!is.null(src.cmp.name))
+    scc <- comp(obj)[[src.cmp.name]]
+  else
+    scc <- NULL
 
   inf.param <- list()
   inf.param$colA <- colA(cc)
   inf.param$colB <- colB(cc)
+  if (is.null(src.cmp.name))
+    inf.param$inference.type <- "autocrine"
+  else{
+    inf.param$inference.type <- "paracrine"
+    inf.param$src.colA <- colA(scc)
+    inf.param$src.colB <- colB(scc)
+  }
   inf.param$max.pval <- max.pval
   inf.param$min.logFC <- min.logFC
   inf.param$neg.receptors <- neg.receptors
@@ -488,7 +530,7 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   inf.param$min.t.logFC <- min.t.logFC
   inf.param$restrict.genes <- restrict.genes
   inf.param$use.full.network <- use.full.network
-  lr <- .getRegulatedLR(obj, cc, max.pval=max.pval, min.logFC=min.logFC,
+  lr <- .getRegulatedLR(obj, cc, scc, max.pval=max.pval, min.logFC=min.logFC,
                         neg.receptors=neg.receptors, restrict.genes=restrict.genes)
   
   inf.param$reference <- reference
@@ -521,10 +563,15 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, rank.p
   inf.param$receptor.reduced <- FALSE
   inf.param$pathway.reduced <- FALSE
   
+  if (is.null(src.cmp.name))
+    src.cmp.name.char <- ""
+  else
+    src.cmp.name.char <- src.cmp.name
   new("BSRInferenceComp", LRinter=inter[,c("L","R","pw.id","pw.name","pval","qval","L.logFC","R.logFC","LR.pval","LR.corr",
                                          "rank","len","rank.pval","rank.corr")],
       ligands=ligands, receptors=receptors, t.genes=tg, tg.corr=tgcorr,
-      tg.pval=tgpval, tg.logFC=tglogFC, inf.param=inf.param, cmp.name=cmp.name)
+      tg.pval=tgpval, tg.logFC=tglogFC, inf.param=inf.param, cmp.name=cmp.name,
+      src.cmp.name=src.cmp.name.char)
   
 }) # initialInference
 

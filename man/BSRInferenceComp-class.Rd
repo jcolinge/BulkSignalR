@@ -24,6 +24,10 @@ reductions to pathways, etc. See reduction functions
 \item{\code{cmp.name}}{The name of the BSRClusterComp object in a BSRDataModelComp
 object comp list.}
 
+\item{\code{src.cmp.name}}{The name of an optional BSRClusterComp object in a
+BSRDataModelComp object comp list in case paracrine inferences were
+performed.}
+
 \item{\code{tg.pval}}{A list of target gene P-values, one
 entry per interaction}
 

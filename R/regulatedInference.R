@@ -5,6 +5,8 @@
 #'
 #' @param ds              A BSRDataModel object
 #' @param cc              A BSRClusterComp object.
+#' @param scc             An optional BSRClusterComp object in case ligand
+#'   regulation was assessed in a separate cluster comparison.
 #' @param max.pval        The maximum P-value imposed to both the ligand
 #' and the receptor.
 #' @param min.logFC       The maximum log2 fold-change allowed for
@@ -27,7 +29,7 @@
 #' @importFrom foreach %do% %dopar%
 #' @import doParallel
 #' @keywords internal
-.getRegulatedLR <- function(ds, cc, max.pval=0.01, min.logFC=1,
+.getRegulatedLR <- function(ds, cc, scc=NULL, max.pval=0.01, min.logFC=1,
                             neg.receptors=FALSE, restrict.genes=NULL) {
  
   # local binding
@@ -40,7 +42,9 @@
   if (!is(ds, "BSRDataModelComp"))
     stop("ds must be an object of class BSRDataModelComp")
   if (!is(cc, "BSRClusterComp"))
-    stop("c must be an object of class BSRClusterComp")
+    stop("cc must be an object of class BSRClusterComp")
+  if (!is.null(scc) && !is(scc, "BSRClusterComp"))
+    stop("scc must be an object of class BSRClusterComp")
   
   lrgenes <- intersect(c(LRdb$ligand,
                          LRdb$receptor), rownames(stats(cc)))
@@ -48,18 +52,27 @@
     lrgenes <- intersect(lrgenes, restrict.genes)
   
   # compute all the correlations at once
-  corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colB(cc))]), method = "spearman")
+  if (is.null(scc))
+    corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colB(cc))]), method = "spearman")
+  else
+    corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colA(scc))]), method = "spearman")
+  
   # get the pairs
+  R.stats <- stats(cc)
+  if (is.null(scc))
+    L.stats <- stats(cc)
+  else
+    L.stats <- stats(scc)
   pairs <- NULL
   for (i in seq_len(nrow(LRdb))){
     L <- LRdb$ligand[i]
     R <- LRdb$receptor[i]
     if (L %in% lrgenes && R %in% lrgenes){
-      pL <- stats(cc)[L, "pval"]
-      pR <- stats(cc)[R, "pval"]
+      pL <- L.stats[L, "pval"]
+      pR <- R.stats[R, "pval"]
       if (pL <= max.pval && pR <= max.pval){
-        fcL <- stats(cc)[L, "logFC"]
-        fcR <- stats(cc)[R, "logFC"]
+        fcL <- L.stats[L, "logFC"]
+        fcR <- R.stats[R, "logFC"]
         if (fcL >= min.logFC &&
             ((neg.receptors && abs(fcR) >= min.logFC) || fcR >= min.logFC))
           pairs <- rbind(pairs,
@@ -317,7 +330,8 @@
 #' In case \code{ds} is set, then correlations between the receptor and
 #' target genes will be computed for documentation or additional use. The
 #' row names of \code{stats(cc)} and \code{ncounts(ds)} must match
-#' exactly (not necessarily in the same order).
+#' exactly (not necessarily in the same order). The same is true for
+#' \code{stats(scc)} in case \code{scc} is provided.
 #'
 #' In a pathway of the reference, i.e., a Reactome pathway or the genes of a
 #' GOBP term, the target genes are the
@@ -356,7 +370,7 @@
   
   reference <- match.arg(reference)
   results <- list()
-  
+
   # Reactome pathways
   if (reference %in% c("REACTOME-GOBP","REACTOME")){
     pw.size <- table(reactome$`Reactome ID`)
