@@ -394,7 +394,7 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
   t.genes <- list()
   tg.corr <- list()
   tg.pval <- list()
-  lg.logFC <- list()
+  tg.logFC <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   LR <- unique(pairs[, c("L","R")])
