@@ -17,7 +17,8 @@
 
 \item{stats}{A data.frame containing statistics about the differential
 analysis cluster A versus B. \code{stats} must contain at least the
-columns 'pval' (for P-values) and 'logFC' for log-fold-changes A/B.}
+columns 'pval' (for P-values), 'logFC' for log-fold-changes A/B, and
+'expr' for the expression of the genes in cluster A.}
 }
 \value{
 A BSRClusterComp object.
@@ -50,7 +51,8 @@ bsrdm.comp <- as.BSRDataModelComp(bsrdm)
 colA <- as.integer(1:5)
 colB <- as.integer(8:15)
 n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+                    expr=runif(n, 0, 10))
 rownames(stats) <- rownames(ncounts(bsrdm.comp))
 bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")

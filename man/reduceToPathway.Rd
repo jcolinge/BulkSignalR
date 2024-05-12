@@ -32,8 +32,9 @@ The information of which ligand interacted with which receptor is lost as
 all the ligands and all the receptors forming pairs related to a certain
 pathway are combined.
 For a given pathway, the reported P-values and target genes are those of
-the best ligand-receptor pair that
-was in this pathway.
+the best ligand-receptor pair that was in this pathway.
+The same logic applies to the LR-score, and the ligand and receptor
+expression.
 Receptors and ligands are combined in two semi-colon-separated
 lists surrounded by curly brackets in the tabular slot \code{LRinter},
 while the list representation slots (\code{ligands} and
@@ -70,7 +71,8 @@ bsrdm.comp <- as.BSRDataModelComp(bsrdm)
 colA <- as.integer(1:5)
 colB <- as.integer(8:15)
 n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+                    expr=runif(n, 0, 10))
 rownames(stats) <- rownames(ncounts(bsrdm.comp))
 bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")

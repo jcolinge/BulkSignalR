@@ -267,6 +267,27 @@ setMethod("infParam<-", "BSRInference", function(x, value){
 })
 
 
+# simplified table view ========================================================
+
+if (!isGeneric("LRinterShort")) {
+  if (is.function("LRinterShort"))
+    fun <- LRinterShort
+  else
+    fun <- function(x) standardGeneric("LRinterShort")
+  setGeneric("LRinterShort", fun)
+}
+#' Simplified LRinter accessor reporting the essential columns
+#'
+#' @name LRinterShort
+#' @aliases LRinterShort,BSRInference-method
+#' @param x BSRInference object
+#' @export
+setMethod("LRinterShort", "BSRInference",
+          function(x) x@LRinter[,c("L", "R", "pw.id", "pw.name",
+                                   "qval", "LR.corr", "len")]
+          )
+
+
 # Rescoring ====================================================================
 
 if (!isGeneric("rescoreInference")) {

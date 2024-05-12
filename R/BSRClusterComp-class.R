@@ -3,13 +3,13 @@ library(methods)
 #' BulkSignalR Cluster Comparison Object
 #'
 #' An S4 class to represent the comparison of two clusters of samples to
-#' infer LR interactions based on the resulting P-values and
-#' log-fold-changes (logFC).
+#' infer LR interactions based on the resulting P-values,
+#' log-fold-changes (logFC), and expression values.
 #'
 #' @slot colA   Column indices for the samples in cluster A.
 #' @slot colB   Column indices for the samples in cluster B.
 #' @slot stats  Comparison statistics A versus B as a data.frame and
-#' containing at least two columns named 'pval' and 'logFC'.
+#' containing at least two columns named 'pval', 'logFC', and 'expr'.
 #' 
 #' @export
 #' @examples
@@ -20,7 +20,8 @@ library(methods)
 #' colA <- as.integer(1:2)
 #' colB <- as.integer(3:4)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' edger.stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' edger.stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                           expr=c(1,2,3))
 #' rownames(edger.stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, edger.stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "my_comparison")
@@ -33,7 +34,7 @@ setClass("BSRClusterComp",
          prototype=list(
            colA=as.integer(1:2),
            colB=as.integer(3:4),
-           stats=data.frame(pval=c(0.01,0.01),logFC=c(1,-1))
+           stats=data.frame(pval=c(0.01,0.01),logFC=c(1,-1),expr=c(1,2))
          ))
 
 setValidity("BSRClusterComp",

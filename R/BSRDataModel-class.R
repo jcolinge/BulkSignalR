@@ -58,7 +58,7 @@ setMethod("show", "BSRDataModel",
         cat("Expression values are log2-transformed: ", object@log.transformed,
             "\n", sep="")
         cat("Normalization method: ", object@normalization, "\n", sep="")
-        cat("Organism : ", object@initial.organism,"\n", sep="")
+        cat("Organism: ", object@initial.organism,"\n", sep="")
         cat("Statistical model parameters:\n")
         utils::str(object@param)
         cat("Expression data:\n")

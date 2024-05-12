@@ -6,8 +6,8 @@
 \title{BulkSignalR Cluster Comparison Object}
 \description{
 An S4 class to represent the comparison of two clusters of samples to
-infer LR interactions based on the resulting P-values and
-log-fold-changes (logFC).
+infer LR interactions based on the resulting P-values,
+log-fold-changes (logFC), and expression values.
 }
 \section{Slots}{
 
@@ -17,7 +17,7 @@ log-fold-changes (logFC).
 \item{\code{colB}}{Column indices for the samples in cluster B.}
 
 \item{\code{stats}}{Comparison statistics A versus B as a data.frame and
-containing at least two columns named 'pval' and 'logFC'.}
+containing at least two columns named 'pval', 'logFC', and 'expr'.}
 }}
 
 \examples{
@@ -28,7 +28,8 @@ bsrdm.comp <- as.BSRDataModelComp(bsrdm)
 colA <- as.integer(1:2)
 colB <- as.integer(3:4)
 n <- nrow(ncounts(bsrdm.comp))
-edger.stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+edger.stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+                          expr=c(1,2,3))
 rownames(edger.stats) <- rownames(ncounts(bsrdm.comp))
 bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, edger.stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "my_comparison")

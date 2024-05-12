@@ -3,7 +3,7 @@ library(methods)
 #' BulkSignalR cluster comparison-based inference object
 #'
 #' An S4 class to represent ligand-receptor interactions inferred from
-#' a comparison of two clusters of samples. This class inherits from
+#' a comparison between two clusters of samples. This class inherits from
 #' BSRInference.
 #'
 #' @slot cmp.name  The name of the BSRClusterComp object in a BSRDataModelComp
@@ -14,6 +14,8 @@ library(methods)
 #' @slot tg.pval  A list of target gene P-values, one
 #' entry per interaction
 #' @slot tg.logFC  A list of target gene logFC, one
+#' entry per interaction
+#' @slot tg.expr  A list of target gene expression, one
 #' entry per interaction
 #'
 #' @details This class is contains inferred LR interactions along with
@@ -37,7 +39,8 @@ library(methods)
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -50,7 +53,8 @@ setClass("BSRInferenceComp",
          slots=c(cmp.name="character",
                  src.cmp.name="character",
                  tg.pval="list",
-                 tg.logFC="list"),
+                 tg.logFC="list",
+                 tg.expr="list"),
          prototype=list(
            cmp.name="happy",
            src.cmp.name="",
@@ -58,9 +62,11 @@ setClass("BSRInferenceComp",
                               pw.name="one pw", pval=1.0, qval=1.0, L.logFC=2,
                               R.logFC=1.5, LR.pval=0.6, LR.corr=0.5,
                               rank=2, len=50, rank.pval=0.6, rank.corr=0.34,
+                              LR.score=0.6, L.expr=2, R.expr=3,
                               stringsAsFactors=FALSE),
            tg.pval=list(c(0.05,0.1,0.008)),
-           tg.logFC=list(c(-1,0,2))
+           tg.logFC=list(c(-1,0,2)),
+           tg.expr=list(c(1,2,3))
          ))
 
 setValidity("BSRInferenceComp",
@@ -75,6 +81,8 @@ setValidity("BSRInferenceComp",
                 return("tg.pval is not a list")
               if (!is.list(object@tg.logFC))
                 return("tg.logFC is not a list")
+              if (!is.list(object@tg.expr))
+                return("tg.expr is not a list")
               
               TRUE
             }
@@ -223,6 +231,79 @@ setMethod("tgLogFC<-", "BSRInferenceComp", function(x, value){
 })
 
 
+if (!isGeneric("tgExpr")) {
+  if (is.function("tgExpr"))
+    fun <- tgExpr
+  else
+    fun <- function(x) standardGeneric("tgExpr")
+  setGeneric("tgExpr", fun)
+}
+#' Target gene expression accessor
+#'
+#' @name tgExpr
+#' @aliases tgExpr,BSRInferenceComp-method
+#' @param x BSRInferenceComp object
+#' @export
+setMethod("tgExpr", "BSRInferenceComp", function(x) x@tg.expr)
+
+if (!isGeneric("tgExpr<-")) {
+  if (is.function("tgExpr<-"))
+    fun <- `tgExpr<-`
+  else
+    fun <- function(x,value) standardGeneric("tgExpr<-")
+  setGeneric("tgExpr<-", fun)
+}
+#' Target gene expression setter (internal use only)
+#' @param x BSRInferenceComp object
+#' @param value value to be set for bsrinf
+#' @keywords internal
+setMethod("tgExpr<-", "BSRInferenceComp", function(x, value){
+  x@tg.expr <- value
+  methods::validObject(x)
+  x
+})
+
+
+# simplified table views =======================================================
+
+if (!isGeneric("LRinterShort")) {
+  if (is.function("LRinterShort"))
+    fun <- LRinterShort
+  else
+    fun <- function(x) standardGeneric("LRinterShort")
+  setGeneric("LRinterShort", fun)
+}
+#' Simplified LRinter accessor reporting the essential columns
+#'
+#' @name LRinterShort
+#' @aliases LRinterShort,BSRInferenceComp-method
+#' @param x BSRInferenceComp object
+#' @export
+setMethod("LRinterShort", "BSRInferenceComp",
+          function(x) x@LRinter[,c("L", "R", "pw.id", "pw.name",
+                                   "qval", "L.logFC", "R.logFC", "len")]
+)
+
+
+if (!isGeneric("LRinterScore")) {
+  if (is.function("LRinterScore"))
+    fun <- LRinterScore
+  else
+    fun <- function(x) standardGeneric("LRinterScore")
+  setGeneric("LRinterScore", fun)
+}
+#' Simplified LRinter accessor with focus on the LR-score
+#'
+#' @name LRinterScore
+#' @aliases LRinterScore,BSRInferenceComp-method
+#' @param x BSRInferenceComp object
+#' @export
+setMethod("LRinterScore", "BSRInferenceComp",
+          function(x) x@LRinter[,c("L", "R", "pw.id", "pw.name",
+                                   "LR.score", "L.expr", "R.expr", "len")]
+)
+
+
 # Rescoring ====================================================================
 
 if (!isGeneric("rescoreInference")) {
@@ -265,7 +346,8 @@ if (!isGeneric("rescoreInference")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -289,8 +371,8 @@ setMethod("rescoreInference", "BSRInferenceComp", function(obj, param, rank.p=0.
   t.genes <- tGenes(obj)
   tg.pval <- tgPval(obj)
   tg.corr <- tgCorr(obj)
-  
-  # recompute P-values
+
+  # recompute P-values, LR- and LRT-scores
   for (i in 1:nrow(pairs)){
     tg <- t.genes[[i]]
     spvals <- tg.pval[[i]]
@@ -371,7 +453,8 @@ if (!isGeneric("reduceToBestPathway")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -395,6 +478,8 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
   tg.corr <- list()
   tg.pval <- list()
   tg.logFC <- list()
+  tg.expr <- list()
+  
   LRinter <- NULL
   pairs <- obj@LRinter
   LR <- unique(pairs[, c("L","R")])
@@ -412,6 +497,7 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
     tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
+    tg.expr <- c(tg.expr, obj@tg.expr[j])
     LRinter <- rbind(LRinter, pairs[j,])
   }
   
@@ -423,6 +509,7 @@ setMethod("reduceToBestPathway", "BSRInferenceComp", function(obj) {
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
   obj@tg.logFC <- tg.logFC
+  obj@tg.expr <- tg.expr
   obj@inf.param$pathway.reduced <- TRUE
   
   obj
@@ -451,6 +538,8 @@ if (!isGeneric("reduceToReceptor")) {
 #'
 #' The reported P-value and target genes are those from the line with the
 #' pathway featuring the smallest P-value.
+#' The same logic applies to the LR-score, and the ligand
+#' expression.
 #' @param obj BRSInferenceComp object
 #' @export
 #' @examples
@@ -466,7 +555,8 @@ if (!isGeneric("reduceToReceptor")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -493,6 +583,7 @@ setMethod("reduceToReceptor", "BSRInferenceComp", function(obj){
   tg.corr <- list()
   tg.pval <- list()
   tg.logFC <- list()
+  tg.expr <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   for (R in unique(pairs$R)){
@@ -505,8 +596,11 @@ setMethod("reduceToReceptor", "BSRInferenceComp", function(obj){
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
     tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
+    tg.expr <- c(tg.expr, obj@tg.expr[j])
     to.add <- pairs[j,]
     to.add[1, "L"] <- paste0("{", paste(unique(lig$L), collapse=";"), "}")
+    to.add[1, "LR.score"] <- max(lig$LR.score)
+    to.add[1, "L.expr"] <- max(lig$L.expr)
     LRinter <- rbind(LRinter, to.add)
   }
   
@@ -518,6 +612,7 @@ setMethod("reduceToReceptor", "BSRInferenceComp", function(obj){
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
   obj@tg.logFC <- tg.logFC
+  obj@tg.expr <- tg.expr
   obj@inf.param$pathway.reduced <- TRUE
   obj@inf.param$ligand.reduced <- TRUE
   
@@ -547,6 +642,8 @@ if (!isGeneric("reduceToLigand")) {
 #'
 #' The reported P-value and target genes are those from the pathway with
 #' the smallest P-value.
+#' The same logic applies to the LR-score, and the receptor
+#' expression.
 #' @param obj BSRInferenceComp object
 #' @export
 #' @examples
@@ -562,7 +659,8 @@ if (!isGeneric("reduceToLigand")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -589,6 +687,7 @@ setMethod("reduceToLigand", "BSRInferenceComp", function(obj){
   tg.corr <- list()
   tg.pval <- list()
   tg.logFC <- list()
+  tg.expr <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   for (L in unique(pairs$L)){
@@ -601,8 +700,11 @@ setMethod("reduceToLigand", "BSRInferenceComp", function(obj){
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
     tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
+    tg.expr <- c(tg.expr, obj@tg.expr[j])
     to.add <- pairs[j,]
     to.add[1, "R"] <- paste0("{", paste(unique(rec$R), collapse=";"), "}")
+    to.add[1, "LR.score"] <- max(lig$LR.score)
+    to.add[1, "R.expr"] <- max(lig$R.expr)
     LRinter <- rbind(LRinter, to.add)
   }
   
@@ -614,6 +716,7 @@ setMethod("reduceToLigand", "BSRInferenceComp", function(obj){
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
   obj@tg.logFC <- tg.logFC
+  obj@tg.expr <- tg.expr
   obj@inf.param$pathway.reduced <- TRUE
   obj@inf.param$receptor.reduced <- TRUE
   
@@ -642,8 +745,9 @@ if (!isGeneric("reduceToPathway")) {
 #' all the ligands and all the receptors forming pairs related to a certain
 #' pathway are combined.
 #' For a given pathway, the reported P-values and target genes are those of
-#' the best ligand-receptor pair that
-#' was in this pathway.
+#' the best ligand-receptor pair that was in this pathway.
+#' The same logic applies to the LR-score, and the ligand and receptor
+#' expression.
 #' Receptors and ligands are combined in two semi-colon-separated
 #' lists surrounded by curly brackets in the tabular slot \code{LRinter},
 #' while the list representation slots (\code{ligands} and
@@ -664,7 +768,8 @@ if (!isGeneric("reduceToPathway")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -692,6 +797,7 @@ setMethod("reduceToPathway", "BSRInferenceComp", function(obj){
   tg.corr <- list()
   tg.pval <- list()
   tg.logFC <- list()
+  tg.expr <- list()
   LRinter <- NULL
   pairs <- obj@LRinter
   for (p in unique(pairs$pw.id)){
@@ -702,11 +808,15 @@ setMethod("reduceToPathway", "BSRInferenceComp", function(obj){
     tg.corr <- c(tg.corr, obj@tg.corr[j])
     tg.pval <- c(tg.pval, obj@tg.pval[j])
     tg.logFC <- c(tg.logFC, obj@tg.logFC[j])
+    tg.expr <- c(tg.expr, obj@tg.expr[j])
     to.add <- pairs[j,]
     to.add[1, "L"] <- paste0("{", paste(unique(pairs$L[pairs$pw.id==p]),
                                         collapse=";"), "}")
     to.add[1, "R"] <- paste0("{", paste(unique(pairs$R[pairs$pw.id==p]),
                                         collapse=";"), "}")
+    to.add[1, "LR.score"] <- max(pairs$LR.score[pairs$pw.id==p])
+    to.add[1, "R.expr"] <- max(pairs$R.expr[pairs$pw.id==p])
+    to.add[1, "L.expr"] <- max(pairs$L.expr[pairs$pw.id==p])
     LRinter <- rbind(LRinter, to.add)
   }
   
@@ -718,6 +828,7 @@ setMethod("reduceToPathway", "BSRInferenceComp", function(obj){
   obj@tg.corr <- tg.corr
   obj@tg.pval <- tg.pval
   obj@tg.logFC <- tg.logFC
+  obj@tg.expr <- tg.expr
   obj@inf.param$ligand.reduced <- TRUE
   obj@inf.param$receptor.reduced <- TRUE
   
@@ -769,7 +880,8 @@ if (!isGeneric("getLRGeneSignatures")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")

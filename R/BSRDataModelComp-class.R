@@ -7,6 +7,10 @@ library(methods)
 #'
 #' @slot comp   A named list of BSRClusterComp objects, one per
 #' comparison.
+#' @slot mu     A number representing the average value in the normalized and
+#' lop1p-transformed gene expression matrix. This value is used to compute
+#' the LR-score (cf. SingleCellSignalR paper, Cabello-Aguilar, et al.,
+#' Nucleic Acids Res, 2020)
 #' @export
 #' @examples
 #' # prepare data
@@ -19,7 +23,8 @@ library(methods)
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                    expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -29,7 +34,8 @@ library(methods)
 #' 
 setClass("BSRDataModelComp",
          contains=c("BSRDataModel"),
-         slots=c(comp="list"),
+         slots=c(comp="list",
+                 mu="numeric"),
          prototype=list(
            initial.organism="hsapiens",
            initial.orthologs=list("A","B","C"),
@@ -37,7 +43,8 @@ setClass("BSRDataModelComp",
            log.transformed=FALSE,
            normalization="UQ",
            param=list(spatial.smooth=FALSE),
-           comp=list()
+           comp=list(),
+           mu=1.0
          ))
 
 setValidity("BSRDataModelComp",
@@ -49,6 +56,8 @@ setValidity("BSRDataModelComp",
                   if (!is(object@comp[[c]], "BSRClusterComp"))
                     return("comp must contain objects of class BSRClusterComp")
               }
+              if (!is.numeric(object@mu) || object@mu<=0)
+                  return("mu must be numeric and >0")
 
               TRUE
             }
@@ -57,6 +66,7 @@ setValidity("BSRDataModelComp",
 setMethod("show", "BSRDataModelComp",
           function(object) {
             callNextMethod()
+            cat("mu: ", object@mu, "\n", sep="")
             cat("Defined comparisons:\n")
             utils::str(object@comp)
           }
@@ -99,6 +109,40 @@ setMethod("comp<-", "BSRDataModelComp", function(x,value){
 })
 
 
+if (!isGeneric("mu")) {
+  if (is.function("mu"))
+    fun <- mu
+  else
+    fun <- function(x) standardGeneric("mu")
+  setGeneric("mu", fun)
+}
+#' Mu accessor
+#'
+#' @name mu
+#' @aliases mu,BSRDataModelComp-method
+#' @param x object BSRDataModelComp 
+#' @export
+setMethod("mu", "BSRDataModelComp", function(x) x@mu)
+
+if (!isGeneric("mu<-")) {
+  if (is.function("mu<-"))
+    fun <- `mu<-`
+  else
+    fun <- function(x, value) standardGeneric("mu<-")
+  setGeneric("mu<-", fun)
+}
+#' Mu setter (internal use only)
+#'
+#' @param x object BSRDataModelComp 
+#' @param value value to be set for BSRDataModelComp
+#' @keywords internal 
+setMethod("mu<-", "BSRDataModelComp", function(x,value){
+  x@mu <- value
+  methods::validObject(x)
+  x
+})
+
+
 # generation of BSRDataModelComp from BSRDataModel =====================
 
 #' @title conversion of BSRDataModel into BSRDataModelComp 
@@ -125,7 +169,10 @@ as.BSRDataModelComp <- function(bsrdm){
   
   if (!is(bsrdm, "BSRDataModel"))
     stop("bsrdm must be of class BSRDataModel")
-  new("BSRDataModelComp", bsrdm, comp=list())
+  m <- mean(ncounts(bsrdm))
+  if (!logTransformed(bsrdm))
+    m <- log1p(m) # approximate of mu on the log1p-transformed matrix
+  new("BSRDataModelComp", bsrdm, comp=list(), mu=m)
   
 } # as.BSRDataModelComp
 
@@ -154,7 +201,8 @@ if (!isGeneric("defineClusterComp")) {
 #' @param colB   Cluster B column indices.
 #' @param stats  A data.frame containing statistics about the differential
 #' analysis cluster A versus B. \code{stats} must contain at least the
-#' columns 'pval' (for P-values) and 'logFC' for log-fold-changes A/B.
+#' columns 'pval' (for P-values), 'logFC' for log-fold-changes A/B, and
+#' 'expr' for the expression of the genes in cluster A.
 #'
 #' @details Create a BSRClusterComp object describing a comparison
 #' of two clusters of columns taken from the expression matrix
@@ -182,7 +230,8 @@ if (!isGeneric("defineClusterComp")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -206,8 +255,8 @@ setMethod("defineClusterComp", "BSRDataModelComp", function(obj, colA,
     stop("colB indices must fall in [1; ncol(ncounts)]")
   if (!is.data.frame(stats))
     stop("stats must be a data.frame")
-  if (!all(c("pval","logFC") %in% names(stats)))
-    stop("stats data.frame must contain columns named 'pval' and 'logFC'")
+  if (!all(c("pval","logFC","expr") %in% names(stats)))
+    stop("stats data.frame must contain columns named 'pval', 'logFC', and 'expr'")
   if (nrow(stats) != nrow(ncounts(obj)))
     stop("stats and ncounts(obj) number of rows differ")
   if (!is.null(rownames(stats)) &&
@@ -258,7 +307,8 @@ if (!isGeneric("addClusterComp")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -321,7 +371,8 @@ if (!isGeneric("removeClusterComp")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' 
@@ -453,8 +504,12 @@ if (!isGeneric("initialInference")) {
 #' intersection with the observed data (use.full.network set to FALSE) for
 #' consistency. Accordingly, the minimum and maximum pathway default values
 #' have been raised from 5 & 200 to 10 & 600 respectively. By default,
-#' use.full.network is set to TRUE, meaning no intersection and hence larger
-#' pathways.
+#' use.full.network is set to FALSE.
+#' 
+#' In addition to statistical significance estimated according to BulkSignalR
+#' statistical model, we compute SingleCellSignalR LR-score, L and R
+#' cluster average expression. In the paracrine case, L average expression
+#' is taken from the source cluster.
 #'
 #' @return A BSRInferenceComp object with initial inferences set.
 #'
@@ -471,7 +526,8 @@ if (!isGeneric("initialInference")) {
 #' colA <- as.integer(1:5)
 #' colB <- as.integer(8:15)
 #' n <- nrow(ncounts(bsrdm.comp))
-#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
 #' rownames(stats) <- rownames(ncounts(bsrdm.comp))
 #' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 #' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
@@ -483,7 +539,7 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
                                                          max.pval=0.01, min.logFC=1, neg.receptors=FALSE,
                                                          pos.targets=FALSE, neg.targets=FALSE,
                                                          min.t.logFC=0.5, restrict.genes=NULL,
-                                                         use.full.network=TRUE,
+                                                         use.full.network=FALSE,
                                                          reference=c("REACTOME-GOBP","REACTOME","GOBP"),
                                                          max.pw.size=600, min.pw.size=10, min.positive=4,
                                                          restrict.pw=NULL, with.complex=TRUE,
@@ -512,7 +568,10 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
   else
     scc <- NULL
 
+  # store inference parameters and retrieve relevant L & R
   inf.param <- list()
+  inf.param$log.transformed.data <- logTransformed(obj)
+  inf.param$mu <- mu(obj)
   inf.param$colA <- colA(cc)
   inf.param$colB <- colB(cc)
   if (is.null(src.cmp.name))
@@ -533,6 +592,7 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
   lr <- .getRegulatedLR(obj, cc, scc, max.pval=max.pval, min.logFC=min.logFC,
                         neg.receptors=neg.receptors, restrict.genes=restrict.genes)
   
+  # apply BSR model on the targets
   inf.param$reference <- reference
   inf.param$min.pw.size <- min.pw.size
   inf.param$max.pw.size <- max.pw.size
@@ -545,11 +605,25 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
                                             min.pw.size=min.pw.size, max.pw.size=max.pw.size,
                                             min.positive=min.positive, with.complex=with.complex,
                                             restrict.pw=restrict.pw)
-  
   inf.param$fdr.proc <- fdr.proc
   inf.param$rank.p <- rank.p
+  
+  # compute P-values
   inter <- .pValuesRegulatedLR(pairs, param(obj), rank.p=rank.p, fdr.proc=fdr.proc)
   
+  # compute LR-score for compatibility with SingleCellSignalR version 1
+  if (is.null(scc))
+    inter$L.expr <- stats(cc)[inter$L, "expr"]
+  else
+    inter$L.expr <- stats(scc)[inter$L, "expr"]
+  inter$R.expr <- stats(cc)[inter$R, "expr"]
+  if (inf.param$log.transformed.data)
+    sq <- sqrt(inter$L.expr * inter$R.expr)
+  else
+    sq <- sqrt(log1p(inter$L.expr) * log1p(inter$R.expr))
+  inter$LR.score <- sq/(inf.param$mu+sq)
+
+  # prepare the accompanying lists  
   ligands <- strsplit(inter$L, ";")
   receptors <- strsplit(inter$R, ";")
   tg <- strsplit(inter$target.genes, ";")
@@ -559,19 +633,24 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
                    function(x) as.numeric(x))
   tgcorr <- lapply(strsplit(inter$target.corr, ";"),
                    function(x) as.numeric(x))
+  tgexpr <- lapply(strsplit(inter$target.expr, ";"),
+                   function(x) as.numeric(x))
   inf.param$ligand.reduced <- FALSE
   inf.param$receptor.reduced <- FALSE
   inf.param$pathway.reduced <- FALSE
   
+  # instantiate the object
   if (is.null(src.cmp.name))
     src.cmp.name.char <- ""
   else
     src.cmp.name.char <- src.cmp.name
-  new("BSRInferenceComp", LRinter=inter[,c("L","R","pw.id","pw.name","pval","qval","L.logFC","R.logFC","LR.pval","LR.corr",
-                                         "rank","len","rank.pval","rank.corr")],
+  new("BSRInferenceComp", LRinter=inter[,c("L","R","pw.id","pw.name","pval","qval",
+                                           "L.logFC","R.logFC","LR.pval","LR.corr",
+                                           "rank","len","rank.pval","rank.corr",
+                                           "LR.score","L.expr","R.expr")],
       ligands=ligands, receptors=receptors, t.genes=tg, tg.corr=tgcorr,
-      tg.pval=tgpval, tg.logFC=tglogFC, inf.param=inf.param, cmp.name=cmp.name,
-      src.cmp.name=src.cmp.name.char)
+      tg.pval=tgpval, tg.logFC=tglogFC, tg.expr=tgexpr, inf.param=inf.param,
+      cmp.name=cmp.name, src.cmp.name=src.cmp.name.char)
   
 }) # initialInference
 

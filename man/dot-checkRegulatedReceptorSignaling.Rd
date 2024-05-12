@@ -12,7 +12,7 @@
   pos.targets = FALSE,
   neg.targets = FALSE,
   min.t.logFC = 0.5,
-  use.full.network = TRUE,
+  use.full.network = FALSE,
   max.pw.size = 600,
   min.pw.size = 10,
   min.positive = 4,

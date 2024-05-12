@@ -13,6 +13,11 @@ ligand-receptor interactions based on sample cluster comparisons.
 \describe{
 \item{\code{comp}}{A named list of BSRClusterComp objects, one per
 comparison.}
+
+\item{\code{mu}}{A number representing the average value in the normalized and
+lop1p-transformed gene expression matrix. This value is used to compute
+the LR-score (cf. SingleCellSignalR paper, Cabello-Aguilar, et al.,
+Nucleic Acids Res, 2020)}
 }}
 
 \examples{
@@ -26,7 +31,8 @@ bsrdm.comp <- as.BSRDataModelComp(bsrdm)
 colA <- as.integer(1:5)
 colB <- as.integer(8:15)
 n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+                   expr=runif(n, 0, 10))
 rownames(stats) <- rownames(ncounts(bsrdm.comp))
 bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")

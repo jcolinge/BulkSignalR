@@ -35,7 +35,7 @@
   neg.targets = FALSE,
   min.t.logFC = 0.5,
   restrict.genes = NULL,
-  use.full.network = TRUE,
+  use.full.network = FALSE,
   reference = c("REACTOME-GOBP", "REACTOME", "GOBP"),
   max.pw.size = 600,
   min.pw.size = 10,
@@ -187,8 +187,12 @@ Note that since the introduction of the use.full.network parameter
 intersection with the observed data (use.full.network set to FALSE) for
 consistency. Accordingly, the minimum and maximum pathway default values
 have been raised from 5 & 200 to 10 & 600 respectively. By default,
-use.full.network is set to TRUE, meaning no intersection and hence larger
-pathways.
+use.full.network is set to FALSE.
+
+In addition to statistical significance estimated according to BulkSignalR
+statistical model, we compute SingleCellSignalR LR-score, L and R
+cluster average expression. In the paracrine case, L average expression
+is taken from the source cluster.
 }
 \examples{
 print('prepareDataset')
@@ -213,7 +217,8 @@ bsrdm.comp <- as.BSRDataModelComp(bsrdm)
 colA <- as.integer(1:5)
 colB <- as.integer(8:15)
 n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
+stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+                    expr=runif(n, 0, 10))
 rownames(stats) <- rownames(ncounts(bsrdm.comp))
 bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
