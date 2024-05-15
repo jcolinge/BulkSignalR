@@ -45,7 +45,8 @@ bubblePlotPathwaysLR(
 \item{format}{File format.}
 }
 \value{
-A plot is created with the given filename. 
+A bubble plot displayed in the current viewport or in a file
+in case a filename was provided. 
 
 This is a convenience function to propose a simple way
 of representing LR - Pathways association

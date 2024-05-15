@@ -304,7 +304,7 @@ setMethod("LRinterScore", "BSRInferenceComp",
 )
 
 
-# Rescoring ====================================================================
+# Rescoring & updating ================================================================
 
 if (!isGeneric("rescoreInference")) {
   if (is.function("rescoreInference"))
@@ -384,6 +384,7 @@ setMethod("rescoreInference", "BSRInferenceComp", function(obj, param, rank.p=0.
     # for the individual correlation Gaussian model
     len <- pairs$len[i]
     r <- min(max(1, trunc(rank.p*len)), len)
+    pairs$rank[i] <- r
     rank.pval <- spvals[r]
     # r-1 P-values are > rank.pval, prob to have r-1 or less
     # P-values > rank.pval is given by a binomial with success rate
@@ -411,6 +412,262 @@ setMethod("rescoreInference", "BSRInferenceComp", function(obj, param, rank.p=0.
   obj
   
 }) # rescoreInference
+
+
+if (!isGeneric("updateInference")) {
+  if (is.function("updateInference"))
+    fun <- updateInference
+  else
+    fun <- function(obj, ...) standardGeneric("updateInference")
+  setGeneric("updateInference", fun)
+}
+#' Inference updating
+#'
+#' A method to update the data underlying statistical significance estimations
+#' prior to rescoring for an existing BSRInferenceComp object
+#' (P- and Q-value estimations as well as LR-score).
+#'
+#' @name updateInference
+#' @aliases updateInference,BSRInferenceComp-method
+#'
+#' @param obj BSRInferecenceComp object.
+#' @param cmp.name        The name of the cluster comparison that should be used
+#' for the inference. Autocrine interactions if only this comparison name is
+#' provided, paracrine if a source comparison name is provided as well.
+#' @param src.cmp.name    The name of the source cluster comparison that should
+#' be used for paracrine interaction inferences.
+#' @param rank.p        A number between 0 and 1 defining the rank of the last
+#'   considered target genes.
+#' @param max.pval        The maximum P-value imposed to both the ligand
+#'   and the receptor.
+#' @param min.logFC       The minimum log2 fold-change allowed for
+#'   both the receptor and the ligand.
+#' @param min.LR.score       The minimum LR-score allowed for the interaction.
+#' @param neg.receptors     A logical indicating whether receptors are only
+#'   allowed to be upregulated (FALSE), or up- and downregulated (TRUE).
+#' @param fdr.proc      The procedure for adjusting P-values according to
+#' \code{\link[multtest]{mt.rawp2adjp}}.
+#' @param min.positive    Minimum number of target genes to be found in a given
+#'   pathway.
+#' @param min.t.logFC     The minimum log2 fold-change allowed for
+#'   targets in case pos.targets or neg.targets are used.
+#' @param pos.targets   A logical imposing that all the network targets must
+#'   display positive logFC, i.e. logFC >= min.t.logFC.
+#' @param neg.targets   A logical imposing that all the network targets must
+#'   display negative logFC, i.e. logFC <= - min.t.logFC.
+#'
+#' @details A BSRInferenceComp object should be created by calling 
+#' \code{"\link[=BSRClusterComp-class]{initialInference}"}
+#'
+#' @return A BSRInferenceComp object. The main application of this
+#' method is to take a "universal" inference obtained by assigning
+#' each gene to good logFC, P-values and expression levels whose role
+#' is to find all the reachable targets per receptor/pathway, and
+#' to update it by using actual logFC, P-values, and expression data.
+#' The benefit is to save time when multiple sample comparisons are
+#' performed, only one network exploration is necessary. Note that
+#' if a restrictive logic such as \code{positive.targets=TRUE} is used,
+#' the result will be correct provided all the targets were in the
+#' initial BSRInferenceComp object. If a restriction on the targets
+#' was applied, then the update is likely to miss some targets, i.e.,
+#' the statistical analysis will be wrong.
+#' 
+#' The main function of this method is to support our SingleCellSignalR v2
+#' package.
+#'
+#' @export
+#' @examples
+#' print('updateInference')
+#' 
+#' # prepare data
+#' data(sdc,package='BulkSignalR')
+#' normal <- grep("^N", names(sdc))
+#' bsrdm <- prepareDataset(sdc[,-normal])
+#' 
+#' # define the comparison
+#' bsrdm.comp <- as.BSRDataModelComp(bsrdm)
+#' colA <- as.integer(1:5)
+#' colB <- as.integer(8:15)
+#' n <- nrow(ncounts(bsrdm.comp))
+#' stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
+#'                     expr=runif(n, 0, 10))
+#' rownames(stats) <- rownames(ncounts(bsrdm.comp))
+#' bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
+#' bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
+#' 
+#' # infer ligand-receptor interactions from the comparison
+#' bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
+#' 
+#' # update
+#' stats$pval <- stats$pval/100
+#' stats$logFC <- stats$logFC + 0.5
+#' bsrcc.2 <- defineClusterComp(bsrdm.comp, colA, colB, stats)
+#' bsrinf.updated <- updateInference(bsrinf, bsrcc.2)
+#'
+setMethod("updateInference", "BSRInferenceComp", function(obj, bsrcc, ncounts,
+                                src.bsrcc=NULL, rank.p=0.55,
+                                max.pval=0.01, min.logFC=1, min.LR.score=0,
+                                neg.receptors=FALSE,
+                                pos.targets=FALSE, neg.targets=FALSE,
+                                min.t.logFC=0.5, min.positive=2,
+                                fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
+                                           "SidakSS","SidakSD","BY","ABH","TSBH")){
+
+  if (!is(obj, "BSRInferenceComp"))
+    stop("obj must be a BSRInferenceComp object")
+  if (!is(bsrcc, "BSRClusterComp"))
+    stop("bsrcc must be a BSRClusterComp object")
+  if (!is.null(src.bsrcc) && !is(src.bsrcc, "BSRClusterComp"))
+    stop("src.bsrcc must be a BSRClusterComp object")
+    
+  # get BSRInferenceComp object details
+  inter <- LRinter(obj)
+  L <- ligands(obj)
+  R <- receptors(obj)
+  t <- tGenes(obj)
+  c <- tgCorr(obj)
+  lfc <- tgLogFC(obj)
+  p <- tgPval(obj)
+  e <- tgExpr(obj)
+  par <- infParam(obj)
+  mu <- par$mu
+  logTransf <- par$log.transformed.data
+  R.stats <- stats(bsrcc)
+  if (!is.null(src.bsrcc))
+    L.stats <- stats(src.bsrcc) # paracrine
+  else
+    L.stats <- R.stats # autocrine
+  
+  # update parameters
+  par$colA <- colA(bsrcc)
+  par$colB <- colB(bsrcc)
+  if (is.null(src.bsrcc))
+    par$inference.type <- "autocrine"
+  else{
+    par$inference.type <- "paracrine"
+    par$src.colA <- colA(src.bsrcc)
+    par$src.colB <- colB(src.bsrcc)
+  }
+  par$max.pval <- max.pval
+  par$min.logFC <- min.logFC
+  par$min.LR.score <- min.LR.score
+  par$neg.receptors <- neg.receptors
+  par$pos.targets <- pos.targets
+  par$neg.targets <- neg.targets
+  par$min.t.logFC <- min.t.logFC
+  par$min.positive <- min.positive
+  par$fdr.proc <- fdr.proc
+  par$rank.p <- rank.p
+  
+  # assign correct logFC, P-values, correlations, and expression to L and R
+  inter$L.logFC <- L.stats[inter$L, "logFC"]
+  inter$R.logFC <- R.stats[inter$R, "logFC"]
+  inter$LR.pval <- L.stats[inter$L, "pval"] * R.stats[inter$R, "pval"]
+  inter$L.expr <- L.stats[inter$L, "expr"]
+  inter$R.expr <- R.stats[inter$R, "expr"]
+  if (is.null(src.bsrcc))
+    corlr <- stats::cor(t(ncounts[, c(colA(bsrcc),colB(bsrcc))]), method = "spearman")
+  else
+    corlr <- stats::cor(t(ncounts[, c(colA(bsrcc),colA(src.bsrcc))]), method = "spearman")
+  for (i in seq_len(nrow(inter)))
+    inter$LR.corr[i] <- corlr[inter$L[i], inter$R[i]]
+  
+  # LR-score
+  if (logTransf)
+    sq <- sqrt(inter$L.expr * inter$R.expr)
+  else
+    sq <- sqrt(log1p(inter$L.expr)/log(2) * log1p(inter$R.expr)/log(2))
+  inter$LR.score <- sq/(mu+sq)
+
+  # select on L & R as well as LR-scores
+  good <- L.stats[inter$L,"pval"] <= max.pval & inter$L.logFC >= min.logFC &
+    R.stats[inter$R,"pval"] <= max.pval
+  if (neg.receptors)
+    good <- good & abs(inter$R.logFC) >= min.logFC
+  else
+    good <- good & inter$R.logFC >= min.logFC
+  good <- good & inter$LR.score >= min.LR.score
+  if (sum(good) == 0)
+    stop("No selection")    
+  inter <- inter[good,]
+  L <- L[good]
+  R <- R[good]
+  t <- t[good]
+  c <- c[good]
+  lfc <- lfc[good]
+  p <- p[good]
+  e <- e[good]
+
+  # assign correct logFC, P-values, correlations, and expression to the targets
+  # and select the targets
+  keep <- NULL
+  for (i in seq_len(nrow(inter))){
+    genes <- t[[i]]
+    logfc <- R.stats[genes, "logFC"]
+    if (pos.targets || neg.targets){
+      if (pos.targets)
+        genes <- genes[logfc >= min.t.logFC]
+      else
+        genes <- genes[logfc <= -min.t.logFC]
+    }
+    if (length(genes) < min.positive)
+      keep <- c(keep, FALSE)
+    else{
+      # if all conditions are met, list all target genes with
+      # their regulation P-values in a data frame
+      # row. Target genes are sorted wrt P-values in decreasing
+      # order to keep the compatibility with correlation analysis,
+      # where the most significant values are at the end.
+      pv <- R.stats[genes, "pval"]
+      o <- order(pv, decreasing=TRUE)
+      pv <- pv[o]
+      logfc <- R.stats[genes, "logFC"]
+      logfc <- logfc[o]
+      expr <- R.stats[genes, "expr"]
+      expr <- expr[o]
+      genes <- genes[o]
+      co <- corlr[inter[i, "R"], genes]
+      t[[i]] <- genes
+      c[[i]] <- co
+      lfc[[i]] <- logfc
+      p[[i]] <- pv
+      e[[i]] <- expr
+      len <- length(genes)
+      inter[i, "len"] <- len
+      rank <- min(max(1, trunc(rank.p*len)), len)
+      inter[i, "rank"] <- rank
+      # rank.corr and rank.pval are updated by calling rescoreInference() below
+      keep <- c(keep, TRUE)
+    }
+  }
+  if (sum(keep) == 0)
+    stop("No selection")    
+  inter <- inter[keep,]
+  L <- L[keep]
+  R <- R[keep]
+  t <- t[keep]
+  c <- c[keep]
+  lfc <- lfc[keep]
+  p <- p[keep]
+  e <- e[keep]
+
+  # update object
+  LRinter(obj) <- inter
+  ligands(obj) <- L
+  receptors(obj) <- R
+  tGenes(obj) <- t
+  tgCorr(obj) <- c
+  tgPval(obj) <- p
+  tgLogFC(obj) <- lfc
+  tgExpr(obj) <- e
+  infParam(obj) <- par
+
+  # rescore and return
+  rescoreInference(obj, par, rank.p=rank.p, fdr.proc=fdr.proc)
+
+}) # updateInferenceComp
+
+
 
 
 # Reduction and pathway stat methods ===========================================

@@ -262,7 +262,7 @@
 #' @keywords internal
 .checkReceptorSignaling <- function(ds, lr, reference=c("REACTOME-GOBP",
                                                      "REACTOME","GOBP"),
-                                    max.pw.size=600, min.pw.size=10,
+                                    max.pw.size=400, min.pw.size=5,
                                     min.positive=4, use.full.network=FALSE,
                                     restrict.pw=NULL, with.complex=TRUE){
 

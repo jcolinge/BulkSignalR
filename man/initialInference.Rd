@@ -37,9 +37,9 @@
   restrict.genes = NULL,
   use.full.network = FALSE,
   reference = c("REACTOME-GOBP", "REACTOME", "GOBP"),
-  max.pw.size = 600,
-  min.pw.size = 10,
-  min.positive = 4,
+  max.pw.size = 400,
+  min.pw.size = 5,
+  min.positive = 2,
   restrict.pw = NULL,
   with.complex = TRUE,
   fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY", "ABH",
@@ -186,11 +186,11 @@ Note that since the introduction of the use.full.network parameter
 (April 29, 2024), the pathway sizes are always computed before potential
 intersection with the observed data (use.full.network set to FALSE) for
 consistency. Accordingly, the minimum and maximum pathway default values
-have been raised from 5 & 200 to 10 & 600 respectively. By default,
+have been raised from 5 & 200 to 5 & 400 respectively. By default,
 use.full.network is set to FALSE.
 
 In addition to statistical significance estimated according to BulkSignalR
-statistical model, we compute SingleCellSignalR LR-score, L and R
+statistical model, we compute SingleCellSignalR original LR-score, based on L and R
 cluster average expression. In the paracrine case, L average expression
 is taken from the source cluster.
 }

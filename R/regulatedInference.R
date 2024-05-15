@@ -359,8 +359,8 @@
                                 reference=c("REACTOME-GOBP","REACTOME","GOBP"),
                                 pos.targets=FALSE, neg.targets=FALSE, min.t.logFC=0.5,
                                 use.full.network=FALSE,
-                                max.pw.size=600, min.pw.size=10,
-                                min.positive=4, restrict.pw=NULL,
+                                max.pw.size=400, min.pw.size=5,
+                                min.positive=2, restrict.pw=NULL,
                                 with.complex=TRUE){
   
   if (!is(cc, "BSRClusterComp"))

@@ -12,8 +12,8 @@
   n.rand.LR = 5L,
   n.rand.RT = 2L,
   with.complex = TRUE,
-  max.pw.size = 600,
-  min.pw.size = 10,
+  max.pw.size = 400,
+  min.pw.size = 5,
   min.positive = 4,
   quick = FALSE,
   null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical", "empirical",
@@ -105,7 +105,7 @@ Note that since the introduction of the use.full.network parameter
 the pathway sizes are always computed before potential
 intersection with the observed data (use.full.network set to FALSE) for
 consistency. Accordingly, the minimum and maximum pathway default values
-have been raised from 5 & 200 to 10 & 600 respectively. By default,
+have been raised from 5 & 200 to 5 & 400 respectively. By default,
 use.full.network is set to TRUE, meaning no intersection and hence larger
 pathways.
 }

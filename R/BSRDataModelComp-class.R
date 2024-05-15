@@ -171,7 +171,7 @@ as.BSRDataModelComp <- function(bsrdm){
     stop("bsrdm must be of class BSRDataModel")
   m <- mean(ncounts(bsrdm))
   if (!logTransformed(bsrdm))
-    m <- log1p(m) # approximate of mu on the log1p-transformed matrix
+    m <- log1p(m)/log(2) # approximate of mu on the log2-transformed matrix
   new("BSRDataModelComp", bsrdm, comp=list(), mu=m)
   
 } # as.BSRDataModelComp
@@ -503,11 +503,11 @@ if (!isGeneric("initialInference")) {
 #' (April 29, 2024), the pathway sizes are always computed before potential
 #' intersection with the observed data (use.full.network set to FALSE) for
 #' consistency. Accordingly, the minimum and maximum pathway default values
-#' have been raised from 5 & 200 to 10 & 600 respectively. By default,
+#' have been raised from 5 & 200 to 5 & 400 respectively. By default,
 #' use.full.network is set to FALSE.
 #' 
 #' In addition to statistical significance estimated according to BulkSignalR
-#' statistical model, we compute SingleCellSignalR LR-score, L and R
+#' statistical model, we compute SingleCellSignalR original LR-score, based on L and R
 #' cluster average expression. In the paracrine case, L average expression
 #' is taken from the source cluster.
 #'
@@ -541,7 +541,7 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
                                                          min.t.logFC=0.5, restrict.genes=NULL,
                                                          use.full.network=FALSE,
                                                          reference=c("REACTOME-GOBP","REACTOME","GOBP"),
-                                                         max.pw.size=600, min.pw.size=10, min.positive=4,
+                                                         max.pw.size=400, min.pw.size=5, min.positive=2,
                                                          restrict.pw=NULL, with.complex=TRUE,
                                                          fdr.proc=c("BH","Bonferroni","Holm","Hochberg",
                                                                     "SidakSS","SidakSD","BY","ABH","TSBH")){
@@ -620,7 +620,7 @@ setMethod("initialInference", "BSRDataModelComp", function(obj, cmp.name, src.cm
   if (inf.param$log.transformed.data)
     sq <- sqrt(inter$L.expr * inter$R.expr)
   else
-    sq <- sqrt(log1p(inter$L.expr) * log1p(inter$R.expr))
+    sq <- sqrt(log1p(inter$L.expr)/log(2) * log1p(inter$R.expr)/log(2))
   inter$LR.score <- sq/(inf.param$mu+sq)
 
   # prepare the accompanying lists  

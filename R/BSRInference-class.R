@@ -389,6 +389,7 @@ setMethod("rescoreInference", "BSRInference", function(obj, param, rank.p=0.55,
         # for the individual correlation Gaussian model
         len <- pairs$len[i]
         r <- min(max(1, trunc(rank.p*len)), len)
+        pairs$rank[i] <- r
         rank.corr <- spears[r]
         p.rt <- stats::pbinom(r-1, len, cdf(rank.corr, RT.par))
         pairs$pval[i] <- p.lr*p.rt
