@@ -62,8 +62,9 @@ members should be included in the target genes.}
 \value{
 A table reporting all the ligand-receptor pairs provided in \code{lr}
   along with the pathways found and data about target gene regulation
-  P-values. Target gene correlations with the receptor are computed as
-  additional information provided \code{rncounts} is set.
+  P-values. Note that correlations are currently set to 1 to avoid
+  lengthy computations with scRNA-seq data and multiple cell
+  populations.
 }
 \description{
 Internal function to check receptor signaling downstream

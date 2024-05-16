@@ -23,7 +23,9 @@
 #' @details The \code{restrict.genes} parameter is used for special cases where
 #'   LRdb must be further restricted to a subset.
 #'   The putative ligand-receptor pairs has 6 columns : R, L, LR.pval, corr,
-#'   L.logFC, and R.logFC.
+#'   L.logFC, and R.logFC. Note that correlations are currently set to 1 to avoid
+#'   lengthy computations with scRNA-seq data and multiple cell
+#'   populations.
 #'
 #' @importFrom methods is
 #' @importFrom foreach %do% %dopar%
@@ -51,11 +53,11 @@
   if (!is.null(restrict.genes))
     lrgenes <- intersect(lrgenes, restrict.genes)
   
-  # compute all the correlations at once
-  if (is.null(scc))
-    corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colB(cc))]), method = "spearman")
-  else
-    corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colA(scc))]), method = "spearman")
+  # # compute all the correlations at once
+  # if (is.null(scc))
+  #   corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colB(cc))]), method = "spearman")
+  # else
+  #   corlr <- stats::cor(t(ncounts(ds)[lrgenes, c(colA(cc),colA(scc))]), method = "spearman")
   
   # get the pairs
   R.stats <- stats(cc)
@@ -77,7 +79,7 @@
             ((neg.receptors && abs(fcR) >= min.logFC) || fcR >= min.logFC))
           pairs <- rbind(pairs,
                          data.frame(L=L, R=R,
-                                    LR.pval=pL * pR, corr=corlr[L, R],
+                                    LR.pval=pL * pR, corr=1, #corlr[L, R],
                                     L.logFC=fcL, R.logFC=fcR,
                                     stringsAsFactors=FALSE)
           )
@@ -123,8 +125,9 @@
 #'
 #' @return A table reporting all the ligand-receptor pairs provided in \code{lr}
 #'   along with the pathways found and data about target gene regulation
-#'   P-values. Target gene correlations with the receptor are computed as
-#'   additional information provided \code{rncounts} is set.
+#'   P-values. Note that correlations are currently set to 1 to avoid
+#'   lengthy computations with scRNA-seq data and multiple cell
+#'   populations.
 #'
 #' @importFrom foreach %do% %dopar%
 #' @keywords internal
@@ -157,11 +160,11 @@
   else
     correlated.int <- control.int
   
-  # compute downstream correlations
-  corrg <- stats::cor(t(rncounts), method = "spearman")
-  
-  # the global computation above is faster than restricted to the receptors
-  corrg <- corrg[unique(lr$R), ]
+  # # compute downstream correlations
+  # corrg <- stats::cor(t(rncounts), method = "spearman")
+  # 
+  # # the global computation above is faster than restricted to the receptors
+  # corrg <- corrg[unique(lr$R), ]
 
   # check each putative LR pair, loop over the receptors
   reg.proc <- foreach::foreach(r=unique(lr$R),.combine=rbind) %do% {
@@ -233,7 +236,7 @@
             expr <- stats[target.genes, "expr"]
             expr <- expr[o]
             target.genes <- target.genes[o]
-            c <- corrg[r, target.genes]
+            c <- rep(1, length(target.genes))#corrg[r, target.genes]
             data.frame(pathway=p, target.pval=paste(pv,collapse=";"),
                        target.genes=paste(target.genes,collapse=";"),
                        target.corr=paste(c, collapse=";"),

@@ -47,6 +47,8 @@ having both a P-value below a given threshold.
 The \code{restrict.genes} parameter is used for special cases where
   LRdb must be further restricted to a subset.
   The putative ligand-receptor pairs has 6 columns : R, L, LR.pval, corr,
-  L.logFC, and R.logFC.
+  L.logFC, and R.logFC. Note that correlations are currently set to 1 to avoid
+  lengthy computations with scRNA-seq data and multiple cell
+  populations.
 }
 \keyword{internal}

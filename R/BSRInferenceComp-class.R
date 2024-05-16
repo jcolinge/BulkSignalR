@@ -472,6 +472,10 @@ if (!isGeneric("updateInference")) {
 #' was applied, then the update is likely to miss some targets, i.e.,
 #' the statistical analysis will be wrong.
 #' 
+#' Note that correlations are set to 1 to avoid
+#' lengthy computations with scRNA-seq data and multiple cell
+#' populations.
+#' 
 #' The main function of this method is to support our SingleCellSignalR v2
 #' package.
 #'
@@ -565,12 +569,14 @@ setMethod("updateInference", "BSRInferenceComp", function(obj, bsrcc, ncounts,
   inter$LR.pval <- L.stats[inter$L, "pval"] * R.stats[inter$R, "pval"]
   inter$L.expr <- L.stats[inter$L, "expr"]
   inter$R.expr <- R.stats[inter$R, "expr"]
-  if (is.null(src.bsrcc))
-    corlr <- stats::cor(t(ncounts[, c(colA(bsrcc),colB(bsrcc))]), method = "spearman")
-  else
-    corlr <- stats::cor(t(ncounts[, c(colA(bsrcc),colA(src.bsrcc))]), method = "spearman")
-  for (i in seq_len(nrow(inter)))
-    inter$LR.corr[i] <- corlr[inter$L[i], inter$R[i]]
+
+  # if (is.null(src.bsrcc))
+  #   corlr <- stats::cor(t(ncounts[, c(colA(bsrcc),colB(bsrcc))]), method = "spearman")
+  # else
+  #   corlr <- stats::cor(t(ncounts[, c(colA(bsrcc),colA(src.bsrcc))]), method = "spearman")
+  # for (i in seq_len(nrow(inter)))
+  #   inter$LR.corr[i] <- corlr[inter$L[i], inter$R[i]]
+  inter$LR.corr <- 1
   
   # LR-score
   if (logTransf)
@@ -626,7 +632,7 @@ setMethod("updateInference", "BSRInferenceComp", function(obj, bsrcc, ncounts,
       expr <- R.stats[genes, "expr"]
       expr <- expr[o]
       genes <- genes[o]
-      co <- corlr[inter[i, "R"], genes]
+      co <- rep(1, length(genes)) #corlr[inter[i, "R"], genes]
       t[[i]] <- genes
       c[[i]] <- co
       lfc[[i]] <- logfc
