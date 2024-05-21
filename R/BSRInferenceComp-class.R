@@ -616,6 +616,8 @@ setMethod("updateInference", "BSRInferenceComp", function(obj, bsrcc, ncounts,
       else
         genes <- genes[logfc <= -min.t.logFC]
     }
+    else
+      genes <- genes[abs(logfc) >= min.t.logFC]
     if (length(genes) < min.positive)
       keep <- c(keep, FALSE)
     else{
