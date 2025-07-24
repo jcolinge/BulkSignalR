@@ -6,7 +6,7 @@
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/BulkSignalR)](https://cran.r-project.org/package=BulkSignalR)
 <!-- badges: end -->
 
-\
+
 
 ## Note about versions
 
@@ -20,9 +20,9 @@ The current version of the library (the one in Bioconductor) can be found
 It is temporarily developed from another GitHub
 [repository](https://github.com/ZheFrench/BulkSignalR) and it will ultimately
 be integrated back into this one. Until then, this very repository should be
-considered for the first version only.
+considered for the **first version only**.
 
-\
+
 
 ## Overview
 
