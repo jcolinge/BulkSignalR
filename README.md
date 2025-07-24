@@ -6,6 +6,24 @@
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/BulkSignalR)](https://cran.r-project.org/package=BulkSignalR)
 <!-- badges: end -->
 
+\
+
+## Note about versions
+
+**This repository contains our first version** of the library as published
+in Nucleic Acids Research in 2023. Meanwhile, we added the library to
+Bioconductor, which required slight modifications to fulfill Bioconductor
+standards.
+
+The current version of the library (the one in Bioconductor) can be found
+[here](https://www.bioconductor.org/packages/release/bioc/html/BulkSignalR.html).
+It is temporarily developed from another GitHub
+[repository](https://github.com/ZheFrench/BulkSignalR) and it will ultimately
+be integrated back into this one. Until then, this very repository should be
+considered for the first version only.
+
+\
+
 ## Overview
 
 BulkSignalR is used to infer ligand-receptor (L-R) interactions from bulk
