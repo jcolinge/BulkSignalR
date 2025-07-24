@@ -941,9 +941,16 @@ chordDiagramLR  <- function(bsrinf,
 
     print(dataframe.bsrinf)
 
-    cr <- circlize::colorRamp2(c(min(dataframe.bsrinf$corr),
-                     max(dataframe.bsrinf$corr)), c("white","#febd17"))
-
+    if (length(unique(dataframe.bsrinf$corr)) == 1){
+      cr <- "#febd17" # for BSRInferenceComp class with all corr = 1
+    }
+    else{
+      cr <- circlize::colorRamp2(c(
+        min(dataframe.bsrinf$corr),
+        max(dataframe.bsrinf$corr)
+      ), c("white", "#febd17"))
+    }
+    
     myList.ligands <- rep("gray25",times=length(dataframe.bsrinf$ligands))
     names(myList.ligands)  <- as.list(dataframe.bsrinf$ligands)
     
