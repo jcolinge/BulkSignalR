@@ -16,8 +16,8 @@ summary functions are proposed to help navigating results.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/ZheFrench/BulkSignalR}
-  \item Report bugs at \url{https://github.com/ZheFrench/BulkSignalR/issues}
+  \item \url{https://github.com/jcolinge/BulkSignalR}
+  \item Report bugs at \url{https://github.com/jcolinge/BulkSignalR/issues}
 }
 
 }

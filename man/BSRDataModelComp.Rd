@@ -61,7 +61,7 @@ containing the x coordinates in the dafaframe returned by rowData(), usually
 named array_row.}
 
 \item{y.col}{In a SpatialExperiment object, the index of the column
-containing the y coordinates in the dafaframe returned by rowData(), usually 
+containing the y coordinates in the data.frame returned by rowData(), usually 
 named array_col.}
 
 \item{barcodeID.col}{In a SpatialExperiment object, the index of the column
