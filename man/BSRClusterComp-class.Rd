@@ -12,26 +12,15 @@ log-fold-changes (logFC), and expression values.
 \section{Slots}{
 
 \describe{
-\item{\code{colA}}{Column indices for the samples in cluster A.}
+\item{\code{col.clusterA}}{Column indices for the samples in cluster A.}
 
-\item{\code{colB}}{Column indices for the samples in cluster B.}
+\item{\code{col.clusterB}}{Column indices for the samples in cluster B.}
 
-\item{\code{stats}}{Comparison statistics A versus B as a data.frame and
-containing at least two columns named 'pval', 'logFC', and 'expr'.}
+\item{\code{differential.stats}}{Comparison statistics A versus B 
+as a data.frame and
+containing at least 3 columns named 'pval', 'logFC', and 'expr'.}
 }}
 
 \examples{
-bsrdm <- new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=4,
-             dimnames=list(c("A","B"), c("E","F","G","H"))),
-             log.transformed=TRUE, normalization="TC")
-bsrdm.comp <- as.BSRDataModelComp(bsrdm)
-colA <- as.integer(1:2)
-colB <- as.integer(3:4)
-n <- nrow(ncounts(bsrdm.comp))
-edger.stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
-                          expr=c(1,2,3))
-rownames(edger.stats) <- rownames(ncounts(bsrdm.comp))
-bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, edger.stats)
-bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "my_comparison")
-
+new("BSRClusterComp")
 }

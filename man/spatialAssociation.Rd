@@ -58,17 +58,22 @@ Individual labels are tested with T-tests or Wilcoxon (Bonferroni-corrected)
 accordingly.
 
 In case a statistics is preferred, Spearman correlation or explained variance
-(r2 or coefficient of determination, through linear models) are are available.
-They mesure the relationship
+(r2 or coefficient of determination, through linear models) 
+are available. They mesure the relationship
 between each individual area and \code{scores}. For the explained variance,
 a global value (R2) is also computed from a multi-linear model (the same as
 what is used for the ANOVA).
 }
 \examples{
-print('spatialAssociation')
-if(FALSE){
+data(bsrdm.spa, package = "BulkSignalR")
+data(bsrinf.spa, package = "BulkSignalR")
+data(annotation.spa, package = "BulkSignalR")
+thres <- 0.01
+#bsrinf.red <- reduceToBestPathway(bsrinf.spa)
+#s.red  <- BSRSignature(bsrinf.red, qval.thres=thres)
+#scores.red <- scoreLRGeneSignatures(bsrdm.spa,s.red)
 
-spatialAssociation(scores, areas)
-
-}
+# Run in other examples no need to be run again
+# spatialAssociation(scores.red[c(1:2),], areas = annotation.spa,
+# label.col = "ground_truth")
 }

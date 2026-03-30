@@ -17,7 +17,7 @@
 
 \S4method{rescoreInference}{BSRInferenceComp}(
   obj,
-  param,
+  param = NULL,
   rank.p = 0.55,
   fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BY", "ABH",
     "TSBH")
@@ -26,8 +26,7 @@
 \arguments{
 \item{obj}{BSRInferecenceComp object.}
 
-\item{param}{The matching BSRDataModel parameters
-(can be obtained with the accessor \code{param})}
+\item{param}{NULL by default}
 
 \item{rank.p}{A number between 0 and 1 defining the rank of the last
 considered target genes.}
@@ -48,8 +47,8 @@ A method to re-score an existing BSRInferenceComp object
 (P- and Q-value estimations).
 }
 \details{
-A BSRInference object should be created by calling 
-\code{"\link[=BSRDataModel-class]{initialInference}"}
+A BSRInference object should be created by calling
+\code{"\link[=BSRDataModel-class]{BSRInference}"}
 
 Parameters controlling the estimation
 of the statistical significance of the ligand/receptor/pathway triples
@@ -59,45 +58,18 @@ Nonetheless, it
 might be useful to change the initially-provided parameters, in
 which case this method should not be called.
 
-A BSRInferenceComp object should be created by calling 
-\code{"\link[=BSRClusterComp-class]{initialInference}"}
+A BSRInferenceComp object should be created by calling
+\code{"\link[=BSRInferenceComp-class]{BSRInferenceComp}"}
 }
 \examples{
-print('rescoreInference')
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
-bsrinf.new <- rescoreInference(bsrinf, param=param(bsrdm), rank.p=0.75)
+data(bsrinf, package = "BulkSignalR")
+data(bsrdm, package = "BulkSignalR")
 
-print('rescoreInference')
+bsrinf.new <- rescoreInference(bsrinf,
+                      param = parameters(bsrdm)
+              )
+data(bsrinf.comp, package = "BulkSignalR")
 
-# prepare data
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
-
-# define the comparison
-bsrdm.comp <- as.BSRDataModelComp(bsrdm)
-colA <- as.integer(1:5)
-colB <- as.integer(8:15)
-n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
-                    expr=runif(n, 0, 10))
-rownames(stats) <- rownames(ncounts(bsrdm.comp))
-bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
-bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
-
-# infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
-
-# rescore
-bsrinf.less <- rescoreInference(bsrinf, param=param(bsrdm.comp), rank.p=0.75)
-
+bsrinf.less <- rescoreInference(bsrinf.comp, 
+rank.p = 0.75)
 }

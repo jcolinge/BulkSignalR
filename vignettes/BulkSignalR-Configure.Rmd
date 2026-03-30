@@ -1,0 +1,127 @@
+---
+title: "BulkSignalR : </br> Inference of ligand-receptor interactions 
+from bulk data or spatial transcriptomics"
+author:
+  - name: Jean-Philippe Villemin
+    affiliation:
+    - Institut de Recherche en Cancérologie de Montpellier,
+     Inserm, Montpellier, France 
+    email: jean-philippe.villemin@inserm.fr
+  - name: Jacques Colinge
+    affiliation:
+    - Institut de Recherche en Cancérologie de Montpellier,
+     Inserm, Montpellier, France 
+    email: jacques.colinge@inserm.fr
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+output: 
+  rmarkdown::html_vignette:
+      self_contained: true
+      toc: true
+      toc_depth: 4
+      highlight: pygments
+      fig_height: 3
+      fig_width: 3
+      fig_caption: no
+      code_folding: show
+package: BulkSignalR
+vignette: >
+  %\VignetteIndexEntry{BulkSignalR-Configure}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::knit_hooks$set(optipng = knitr::hook_optipng)
+```
+
+```{r load-libs, message = FALSE,  warning = FALSE, results = FALSE}
+library(BulkSignalR)
+```
+
+## Configure local cache and hidden environment variables
+
+`BulkSignalR` donwloads resource files just once after the first 
+installation.  
+
+A mecanism handled by `BioCFileCache` package informs the user 
+if the local files are up to date. 
+Several functions as `cacheVersion` and `cacheInfo` give
+informations about the content of the local cache and its synchronization 
+state  with its remote source.  
+
+Cache directory can be cleaned by `cacheClear` function and and forced to be 
+created again using `createResources(onRequest=TRUE)`. Otherwise it will be
+automatically recreated when the package is next loaded.   
+
+The knowledge database (pathways - GO-BP / Reactome, Ligand &
+recepors - LRdb, and gene Network are handled inside a hidden environment 
+variable  called `.SignalR`)
+
+The sources can be rewritten using `resetPathways`, `resetLRdb` 
+and `resetNetwork`.  
+
+Several data versions can be access remotely from :
+[here](https://partage-dev.montp.inserm.fr:9192/CBSB/SignalR/resources/)
+These datasets can be used to reset the sources locally.  
+
+```{r cash,eval=FALSE}
+
+# You can see hidden environment variable list as follows.
+ls(BulkSignalR:::.SignalR)
+
+# Setup Pathways for reactome (can be done for GO-BP also)
+
+subset <- c("REACTOME_BASIGIN_INTERACTIONS",
+"REACTOME_SYNDECAN_INTERACTIONS",
+"REACTOME_ECM_PROTEOGLYCANS",
+"REACTOME_CELL_JUNCTION_ORGANIZATION")
+
+reactSubset <- BulkSignalR:::.SignalR$BulkSignalR_Reactome[
+BulkSignalR:::.SignalR$BulkSignalR_Reactome$`Reactome name` %in% subset,]
+
+resetPathways(dataframe = reactSubset,
+resourceName = "Reactome")
+
+cacheInfo()
+cacheVersion()
+
+cacheClear()
+
+# Ask to download again
+createResources(onRequest=TRUE)
+
+
+# Set up LRdb
+df <- data.frame(
+  ligand    = c("A2M", "AANAT", "AANAT", "ACE", "ACE"),
+  receptor  = c("LRP1", "MTNR1A", "MTNR1B", "AGTR2", "BDKRB2")
+)
+resetLRdb(df,switch=TRUE)
+
+# Set up Network
+df <- data.frame(
+  a.gn   = c("A2M", "AANAT", "AANAT", "ACE", "ACE"),
+  type  = c("regulates-transcription-of",
+   "regulates-transcription-of",
+   "regulates-transcription-of", 
+   "regulates-transcription-of", 
+   "regulates-transcription-of"),
+  b.gn  = c("LRP1", "MTNR1A", "MTNR1B", "AGTR2", "BDKRB2")
+)
+
+resetNetwork(df)
+
+
+```  
+
+\
+    
+Thank you for reading this guide and for using `BulkSignalR`.  
+
+\
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```

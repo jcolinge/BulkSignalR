@@ -17,6 +17,6 @@ Puram, SV & al., Cell, 2017.
 data(p.EMT)
 }
 \description{
-A dataset containing a partial EMT gene signature.
+A data set containing a partial EMT gene signature.
 }
 \keyword{datasets}

@@ -62,10 +62,10 @@ the central location is augmented according to
 1-(1-\code{weight.ratio})*(number of neighbors)/\code{nnn}.
 }
 \examples{
-print('smoothSpatialCounts')
-if (FALSE){
+ 
+data(bsrdm.spa, package = "BulkSignalR")
+data(annotation.spa, package = "BulkSignalR")
+sm.bsrdm <- smoothSpatialCounts(bsrdm.spa, annotation.spa,
+radius = 1.2, nnn = 4)
 
-sm.bsrdm <- smoothSpatialCounts(bsrdm, areas, radius=1.2, nnn.radius=4)
-
-}
 }

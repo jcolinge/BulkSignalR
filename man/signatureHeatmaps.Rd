@@ -2,79 +2,65 @@
 % Please edit documentation in R/visualization.R
 \name{signatureHeatmaps}
 \alias{signatureHeatmaps}
-\title{Heatmap function for gene expression of signature}
+\title{Heatmap function to dissect one pathway signature}
 \usage{
 signatureHeatmaps(
   pathway,
   bsrdm,
   bsrsig,
-  path = "./",
-  filename = NULL,
-  h.width = 6,
-  h.height = 9,
+  heights = c(4, 2, 4),
   fontsize = 6,
-  format = c("pdf", "svg", "png"),
-  show_column_names = FALSE
+  legend.fontsize = 8,
+  title.fontsize = 8,
+  col.fontsize = 6,
+  annot.fontsize = 8,
+  ht.gap = 3,
+  show_column_names = TRUE
 )
 }
 \arguments{
-\item{pathway}{Pathway name}
+\item{pathway}{The chosen pathway name.}
 
 \item{bsrdm}{BulkSignalR data model object.}
 
 \item{bsrsig}{BulkSignalR signature object.}
 
-\item{path}{Path to write your ouput.}
+\item{heights}{A vector of 3 heights (in cm) for the 3 heatmaps.}
 
-\item{filename}{An output filename, NULL by default
-to display on screen.}
+\item{fontsize}{Font size for the gene names.}
 
-\item{h.width}{Heatmap width in cm.}
+\item{legend.fontsize}{Font size for the legends.}
 
-\item{h.height}{Heatmap height in cm.}
+\item{title.fontsize}{Font size for the pathway name as plot title.}
 
-\item{fontsize}{Fontsize.}
+\item{col.fontsize}{Font size for column (sample) names.}
 
-\item{format}{File format.}
+\item{annot.fontsize}{Font size for column annotation names.}
 
-\item{show_column_names}{Add column names on heatmap.}
+\item{ht.gap}{Space between heatmaps (in mm).}
+
+\item{show_column_names}{Add column names in the heatmaps.}
 }
 \value{
 A plot is created.
-
-This is a convenience function 
-to propose a simple way
-of representing expression of genes 
-involved in a specific pathway.
 }
 \description{
-Generate a list of heatmaps for ligand,
-receptor and target genes
-for a specific pathway
+Plots a stack of three heatmaps to assess the expression of
+the target genes or proteins in a chosen pathway, the receptor expressions,
+and the ligand expressions.
 }
 \examples{
-print('signatureHeatmaps')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
-bsrinf.redP  <- reduceToPathway(bsrinf)  
-bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP) 
-bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP,qval.thres=0.001)
-pathway1 <- "Elastic fibre formation"
+data(bsrdm, package = "BulkSignalR")
+data(bsrinf, package = "BulkSignalR")
+if(FALSE){
+bsrinf.redP <- reduceToPathway(bsrinf)
+bsrinf.redPBP <- reduceToBestPathway(bsrinf)
+bsrsig.redPBP <- BSRSignature(bsrinf, qval.thres = 1)
+pathway1 <- pathways(bsrsig.redPBP)[1]
 signatureHeatmaps(
-       pathway = pathway1,
-       bsrdm = bsrdm,
-       bsrsig = bsrsig.redPBP,
-       path = "./",
-       filename = "sdc_signatureheatmap",
-       h.width=6,
-       h.height=9,
-       fontsize=6,
-       show_column_names = TRUE)
+pathway = pathway1,
+bsrdm = bsrdm,
+bsrsig = bsrsig.redPBP,
+show_column_names = TRUE)
+}
 }

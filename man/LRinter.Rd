@@ -10,6 +10,13 @@
 \arguments{
 \item{x}{BSRInference object}
 }
+\value{
+LRinter
+}
 \description{
 LRinter accessor
+}
+\examples{
+bsrinf <- new ("BSRInference")
+LRinter(bsrinf)
 }

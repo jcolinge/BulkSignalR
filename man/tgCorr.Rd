@@ -13,8 +13,15 @@
 \arguments{
 \item{x}{BSRSignature}
 }
+\value{
+tgCorr
+}
 \description{
 Target gene correlations accessor
 
 Target gene correlations accessor
+}
+\examples{
+bsr.sig <- new("BSRSignature")
+tgCorr(bsr.sig)
 }

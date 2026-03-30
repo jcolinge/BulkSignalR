@@ -4,67 +4,32 @@
 \alias{alluvialPlot}
 \title{Alluvial plot}
 \usage{
-alluvialPlot(
-  bsrinf,
-  keywords,
-  type = c("L", "R", "pw.id"),
-  qval.thres = 0.01,
-  format = c("pdf", "svg", "png"),
-  path = "./",
-  filename = NULL,
-  width = 10,
-  height = 10
-)
+alluvialPlot(bsrinf, keywords, type = c("L", "R", "pw.id"), qval.thres = 0.01)
 }
 \arguments{
-\item{bsrinf}{object bsrinf inference.}
+\item{bsrinf}{A BSRInference object.}
 
-\item{keywords}{vector of pathways.}
+\item{keywords}{vector of keywoprds to filter pathways.}
 
 \item{type}{filter on Ligand, Receptor or pathway id.}
 
 \item{qval.thres}{threshold over Q-value.}
-
-\item{format}{pdf / png / sg. By default, it will 
-plot in pdf format.}
-
-\item{path}{directory where to plot file.}
-
-\item{filename}{file name, NULL by default (plot on screen).}
-
-\item{width}{width of image in inches.}
-
-\item{height}{height of image in inches.}
 }
 \value{
 NULL
 
 This is a convenience function that relies on the \code{ggalluvial}
 package to propose a simple way
-of representing Ligands, Receptors
+of representing ligands, receptors,
 }
 \description{
 Representation of the links
-between Ligands,Receptors and Pathways.
+between ligands, receptors, and pathways.
 }
 \examples{
-print('alluvialPlot')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrinf, package = "BulkSignalR")
 alluvialPlot(bsrinf,
-             keywords = c("COL4A1"),
-             type = "L",
-             qval.thres = 0.001,
-             path = "./",
-             filename = "sdc_alluvial", 
-             width  = 16, 
-             height = 12
-             )
+    keywords = c("LAMC1"),
+    type = "L",
+    qval.thres = 0.01)
 }

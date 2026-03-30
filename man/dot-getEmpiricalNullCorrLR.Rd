@@ -4,17 +4,13 @@
 \alias{.getEmpiricalNullCorrLR}
 \title{Sampling of ligand-receptor correlation null distribution}
 \usage{
-.getEmpiricalNullCorrLR(ncounts, n.rand = 5, min.cor = -1)
+.getEmpiricalNullCorrLR(obj)
 }
 \arguments{
-\item{ncounts}{A matrix or table of normalized read counts.}
-
-\item{n.rand}{The number of repetitions.}
-
-\item{min.cor}{The minimum ligand-receptor correlation required.}
+\item{obj}{A BSRDatamodel without learned paramaters.}
 }
 \value{
-A list of \code{n.rand} tables such as output by
+A list of \code{n.rand.LR} tables such as output by
   \code{\link{.getCorrelatedLR}}. Each table is computed from a randomized
   expression matrix (randomized \code{ncounts}).
 }
@@ -24,8 +20,8 @@ on randomized expression data.
 }
 \details{
 A large number of correlations is reported in each randomized
-  matrix. Therefore,
-  \code{n.rand} should be given a modest value to avoid unnecessarily long
+  matrix. Therefore, \code{n.rand.LR} 
+  should be given a modest value to avoid unnecessarily long
   computations.
 
   See \code{\link{.getCorrelatedLR}} for more details about the parameters.

@@ -2,50 +2,54 @@
 % Please edit documentation in R/visualization.R
 \name{.customheatmap}
 \alias{.customheatmap}
-\title{Heatmap function for gene expression of signature}
+\title{Heatmap function for gene signature expression}
 \usage{
 .customheatmap(
   counts,
-  h.width = 5,
-  h.height = 10,
+  name,
   fontsize = 6,
-  scoring = c(-1.5, 0, 4, 5, 6.1, 0.3),
-  cols.scoring,
+  col.fontsize = 6,
+  legend.fontsize = 8,
+  annot.fontsize = 8,
+  h.height = 3,
+  scoring = NULL,
+  cols.scoring = NULL,
   hcl.palette = "Blues 3",
   show_column_names = FALSE
 )
 }
 \arguments{
-\item{counts}{Matrice of counts exported from a}
+\item{counts}{Matrix of counts.}
 
-\item{h.width}{Heatmap  width in cm.}
+\item{name}{Name of the heatmap to generate.}
+
+\item{fontsize}{Font size for row (gene) names.}
+
+\item{col.fontsize}{Font size for column (sample) names.}
+
+\item{legend.fontsize}{Font size for the legends.}
+
+\item{annot.fontsize}{Font size for column annotation names.}
 
 \item{h.height}{Heatmap  height in cm.}
 
-\item{fontsize}{Fontsize.}
-
-\item{scoring}{Vector of scored sample for a 
-a previously choosen pathway.}
+\item{scoring}{Vector of sample scores for a
+chosen pathway. If NULL, then no column annotation is produced.}
 
 \item{cols.scoring}{Fixed colorRamp2 object.}
 
-\item{hcl.palette}{Palette from 
+\item{hcl.palette}{Palette from
 HCL colormaps supported by ComplexHeatmap.}
-
-\item{show_column_names}{Add column names on heatmap.}
 }
 \value{
-ComplexHeatmap object. 
+A ComplexHeatmap object.
 
-This is a convenience function that relies 
+This is a convenience function that relies
 on the \code{ComplexHeatmap}
-package to propose a simple way
-of representing expression of genes involved in a specific
-pathway.
+package.
 }
 \description{
-Generate one heatmap re-used by 
-by  
-\code{"\link[=BSRDataModel-class]{scoreLRGeneSignatures}"}
+Generate one heatmap used by
+\code{signatureHeatmaps}.
 }
 \keyword{internal}

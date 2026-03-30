@@ -12,10 +12,19 @@
 \S4method{tgLogFC}{BSRSignatureComp}(x)
 }
 \arguments{
-\item{x}{BSRSignature}
+\item{x}{BSRSignatureComp object}
+}
+\value{
+tgLogFC
+
+tg.logFC
 }
 \description{
 Target gene logFC accessor
 
 Target gene logFC accessor
+}
+\examples{
+bsrinf <- new("BSRInferenceComp")
+tgLogFC(bsrinf)
 }

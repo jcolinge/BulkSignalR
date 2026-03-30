@@ -10,6 +10,22 @@
 \arguments{
 \item{x}{Object BSRDataModel}
 }
+\value{
+initialOrthologs
+}
 \description{
 Model parameter accessor
+}
+\examples{
+bsrdm <- BSRDataModel(
+    counts = matrix(1.5,
+                nrow = 2, ncol = 2,
+                dimnames = list(c("A", "B"), c("C", "D"))
+                   ),
+    method = "TC",
+    log.transformed = TRUE,
+    normalize = FALSE,
+    min.LR.found = 0
+)
+initialOrthologs(bsrdm)
 }

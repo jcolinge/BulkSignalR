@@ -11,6 +11,9 @@
 
 \item{value}{Value to be set for bsrinf}
 }
+\value{
+returns \code{NULL}
+}
 \description{
 ligands setter (internal use only)
 }

@@ -57,6 +57,9 @@ associations in \code{spatialAssociation}.}
 
 \item{perplexity}{Perplexity parameter for t-SNE.}
 }
+\value{
+Display a 2D-projection of the score spatial distributions.
+}
 \description{
 Use PCA or t-SNE to obtain a 2D-projection of a set of spatial scores
 or associations.
@@ -69,10 +72,22 @@ Not limited to BulkSignalR gene signature scores.
 Display a 2D-projection of the score spatial distributions.
 }
 \examples{
-print('spatialDiversityPlot')
-if(FALSE){
+data(bsrdm.spa, package = "BulkSignalR")
+data(bsrinf.spa, package = "BulkSignalR")
+data(annotation.spa, package = "BulkSignalR")
 
-spatialDiversityPlot(scores,associations)
+thres <- 0.01
+bsrinf.red <- reduceToBestPathway(bsrinf.spa)
+s.red  <- BSRSignature(bsrinf.red, qval.thres=thres)
+scores.red <- scoreLRGeneSignatures(bsrdm.spa,s.red)
 
-}
+# statistical association with tissue areas based on correlations
+# For display purpose, we only use a subset here
+
+
+assoc.bsr.corr <- spatialAssociation(scores.red[c(1:3), ],
+annotation.spa, label.col = "ground_truth",test = "Spearman")
+
+spatialDiversityPlot(scores.red[c(1:3),],assoc.bsr.corr)
+
 }

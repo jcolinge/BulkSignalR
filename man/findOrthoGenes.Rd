@@ -11,8 +11,8 @@ findOrthoGenes(
 )
 }
 \arguments{
-\item{from_organism}{An organism defined as in Ensembl: 
-drerio, mmusculus, celegans, dmelanogaster, etc. This is the source organism 
+\item{from_organism}{An organism defined as in Ensembl:
+drerio, mmusculus, celegans, dmelanogaster, etc. This is the source organism
 from which you want to convert the gene names to Homo sapiens.}
 
 \item{from_values}{A vector of gene names from the current species studied.}
@@ -21,8 +21,8 @@ from which you want to convert the gene names to Homo sapiens.}
 }
 \value{
 Return a data frame with 2 columns containing the gene names
-for the two species.  
-First column is the gene name from the source organism 
+for the two species.
+First column is the gene name from the source organism
 and the second column corresponds to the  homologous gene name
 in  Homo sapiens.
 }
@@ -32,9 +32,14 @@ In order to work with other organisms, gene names need to be first converted
 to human following an orthology mapping process.
 }
 \examples{
-print('findOrthoGenes')
 data(bodyMap.mouse)
-ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
-                                    from_values = rownames(bodyMap.mouse))
+
+idx <- sample(nrow(bodyMap.mouse), 20)
+bodyMap.mouse <- bodyMap.mouse[idx,]
+
+ortholog.dict <- findOrthoGenes(
+    from_organism = "mmusculus",
+    from_values = rownames(bodyMap.mouse)
+)
 
 }

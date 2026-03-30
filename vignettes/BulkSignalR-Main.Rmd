@@ -1,13 +1,16 @@
 ---
-title: "`BulkSignalR` : </br> Inference of ligand-receptor interactions from bulk data or spatial transcriptomics"
+title: "BulkSignalR : </br> Inference of ligand-receptor interactions 
+from bulk data or spatial transcriptomics"
 author:
   - name: Jean-Philippe Villemin
     affiliation:
-    - Institut de Recherche en Cancérologie de Montpellier, Inserm, Montpellier, France 
+    - Institut de Recherche en Cancérologie de Montpellier,
+     Inserm, Montpellier, France 
     email: jean-philippe.villemin@inserm.fr
   - name: Jacques Colinge
     affiliation:
-    - Institut de Recherche en Cancérologie de Montpellier, Inserm, Montpellier, France 
+    - Institut de Recherche en Cancérologie de Montpellier,
+     Inserm, Montpellier, France 
     email: jacques.colinge@inserm.fr
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: > 
@@ -33,98 +36,90 @@ output:
       fig_width: 3
       fig_caption: no
       code_folding: show
+package: BulkSignalR
 vignette: >
   %\VignetteIndexEntry{BulkSignalR-Main}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = FALSE, 
-  comment = "##"
-)
+```{r setup, include = FALSE}
 knitr::knit_hooks$set(optipng = knitr::hook_optipng)
 ```
 
-# Load packages {.unnumbered}
 ```{r load-libs, message = FALSE,  warning = FALSE, results = FALSE}
 library(BulkSignalR)
 library(igraph)
-library(dplyr)
+library(STexampleData)
 ```
-  
+
 
 # Introduction
 
-  
+    
 
 ## What is it for? 
 
-`BulkSignalR` is a tool that enables the inference of L-R
-interactions from bulk expression data, *i.e.*, from transcriptomics
+`BulkSignalR` is a Bioconductor library that enables the inference of L-R
+interactions from bulk expression data sets, *i.e.*, from transcriptomics
 (RNA-seq or microarrays) or expression proteomics.
 
 `BulkSignalR` also applies to spatial transcriptomics such as
-10x Genomics VISIUM (TM), and a set of
-functions dedicated to spatial data have been added to better support
-this particular use of the package.
+10x Genomics VISIUM:TM:, and a set of
+functions dedicated to spatial data has been added to better support
+this particular use of the library.
 
 ## Starting point 
 
-There are a variety of potential data sources prior to using `BulkSignalR`
-(proteomics, sequencing, etc.) that result
-in the generation of a matrix of numbers representing the expression
-levels of genes or proteins. This matrix may be normalized already or not.
-In every case, the latter matrix is the starting point of using
-`BulkSignalR`.
+There is a variety of potential data sources that can be used with `BulkSignalR`,
+*e.g.*, expression proteomics or RNA sequencing. Such data are typically
+represented as a matrix of numbers representing the abundance of molecules
+(gene transcripts or proteins) across samples. This matrix may have been
+normalized already or not prior the use of `BulkSignalR`.
+In both cases, the latter matrix is the input data for `BulkSignalR` analysis.
 
 It is mandatory that genes/proteins are represented as rows of the
 expression matrix and the samples as columns. HUGO gene symbols
 (even for proteins) must be used to ensure matching LR*db*,
-Reactome, and GOBP contents.
+Reactome, and GOBP contents.  
+
+You can also work with an object from the `SummarizedExperiment` or
+`SpatialExperiment` Bioconductor classes directly.
 
 ## How does it work? 
 
 As represented in the figure below, only a few steps are required in order to 
-perform a `BulkSignalR` analysis.
+perform a `BulkSignalR` analysis. Three S4 objects will be sequentially constructed:
 
-Three S4 objects will be sequentially constructed:  
-* **BSR-DataModel**, denoted `bsrdm`  
-* **BSR-Inference**, denoted `bsrinf`  
-* **BSR-Signature**, denoted `bsrsig`
+* **BSRDataModel**, denoted here as `bsrdm`  
+* **BSRInference**, denoted here as `bsrinf`  
+* **BSRSignature**, denoted here as `bsrsig`
 
 \
 
-![workflow](../man/figures/workflow.png)
-\
-  
+**BSRDataModel** comprises the expression data matrix and the 
+parameters of the statistical model learned from this matrix.
 
-**BSRDataModel** integrates the expression data matrix and the 
-parameters of the statistical model learned on this matrix.
-
-**BSRInference** provides a list triples (ligand, receptor, pathway downstream
-the receptor) with their statistical significance. If a receptor occurs
-in multiple pathways, the corresponding number of triples will be described
-in the BSR-Inference object. Genes (or proteins) targeted by the pathway
-are also described in this object.
+**BSRInference** provides various lists that contain the ligands, receptors,
+downstream pathways as well as the target genes, their correlations and statistical significance for all the L-R interactions.
 
 **BSRSignature** contains gene signatures associated with the triples
 (ligand, receptor, downstream pathway)
 stored in a `BSRInference` object. Those signatures are comprised
-of the ligand and the receptor obviously, but also all the pathway
-target genes that were used by the statistical model. Gene signatures
+of the ligand and the receptor obviously, but also the pathway
+target genes that were used in the statistical model. Gene signatures
 are meant to report the L-R interaction as a global phenomenon integrating
-its downstream effect. Indeed, signatures can be scored with a dedicated
-function allowing the user to set an arbitrary weight on the downtream
-component. Those scores represent the activity of the L-R interactions
-across the samples, they are returned as a matrix.
+its downstream effect. Indeed, signatures can be subsequently scored with a
+dedicated function allowing the user to obtain a numerical value representing
+the activity of the L-R interactions (with downstream consequences)
+across the samples. Signature scores are returned as a matrix (one row *per*
+L-R interaction and one column *per* sample).
 
 Because of the occurrence of certain receptors in multiple pathways,
-but also because some ligands may bind several receptors, or *vice versa*,
-BSR-Inference objects may contain redundant data depending on how
-the user want to look at them. We therefore provide a range of
-reduction operators meant to obtain reduced BSR-Inference objects
+and also because some ligands may bind several receptors, or *vice versa*,
+BSRInference objects may contain redundant data depending on how
+the user wants to look at them. We therefore provide a range of
+reduction operators meant to obtain reduced BSRInference objects
 (see below).  
 
 \
@@ -132,28 +127,28 @@ reduction operators meant to obtain reduced BSR-Inference objects
 Furthermore, we provide several handy functions to explore the data 
 through different plots (heatmaps, alluvial plots, chord diagrams or networks).
 
-`BulkSignalR` package functions have many parameters that can be 
+`BulkSignalR` library functions have many parameters that can be
 changed by the user to fit specific needs (see Reference Manual for details). 
 
-  
-
+    
+    
 ## Parallel mode settings
 
 Users can reduce compute time
 by using several processors in parallel.
 
-```{r parallel , message= FALSE, warnings=FALSE}
+```{r parallel, message=FALSE, warning=FALSE}
 library(doParallel)
-n.proc <- 2
+n.proc <- 1
 cl <- makeCluster(n.proc)
 registerDoParallel(cl)
 
-# To add at the end of your script
+# To add at the end of your script:
 # stopCluster(cl)
 ```
 
-### Notes:
-For operating systems that can fork such as all the UNIX-like systems,
+**Notes:**
+For operating systems that can fork such as the UNIX-like systems,
 it might be preferable to use the library `doMC` that is faster (less
 overhead). This is transparent to `BulkSignalR`.
 
@@ -161,244 +156,160 @@ In case you need to reproduce results exactly and since statistical
 model parameter learning involves the generation of randomized expression
 matrices, you might want to use `set.seed()`. In a parallel mode,
 `iseed` that is a parameter of `clusterSetRNGStream` must be used.
-  
+
+\
+    
 # First Example  
-  
+    
 ## Loading the data
-  
-Here, we load salivary duct carcinoma transcriptomes integrated as 
+    
+Here, we load salivary duct carcinoma (SDC) bulk transcriptomes integrated as 
 `sdc` in `BulkSignalR`.
 
-```{r loading,eval=FALSE}
+```{r loading, eval=TRUE}
 data(sdc)
 head(sdc)
 ```  
-```{r displayLoading,eval=FALSE}
-##          SDC16 SDC15 SDC14 SDC13 SDC12 SDC11 SDC10 SDC9 SDC8 SDC7 SDC6 SDC5
-## TSPAN6    1141  2491  1649  3963  2697  3848  3115  495 1777 1997 1682 1380
-## TNMD         3     0     2    48     0     0    10    0  195    0    4    0
-## DPM1      1149  2105  1579  2597  2569  2562  1690  964  980 3323 3409  743
-## SCYL3     1814   768  3513  1402  1007  1243  2501 3080  939 1190 1489 1097
-## C1orf112   438  1016   507  1149   598  1017   464  531  388 1088 1719  625
-## FGR        381   922   307   256   249   902   304  355  410 1054  265  121
-##          SDC4 SDC3 SDC2 SDC1 SDC17 SDC19 SDC20  N20 SDC21 SDC22  N22 SDC23
-## TSPAN6   1392 2490 1841 1883  1915  4093  3127 8035  4738  2994 9782  3866
-## TNMD        0    0    0    1     5     0    18   21     6     2   27     0
-## DPM1     1147 1705 1972 3048  2405  2943  2710 1688  2654  2772 2018  1610
-## SCYL3     507 1545 2450 2006   910  1842  2947 1058  2636  4199 1173  2980
-## C1orf112  318 1338 3065  723   509  1320   767  179   718  1498  147   629
-## FGR       408  813  787 1152  1049  4205   722  149   584   701  164   842
-##          SDC24 SDC25
-## TSPAN6    3014  1765
-## TNMD        14     3
-## DPM1      2875  2357
-## SCYL3     2079   903
-## C1orf112  1008   521
-## FGR        676   654
-```  
-\
 
 ## Building a BSRDataModel object  
 
-`prepareDataset` creates the first object with information
-relative to your bulk expression data.
+The constructor `BSRDataModel` creates the first object from SDC data above.
 
-```{r prepareDataset , eval=FALSE,cache=FALSE}
-bsrdm <- prepareDataset(counts = sdc)
-# print object
-str(bsrdm)
+```{r BSRDataModel, eval=TRUE,cache=FALSE}
+bsrdm <- BSRDataModel(counts = sdc)
+bsrdm
 ```  
-```{r output1 , eval=FALSE}
-## Formal class 'BSRDataModel' [package "BulkSignalR"] with 6 slots
-##   ..@ initial.organism : chr "hsapiens"
-##   ..@ initial.orthologs: list()
-##   ..@ ncounts          : num [1:16822, 1:26] 1286 3.38 1295.01 2044.52 493.66 ...
-##   .. ..- attr(*, "dimnames")=List of 2
-##   .. .. ..$ : chr [1:16822] "TSPAN6" "TNMD" "DPM1" "SCYL3" ...
-##   .. .. ..$ : chr [1:26] "SDC16" "SDC15" "SDC14" "SDC13" ...
-##   ..@ log.transformed  : logi FALSE
-##   ..@ normalization    : chr "UQ"
-##   ..@ param            : list()
+`learnParameters` updates a BSRDataModel object with the parameters
+necessary for `BulkSignalR` statistical modeling. 
+
+
+```{r learnParameters,eval=TRUE,warning=FALSE,fig.dim = c(7,3)}
+bsrdm <- learnParameters(bsrdm, quick=TRUE)
+bsrdm
 ``` 
-
-`learnParameters` updates a BSR-DataModel object with the parameters
-necessary for `BulkSignalR` statistical model. As it entails generating
-Spearman correlation null distributions, you can provide a directory and
-a base file name to plot this distribution along with the fitted
-model for visual inspection.
-
-```{r learnParameters , eval=FALSE,cache=FALSE,results=FALSE}
-bsrdm <- learnParameters(bsrdm, 
-         plot.folder = "../man/figures/", filename = "sdc")
-```
-
-```{r printBsrdm , eval=FALSE,cache=FALSE}
-# print object updated 
-str(bsrdm)
-```
-```{r output2, eval=FALSE}
-## Formal class 'BSRDataModel' [package "BulkSignalR"] with 6 slots
-##   ..@ initial.organism : chr "hsapiens"
-##   ..@ initial.orthologs: list()
-##   ..@ ncounts          : num [1:16822, 1:26] 1286 3.38 1295.01 2044.52 493.66 ...
-##   .. ..- attr(*, "dimnames")=List of 2
-##   .. .. ..$ : chr [1:16822] "TSPAN6" "TNMD" "DPM1" "SCYL3" ...
-##   .. .. ..$ : chr [1:26] "SDC16" "SDC15" "SDC14" "SDC13" ...
-##   ..@ log.transformed  : logi FALSE
-##   ..@ normalization    : chr "UQ"
-##   ..@ param            :List of 13
-##   .. ..$ n.rand.LR   : int 5
-##   .. ..$ n.rand.RT   : int 2
-##   .. ..$ plot.folder : chr "../man/figures/"
-##   .. ..$ file.name   : chr "sdc"
-##   .. ..$ with.complex: logi TRUE
-##   .. ..$ max.pw.size : num 200
-##   .. ..$ min.pw.size : num 5
-##   .. ..$ min.positive: num 4
-##   .. ..$ quick       : logi FALSE
-##   .. ..$ seed        : num 123
-##   .. ..$ min.corr.LR : num -1
-##   .. ..$ LR.0        :List of 2
-##   .. .. ..$ n    : int 12915
-##   .. .. ..$ model:List of 7
-##   .. .. .. ..$ mu     : num 0.0172
-##   .. .. .. ..$ sigma  : num 0.254
-##   .. .. .. ..$ factor : num 1
-##   .. .. .. ..$ start  : num 3.2e-05
-##   .. .. .. ..$ distrib: chr "censored_normal"
-##   .. .. .. ..$ D      : num 0.465
-##   .. .. .. ..$ Chi2   : num 0.000521
-##   .. ..$ RT.0        :List of 2
-##   .. .. ..$ n    : int 954132
-##   .. .. ..$ model:List of 7
-##   .. .. .. ..$ mu     : num 0.015
-##   .. .. .. ..$ sigma  : num 0.274
-##   .. .. .. ..$ factor : num 1
-##   .. .. .. ..$ start  : num 0.000107
-##   .. .. .. ..$ distrib: chr "censored_normal"
-##   .. .. .. ..$ D      : num 0.483
-##   .. .. .. ..$ Chi2   : num 0.000226
-```
-
-The plot with distribution of L-R correlation in `sdc` is displayed below. 
-
-![LR.distribution.correlation](../man/figures/sdc_LR-null.png)
-
-  
 
 ## Building a BSRInference object
 
 From the previous object `bsrdm`, you can generate inferences by calling its
 method
-`initialInference`. The resulting BSR-Inference object, `bsrinf`,
+`BSRInference`. The returned BSRInference object,
 contains all the inferred L-R interactions 
 with their associated pathways and corrected p-values.  
 
-From here, you can already access LR interactions using: `LRinter(bsrinf)`.
+From there, you can already access L-R interactions using `LRinter(bsrinf)`,
+which returns a summary table.
 
-```{r BSRInference , eval=FALSE,cache=FALSE}
-bsrinf <- initialInference(bsrdm)
+
+```{r BSRInference,eval=TRUE}
+
+# We use a subset of the reference to speed up
+# inference in the context of the vignette.
+subset <- c("REACTOME_BASIGIN_INTERACTIONS",
+"REACTOME_SYNDECAN_INTERACTIONS",
+"REACTOME_ECM_PROTEOGLYCANS",
+"REACTOME_CELL_JUNCTION_ORGANIZATION")
+
+reactSubset <- BulkSignalR:::.SignalR$BulkSignalR_Reactome[
+BulkSignalR:::.SignalR$BulkSignalR_Reactome$`Reactome name` %in% subset,]
+
+resetPathways(dataframe = reactSubset,
+              resourceName = "Reactome")
+
+bsrinf <- BSRInference(bsrdm,
+    min.cor = 0.3,
+    reference="REACTOME")
 
 LRinter.dataframe <- LRinter(bsrinf)
 
-head(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),
-  c("L",  "R" ,"LR.corr", "pw.id",  "pw.name",  "pval"  , "qval")])
+head(LRinter.dataframe[
+    order(LRinter.dataframe$qval),
+    c("L", "R", "LR.corr", "pw.name", "qval")])
 
 ```
-
-| **L**  | **R** | **LR.corr** | **pw.id**     | **pw.name**                                          |  **pval** |  **qval** |
-|--------|-------|------------:|---------------|------------------------------------------------------|----------:|----------:|
-| A2M    | LRP1  |   0.5391453 | R-HSA-196854  | Metabolism of vitamins and cofactors                 | 0.0200711 | 0.0260773 |
-| A2M    | LRP1  |   0.5391453 | R-HSA-2173782 | Binding and Uptake of Ligands by Scavenger Receptors | 0.0181048 | 0.0239389 |
-| A2M    | LRP1  |   0.5391453 | R-HSA-2187338 | Visual phototransduction                             | 0.0174728 | 0.0232013 |
-| A2M    | LRP1  |   0.5391453 | R-HSA-6806667 | Metabolism of fat-soluble vitamins                   | 0.0112186 | 0.0161057 |
-| A2M    | LRP1  |   0.5391453 | R-HSA-975634  | Retinoid metabolism and transport                    | 0.0112186 | 0.0161057 |
-| ADAM10 | AXL   |   0.4441026 | R-HSA-194138  | Signaling by VEGF                                    | 0.0029121 | 0.0056264 |
-
-\
 
 You can finally filter out non-significant L-R interactions and order them 
-by best Q-value before saving them to a file for instance.
+by Q-values before saving them into a file for instance.
 
 ```{r BSRInferenceTfile, eval=FALSE}
-write.table(LRinter.dataframe[order(LRinter.dataframe$qval <= 0.001),],
-            "../man/figures/sdc_LR.tsv",
-            row.names = FALSE,
-            sep = "\t",
-            quote = FALSE)
+write.table(LRinter.dataframe[order(LRinter.dataframe$qval), ],
+    "./sdc_LR.tsv",
+    row.names = FALSE,
+    sep = "\t",
+    quote = FALSE
+)
 ```
-
-  
+    
 
 ## Reduction strategies
 
-The output of `initialInference` is exhaustive and can thus contain
-redundancy due to intrinsic redundancy in the reference databases (Reactome,
+The output of `BSRInference` is exhaustive and can thus contain
+redundancy due to the redundancy present in the reference databases (Reactome,
 KEGG, GOBP) and multilateral interactions in LR*db*.
-To address this phenomenon, we propose several strategies.
+To alleviate this issue, we propose several strategies.
 
-### Reducing a BSRInference object to pathway
+### Reducing a BSRInference object to pathways
 
-With `reduceToPathway`, all the L-R interactions with the receptor included
-in a certain pathway are aggregated to only report each downstream pathway
+With `reduceToPathway`, all the L-R interactions with their receptors included
+in a certain pathway are aggregated to only report the downstream pathway
 once. For a given pathway, the reported P-values and target genes are those 
-of best (minimum P-value) L-R interaction that was part of the aggregation.
-Nothing is recomputed, we simply merge.
+of best (smallest P-value) L-R interaction that was part of the aggregation.
+Nothing is recomputed, we simply merge data.
 
-```{r ReduceToPathway, eval=FALSE,cache=FALSE}
-     bsrinf.redP <- reduceToPathway(bsrinf)
+```{r ReduceToPathway, eval=TRUE}
+bsrinf.redP <- reduceToPathway(bsrinf)
 ```
 
-### Reducing a BSRInference object to best pathway
+### Reducing a BSRInference object to the best pathways
 
-With ` reduceToBestPathway`, a BSR-Inference object is reduced to only report
+With ` reduceToBestPathway`, a BSRInference object is reduced to only report
 one pathway per L-R interaction. The pathway with the smallest P-value 
 is selected.
-A same pathways might occur multiple times with with different L-R interactions.
+A same pathways might occur multiple times with due different L-R interactions
+that all have their receptor in this pathway.
 
-```{r ReduceToBestPathway, eval=FALSE,cache=FALSE}
-     bsrinf.redBP    <- reduceToBestPathway(bsrinf)
+```{r ReduceToBestPathway, eval=TRUE}
+bsrinf.redBP <- reduceToBestPathway(bsrinf)
 ```
 
 ### Reducing to ligands or receptors
 
-As already mentioned, several ligands might bind a single receptor (or
-several shared receptors) and the converse is true as well. Two
+As already mentioned, several ligands might bind to single receptor (or
+several shared receptors) and the converse might happen also. Two
 reduction operators enable users to either aggregate all the ligands
 of a same receptor or all the receptors bound by a same ligand:
 
-```{r ReduceToLigand, eval=FALSE,cache=FALSE}
-     bsrinf.L    <- reduceToLigand(bsrinf)
-     bsrinf.R    <- reduceToReceptor(bsrinf)
+```{r ReduceToLigand,eval=TRUE}
+bsrinf.L <- reduceToLigand(bsrinf)
+bsrinf.R <- reduceToReceptor(bsrinf)
 ```
 
 ### Combined reductions
 
 Combinations are possible.
 
-For instance, users can apply `reduceToPathway` and `reduceToBestPathway` 
-reductions sequentially to maximize the reduction effect. In case the exact
+For instance, users can apply the `reduceToPathway` and `reduceToBestPathway` 
+functions sequentially to maximize the reduction effect. In case the exact
 same sets of aggregated ligands and receptors obtained with `reduceToPathway`
 was associated with several pathways, the pathway with the best P-value
 would be kept by `reduceToBestPathway`.
 
-```{r doubleReduction, eval=FALSE,cache=FALSE}
-     bsrinf.redP  <- reduceToPathway(bsrinf)  
-     bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP) 
+```{r doubleReduction, eval=TRUE}
+bsrinf.redP <- reduceToPathway(bsrinf)
+bsrinf.redPBP <- reduceToBestPathway(bsrinf.redP)
 ```
 
-  
 
 ## Building a BSRSignature object
 
-Gene signatures for a given, potentially reduced BSR-Inference object
-are generated by `getLRGeneSignatures`, which returns a BSRSignature
+Gene signatures for a given, potentially reduced BSRInference object
+are generated by the `BSRSignature` constructor, which returns a BSRSignature
 object.
 
 To follow the activity of L-R interactions across the samples of
-the dataset, `scoreLRGeneSignatures` computes a score for each gene signature.
+a data set, `scoreLRGeneSignatures` computes a score for each gene signature
+in each sample.
 Then, heatmaps can be generated to represent differences, *e.g.*, using
-the utility function a `simpleHeatmap`.
+the built-in utility function `simpleHeatmap`.
 
 Hereafter, we show different workflows of reductions combined with gene
 signature scoring and display.
@@ -406,76 +317,56 @@ signature scoring and display.
 
 ###  Scoring by ligand-receptor
 
-```{r scoringLR  ,cache=FALSE,results=FALSE,eval=FALSE}
+```{r scoringLR,eval=TRUE,fig.dim = c(5,4)}
+bsrsig.redBP <- BSRSignature(bsrinf.redBP, qval.thres=0.001)
 
-     bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP, qval.thres=0.001)
+scoresLR <- scoreLRGeneSignatures(bsrdm, bsrsig.redBP,
+    name.by.pathway=FALSE
+)
 
-     scoresLR <- scoreLRGeneSignatures(bsrdm, bsrsig.redBP,
-                                       name.by.pathway=FALSE)
-     
-     simpleHeatmap(scoresLR[1:20,], 
-                   path = "../man/figures/",
-                   filename = "sdc_scoresLR",
-                   column.names = TRUE, 
-                   height = 5, width = 9,
-                   pointsize = 10,
-                   hcl.palette = "Cividis"                   
-                   )
+simpleHeatmap(scoresLR[1:20, ],
+    hcl.palette="Cividis",
+    pointsize=8)
+
 ```
-
-![Heatmap.scoreLR](../man/figures/sdc_scoresLR_clean.png)
 
 ###  Scoring by pathway
 
-```{r scoringPathway, cache=FALSE,results=FALSE,eval=FALSE}    
-     bsrsig.redPBP <- getLRGeneSignatures(bsrinf.redPBP, qval.thres=0.001)
-     
-     scoresPathway <- scoreLRGeneSignatures(bsrdm, bsrsig.redPBP,
-                                            name.by.pathway=TRUE)
-     
-     simpleHeatmap(scoresPathway[1:10,], 
-                   path = "../man/figures/",
-                   filename = "sdc_scoresPathway",
-                   column.names = TRUE, 
-                   width = 9, 
-                   height = 5, 
-                   pointsize = 12,
-                   hcl.palette = "Blue-Red 2"
-                   )
+```{r scoringPathway,eval=TRUE,fig.dim = c(7,3)}    
 
+bsrsig.redPBP <- BSRSignature(bsrinf.redPBP, qval.thres=0.01)
+
+scoresPathway <- scoreLRGeneSignatures(bsrdm, bsrsig.redPBP,
+    name.by.pathway=TRUE
+)
+
+simpleHeatmap(scoresPathway,
+    hcl.palette="Blue-Red 2",
+    pointsize=8)
 ```
-
-![Heatmap.pathway](../man/figures/sdc_scoresPathway_clean.png)
-
-  
 
 ## Other visualization utilities
 
 
 ### Heatmap of ligand-receptor-target genes expression
 
-After computing gene signatures score, one may wish to look at the
+After computing gene signatures score, we may wish to look at the
 expression of the genes involved in that signature. For instance,
 we can display three heatmaps corresponding to the scaled (z-scores)
 expression of ligands (pink), receptors (green), and target genes (blue).
 
-On the top of each heatmap, the whole signature score from
+On the top of each individual heatmap, the whole signature score from
 `scoreLRGeneSignatures` is reported for reference.
 
-```{r HeatmapRTL ,results=FALSE,,eval=FALSE}   
-pathway1 <- "Elastic fibre formation"
+```{r heatmapMulti,eval=TRUE,fig.dim = c(7,10)}   
+pathway1 <- pathways(bsrsig.redPBP)[1]
 signatureHeatmaps(
-        pathway = pathway1,
-        bsrdm = bsrdm,
-        bsrsig = bsrsig.redPBP,
-        path = "../man/figures/",
-        filename = "sdc_signatureheatmap",
-        h.width  = 15,
-        h.height = 10 ,
-        show_column_names = TRUE)
+    pathway = pathway1,
+    bsrdm = bsrdm,
+    heights = c(3,2,15),
+    bsrsig = bsrsig.redPBP
+)
 ```        
-
-![Heatmaps.signature](../man/figures/sdc_signatureheatmap_clean.png)
 
 ### AlluvialPlot
 
@@ -483,25 +374,19 @@ signatureHeatmaps(
 interactions between ligands, receptors, and pathways stored in a
 BSRInference object.
 
-Obviously, it is possible to filter by ligand, receptor, or pathway. This
-is achieved by specifying a key word on the chosen category. A filter on
+Obviously, it is possible to filter by ligand, receptor, or pathway to limit
+output complexity. This
+is achieved by specifying a key word in the chosen category. A threshold on
 L-R interaction Q-values can be applied in addition.
 
-```{r AlluvialPlot,results=FALSE,eval=FALSE}   
-
+```{r AlluvialPlot,eval=TRUE,fig.dim = c(8,3)}   
 alluvialPlot(bsrinf,
-              keywords = c("COL4A1"),
-              type = "L",
-              qval.thres = 0.001,
-              path = "../man/figures/",
-              filename = "sdc_alluvial", 
-              width  = 16, 
-              height = 12
-              )
-
+    keywords = c("LAMC1"),
+    type = "L",
+    qval.thres = 0.01
+)
 ```
 
-![alluvial.plot](../man/figures/sdc_alluvial_clean.svg)
 
 ### BubblePlot
 
@@ -511,57 +396,43 @@ L-R interactions in relation with their receptor downstream pathways.
 A vector of pathways of interest can be provided to limit the complexity
 of the plot.
 
-```{r BubblePlot,results=FALSE,eval=FALSE} 
-pathway1 <- "PD-1 signaling"
-pathway2 <- "Interferon gamma signaling"
-pathways <- c(pathway1,pathway2)
+```{r BubblePlot,eval=TRUE,fig.dim = c(8,4)} 
 
+pathways <- LRinter(bsrinf)[1,c("pw.name")]
 bubblePlotPathwaysLR(bsrinf,
-    pathways = pathways, 
-    qval.thres  = 1,
-    path = "../man/figures/",
+    pathways = pathways,
+    qval.thres = 0.001,
     color = "red",
-    filename  = "sdc_bubble", 
-    width  = 16, 
-    height = 7,
     pointsize = 8
-    #filter.L = c("ADAM12")
-    #filter.R = c("ITGA3")
-    ) 
+)
 ```
- ![bubblePlot](../man/figures/sdc_bubble_clean.svg)
 
 
 ### Chordiagram
 
-`chord.diagram.LR` is a function that enable users to feature the different
+`chord.diagram.LR` is a function that enables users to feature the different
 L-R interactions involved in a specific pathway.
 
-L-R correlations strengths are drawn in a yellow color-scale.  
+L-R correlations strengths are drawn using a yellow color-scale.  
 Ligands are in grey, whereas receptors are in green.  
 You can also highlight in red one specific interaction by passing values 
-of a L-R pair as follows  `ligand="COL18A1", receptor="ITGA3"`.  
+of a L-R pair as follows  `ligand="FYN", receptor="SPN"`.  
 
-```{r Chordiagram,results=FALSE,eval=FALSE} 
-chordDiagramLR (bsrinf,
-                  path = "../man/figures/",
-                  filename = "sdc_chord",
-                  pw.id.filter = "R-HSA-202733",
-                  limit = 20,
-                  width = 5, 
-                  height = 4.5
-    )
+```{r Chordiagram,eval=TRUE,fig.dim = c(6,4.5)} 
+chordDiagramLR(bsrinf,
+    pw.id.filter = "R-HSA-210991",
+    limit = 20,
+    ligand="FYN", 
+    receptor="SPN"
+)
 ```
 
-![id8](../man/figures/sdc_chord_clean.png)
-
-  
-  
+\
 
 # Network Analysis
 
 Since `BulkSignalR` relies on intracellular networks to estimate the statistical
-significance of (ligand, receptor, pathway triples), links from receptors to
+significance of (ligand, receptor, pathway) triples, links from receptors to
 target genes are naturally accessible. Different functions enable users to
 exploit this graphical data for plotting or further data analysis.
 
@@ -569,30 +440,29 @@ Furthermore, networks can be exported in text files and graphML objects
 to be further explored with Cytoscape (www.cytoscape.org), 
 yEd (www.yworks.com), or similar software tools.
 
-```{r network1, eval=FALSE,cache=FALSE, results=FALSE} 
+```{r network1, eval=TRUE} 
 # Generate a ligand-receptor network and export it in .graphML
 # for Cytoscape or similar tools
-gLR <- getLRNetwork(bsrinf.redBP, qval.thres=1e-8)
+gLR <- getLRNetwork(bsrinf.redBP, qval.thres = 1e-3)
 
 # save to file
 # write.graph(gLR,file="SDC-LR-network.graphml",format="graphml")
 
 # As an alternative to Cytoscape, you can play with igraph package functions.
 plot(gLR,
-     edge.arrow.size=0.1,
-     vertex.label.color="black",
-     vertex.label.family="Helvetica",
-     vertex.label.cex=0.1)
-
+    edge.arrow.size = 0.1,
+    vertex.label.color = "black",
+    vertex.label.family = "Helvetica",
+    vertex.label.cex = 0.1
+)
 ```
-![network1](../man/figures/network-1_clean.png)
 
-```{r network2, eval=FALSE,cache=FALSE, results=FALSE} 
+```{r network2,  eval=TRUE} 
 # You can apply other functions.
 
 
 # Community detection
-u.gLR <- as.undirected(gLR) # most algorithms work for undirected graphs only
+u.gLR <- as_undirected(gLR) # most algorithms work for undirected graphs only
 comm <- cluster_edge_betweenness(u.gLR)
 # plot(comm,u.gLR,
 #     vertex.label.color="black",
@@ -601,25 +471,25 @@ comm <- cluster_edge_betweenness(u.gLR)
 
 # Cohesive blocks
 cb <- cohesive_blocks(u.gLR)
-plot(cb,u.gLR,
-     vertex.label.color="black",
-     vertex.label.family="Helvetica",
-     vertex.label.cex=0.1,
-     edge.color="black")
+plot(cb, u.gLR,
+    vertex.label.color = "black",
+    vertex.label.family = "Helvetica",
+    vertex.label.cex = 0.1,
+    edge.color = "black"
+)
 ```
 
-![network2](../man/figures/network-2_clean.png)
 
-```{r network3, eval=FALSE,cache=FALSE, results=FALSE} 
-# For the next steps, we just share the code below but graph generation function
-# are commented to lighten the vignette.
+```{r network3, eval=FALSE,warning=FALSE} 
+# For the next steps, we just share the code below, but graph generation
+# functions are commented to lighten the vignette.
 
 # Generate a ligand-receptor network complemented with intra-cellular,
 # receptor downstream pathways [computations are a bit longer here]
 #
 # You can save to a file for cystoscape or plot with igraph.
 
-gLRintra <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=1e-8)
+gLRintra <- getLRIntracellNetwork(bsrinf.redBP, qval.thres = 1e-3)
 
 lay <- layout_with_kk(gLRintra)
 # plot(gLRintra,
@@ -631,10 +501,12 @@ lay <- layout_with_kk(gLRintra)
 
 # Reduce complexity by focusing on strongly targeted pathways
 pairs <- LRinter(bsrinf.redBP)
-top <- unique(pairs[pairs$pval<1e-20,c("pw.id","pw.name")])
+top <- unique(pairs[pairs$pval <  1e-3, c("pw.id", "pw.name")])
 top
-gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=0.01,
-                                      restrict.pw=top$pw.id)
+gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP,
+    qval.thres = 0.01,
+    restrict.pw = top$pw.id
+)
 lay <- layout_with_fr(gLRintra.res)
 
 # plot(gLRintra.res,
@@ -643,31 +515,27 @@ lay <- layout_with_fr(gLRintra.res)
 #     vertex.label.color="black",
 #     vertex.label.family="Helvetica",
 #     vertex.label.cex=0.4)
-    
 ```
-
-  
-  
-
-# Non human data
 
 \
 
-In order to process data from nonhuman organisms,
+# Non-human data
+
+In order to process data from non-human organisms,
 users only need to specify a few additional parameters and all the
 other steps of the analysis remain unchanged.
 
 By default, `BulksignalR` works with *Homo sapiens*.
 We implemented a strategy using ortholog genes (mapped by the 
-orthogene BioConductor package) in BulkSignalR directly.
+`orthogene` BioConductor package) in `BulkSignalR` directly.
 
 The function `findOrthoGenes` creates a correspondence table between
-human and another organism. 
+human and another organism.
 `convertToHuman`  then converts an initial expression matrix to
 a *Homo sapiens* equivalent.
 
-When calling `prepareDataset`, the user only needs to pass this transformed
-matrix, the actual nonhuman organism, and the correspondence table.
+When calling `BSRDataModel`, the user only needs to pass this transformed
+matrix, the actual non-human organism name, and the correspondence table.
 Then, L-R interaction inference is performed as for human data.
 Finally, users can switch back to gene names relative to the original organism
 via `resetToInitialOrganism`.
@@ -676,233 +544,271 @@ computing gene signatures and visualizing.
 
 \
 
-```{r mouse , cache=FALSE,results=FALSE,eval=FALSE}
+```{r mouse,eval=TRUE,warning=FALSE}
 data(bodyMap.mouse)
 
-ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
-                                     from_values = rownames(bodyMap.mouse))
- 
-matrix.expression.human <- convertToHuman(counts = bodyMap.mouse, 
-                                           dictionary = ortholog.dict)
+ortholog.dict <- findOrthoGenes(
+    from_organism = "mmusculus",
+    from_values = rownames(bodyMap.mouse)
+)
 
-bsrdm  <- prepareDataset(counts = matrix.expression.human,
-           species = "mmusculus",
-           conversion.dict = ortholog.dict)
+matrix.expression.human <- convertToHuman(
+    counts = bodyMap.mouse,
+    dictionary = ortholog.dict
+)
 
-bsrdm <- learnParameters(bsrdm, 
-           plot.folder="../man/figures/", filename = "bodyMap.mouse")
- 
-bsrinf  <- initialInference(bsrdm)
+bsrdm <- BSRDataModel(
+    counts = matrix.expression.human,
+    species = "mmusculus",
+    conversion.dict = ortholog.dict
+)
 
-bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
+bsrdm <- learnParameters(bsrdm,quick=TRUE)
+
+bsrinf <- BSRInference(bsrdm,reference="REACTOME")
+
+bsrinf <- resetToInitialOrganism(bsrinf, conversion.dict = ortholog.dict)
 
 # For example, if you want to explore L-R interactions
 # you can proceed as shown above for a human dataset.
 
-# bsrinf.redBP <- reduceToBestPathway(bsrinf)  
-# bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP, qval.thres=0.001)
-# scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,name.by.pathway=FALSE)
-# simpleHeatmap(scoresLR[1:20,], file="sdc_scoreLR.pdf", column.names=TRUE,
-# width=9, height=5, pointsize=8)
-
+bsrinf.redBP <- reduceToBestPathway(bsrinf)
+bsrsig.redBP <- BSRSignature(bsrinf.redBP, qval.thres=0.001)
+scoresLR <- scoreLRGeneSignatures(bsrdm, bsrsig.redBP, name.by.pathway=FALSE)
+head(LRinter(bsrinf.redBP))
+#simpleHeatmap(scoresLR, column.names=TRUE,
+#              pointsize=8)
 ```
 
-  
-  
+\
 
 # Spatial Transcriptomics
 
-\
-
-`BulkSignalR` workflow can be applied to spatial transcriptomics (ST) to find
-significant L-R interactions occurring in a tissue. Additional functions
+`BulkSignalR` analysis can be applied to spatial transcriptomics (ST) at medium
+resolution such as with 10x Genomics Visium:TM: or Nanostring GeoMx:TM:.
+L-R interactions that display significant occurrence in a tissue are
+retrieved. Additional functions
 have been introduced to facilitate the visualization and analysis of the
-results in a spatial context. The only necessary change is to adapt the
-training of the statistical model to shallower data featuring dropouts
-and reduced dynamic range. This is achieved by imposing a minimum correlation
-at -1 in the training and requiring at least two target genes in a
-pathway instead of 4. Also, thresholds on L-R interaction Q-values should
-be released slightly such as 1% instead of 0.1%.
+results in a spatial context.
 
-A basic spatial function is `spatialPlot` that enables visualizing
+To account for the rather limited dynamics of ST data and dropouts, it is
+usually recommended to release specific parameters controlling the
+training of the statistical model. Namely, minimum correlation can be set
+at -1 during training and the minimum number of target genes in a
+pathway should be reduced to 2 instead of the default at 4.
+Also, the thresholds on L-R interaction Q-values should
+be raised at 1% or 5% instead of 0.1%.
+
+A key spatial plot function is `spatialPlot` that enables visualizing
 L-R interaction gene signature scores at their spatial coordinates with a
 potential reference plot (raw tissue image or user-defined areas) on the side.
 
-In the 
-[BulkSignalR github companion](https://github.com/jcolinge/BulkSignalR_companion),
-we provide scripts to retrieve ST raw data that are the starting point 
-to execute our workflow in this specific case.  
+As we published `BulkSignalR` paper, we provided example scripts to apply
+the library to spatial data represented in tabular text files
+[BulkSignalR github companion](
+https://github.com/jcolinge/BulkSignalR_companion).
+It is also possible to work with an object of the `SpatialExperiment` 
+Bioconductor class. In addition, the `VisiumIO` package allows users
+to readily import Visium data from the 10X Space Ranger pipeline and retrieve 
+a `SpatialExperiment object`.
 
 \
 
-```{r spatial , eval=FALSE}
+```{r spatial1,eval=TRUE,message=FALSE}
 # load data =================================================
 
-bench.dir <- "./"
+# We re-initialize the environment variable of Reactome
+# to have all the pathways (we reduced it to a subset above to fasten
+# example computations)
+reactSubset <- getResource(resourceName = "Reactome",
+cache = TRUE)
 
-counts <- read.csv(glue("{bench.dir}/Brain_count.export.tsv"),
-                   sep="\t", stringsAsFactors=FALSE)
+resetPathways(dataframe = reactSubset,
+resourceName = "Reactome")
 
-areas <- read.csv(glue("{bench.dir}/Brain_label.export.tsv"),
-                  sep="\t", stringsAsFactors=FALSE)
+# Few steps of pre-process to subset a spatialExperiment object
+# from STexampleData package ==================================
 
-image_low_res_path <-glue("{bench.dir}/Brain_image.export.png")
+spe <- Visium_humanDLPFC()
+set.seed(123)
 
-# Load from disk and manipulate as a raster object.
-my.image.as.raster <- rasterizeFromFile(image_low_res_path)
+speSubset <- spe[, colData(spe)$ground_truth%in%c("Layer1","Layer2")]
 
-areas$idSpatial <- paste0("X", areas$idSpatial)
-areas           <- areas[areas$idSpatial %in% names(counts),]
-areas$label <- areas$ground_truth
-areas$label[is.na(areas$label)] <- "unclassified"
+idx <- sample(ncol(speSubset), 10)
+speSubset <- speSubset[, idx]
 
-# Areas dataframe with id, coordinates and labels is described below.
-head(areas)
+my.image.as.raster <- SpatialExperiment::imgRaster(speSubset, 
+    sample_id = imgData(spe)$sample_id[1], image_id = "lowres")
+
+colData(speSubset)$idSpatial <- paste(colData(speSubset)[[4]],
+                colData(speSubset)[[5]],sep = "x")
+
+
+annotation <- colData(speSubset)
+
 ```
-```{r areas , eval=FALSE}
- 
- ## idSpatial array_col array_row ground_truth
- ## 50x102       102        50      Label3
- ##   3x43        43         3      Label1
- ##  59x19        19        59      Label2
- ##  14x94        94        14      Label3
- ##   43x9         9        43      Label5
- ##  47x13        13        47      Label6
-``` 
 
-```{r spatialnext , eval=FALSE}
+```{r spatial2,eval=TRUE,warning=FALSE}
 # prepare data =================================================
 
-bsrdm <- prepareDataset(counts,symbol.col=1, 
-                              min.count=1,
-                              prop=0.01,
-                              method="TC")
+bsrdm <- BSRDataModel(speSubset,
+    min.count = 1,
+    prop = 0.01,
+    method = "TC",
+    symbol.col = 2,
+    x.col = 4,
+    y.col = 5, 
+    barcodeID.col = 1)
 
-bsrdm <- learnParameters(bsrdm, quick=FALSE,
-                         plot.folder="./",
-                         min.positive=2, 
-                         verbose=TRUE)
+bsrdm <- learnParameters(bsrdm,
+    quick = TRUE,
+    min.positive = 2,
+    verbose = TRUE)
 
-bsrinf <- initialInference(bsrdm, min.cor=-1)
+bsrinf <- BSRInference(bsrdm, min.cor = -1,reference="REACTOME")
 
 # spatial analysis ============================================
 
 bsrinf.red <- reduceToBestPathway(bsrinf)
 pairs.red <- LRinter(bsrinf.red)
+
 thres <- 0.01
 min.corr <- 0.01
 pairs.red <- pairs.red[pairs.red$qval < thres & pairs.red$LR.corr > min.corr,]
 
-s.red  <- getLRGeneSignatures(bsrinf.red, qval.thres=thres)
+head(pairs.red[
+    order(pairs.red$qval),
+    c("L", "R", "LR.corr", "pw.name", "qval")])
+
+s.red  <- BSRSignature(bsrinf.red, qval.thres=thres)
 scores.red <- scoreLRGeneSignatures(bsrdm,s.red)
 
+head(scores.red)
+
 ```
 
-From here, one can start to explore the data 
-through different plots.  
+From here, one can start exploring the ST data 
+through different plots.
 
-```{r spatialPlot , eval=FALSE}
- # Visualization ============================================
+**Note:** As we work on a much reduced data set to fasten 
+the vignette generation, only a few point are
+displayed in each plot. Actual plots are a lot more informative.
+
+
+```{r spatialPlot3,eval=TRUE,fig.dim = c(6,4.5)}
+# Visualization ============================================
 
 # plot one specific interaction
-inter <- "{CALM1} / {GRM5}" 
+
 # we have to follow the syntax with {} 
-# to be compatible with reduction operations
+# to be compatible with the reduction functions
+inter <- "{SLIT2} / {GPC1}"
 
 # with raw tissue reference
-png("../man/figures/spatialPlot1_clean.png", width=600, height=300)
-spatialPlot(scores.red[inter,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
-            image.raster = NULL ,dot.size=1)
-dev.off()
-
-```
-![spatial2](../man/figures/spatialPlot2_clean.png)
-
-```{r spatialrawPlot , eval=FALSE}
+spatialPlot(scores.red[inter, ], annotation, inter,
+    ref.plot = TRUE, ref.plot.only = FALSE,
+    image.raster = NULL, dot.size = 1,
+    label.col = "ground_truth"
+)
 
 # or with synthetic image reference
-png("../man/figures/spatialPlot2_clean.png",width=600,height=300)
-spatialPlot(scores.red[inter,], areas, inter, ref.plot=TRUE, ref.plot.only=FALSE,
-            image.raster = my.image.as.raster ,dot.size=1)
-dev.off()
+spatialPlot(scores.red[inter, ], annotation, inter,
+    ref.plot = TRUE, ref.plot.only = FALSE,
+    image.raster = my.image.as.raster, dot.size = 1,
+    label.col = "ground_truth"
+
+)
+```  
+
+You can dissect one interaction to separately visualize the expression of the
+ligand and the receptor involved in a specific L-R interaction.
+
+```{r spatialPlot4,eval=TRUE,fig.dim = c(6,4.5)}
+
+separatedLRPlot(scores.red, "SLIT2", "GPC1", 
+    ncounts(bsrdm), 
+    annotation,
+    label.col = "ground_truth")
 
 ```
-![spatial1](../man/figures/spatialPlot1_clean.png)
 
-You can dissect one interaction to visualise both ligand and
-receptor expression of the interaction.
+```{r spatialPlot5,eval=TRUE}
 
-```{r spatialseparatedPlot , eval=FALSE}
-
-png("../man/figures/spatialPlot_separated_clean.png",width=600,height=600)
-separatedLRPlot(scores.red, "CALM1", "GRM5", ncounts(bsrdm), areas)
-dev.off()
+# generate a visual index in a pdf file directly
+spatialIndexPlot(scores.red, annotation,  
+    label.col = "ground_truth",
+    out.file="spatialIndexPlot")
 
 ```
-![spatial1](../man/figures/spatialPlot_separated_clean.png)
-
-The user can generate a large index picturing all these distributions
-for visual inspection and manual selection.   
-
-```{r spatialIndexPlot , eval=FALSE}
-# generate visual index on disk
-spatialIndexPlot(scores.red, areas, "../man/figures/bigplot-BSR.pdf")
-```
-![spatialIndexPlot](../man/figures/spatialIndexPlot_clean.png)
 
 \
 
-Finally, we provide function to assess statistical associations of L-R gene
-signature scores with the different user-defined areas of a sample.
-Based on these associations, a visualization tool can represent the
+Finally, we provide a function to assess the statistical associations of
+L-R interaction signature scores with user-defined areas of the sample.
+Based on these associations, a further visualization function can represent the
 latter in the form of a heatmap.  
 
 \
 
-```{r spatialAssociation , eval=FALSE}
+```{r spatialPlot6,eval=TRUE,fig.dim = c(6,4.5)}
 
 # statistical association with tissue areas based on correlations
 # For display purpose, we only use a subset here
-assoc.bsr.corr <- spatialAssociation(scores.red[c(1:25),], areas, test="Spearman")
+assoc.bsr.corr <- spatialAssociation(scores.red[c(1:17), ],
+annotation, label.col = "ground_truth",test = "Spearman")
 
-png("../man/figures/spatialAssociation_clean.png",width=400,height=400)
+head(assoc.bsr.corr)
+
 spatialAssociationPlot(assoc.bsr.corr)
-dev.off()
 
 ```
-![spatialAssociation](../man/figures/spatialAssociation_clean.png)
 
-  
+We also provide 2D-projections (see the `spatialDiversityPlot` function) to
+assess the diversity among L-R interaction spatial distributions over
+an entire data set. Other functions such as `generateSpatialPlots` can
+output multiple individual spatial plots in a graphic file directly.
+
+\
+
+
+Note that we describe additional use cases in the
+[BulkSignalR github companion](
+https://github.com/jcolinge/BulkSignalR_companion). 
+
+\
+
+
+See the reference manual for all the details.  
+
+
+```{r inferCells,eval=FALSE,include=FALSE}
 
 ## Additional functions
 
-We also provide 2D-projections (see  `spatialDiversityPlot` function) to
-assess diversity among L-R interaction spatial distributions over
-an entire dataset. Other function as `generateSpatialPlots` can generate on disk
-multiple individual spatial plots.
-Note that we also describe more diverse use cases in the 
-[BulkSignalR github companion](https://github.com/jcolinge/BulkSignalR_companion). 
-
-See the reference manual for all the details.  
-  
+# This is not part of the main workflow for analyzing L-R interactions but
+# we offer convenience functions for inferring cell types. However 
+# we recommend using other software packages specifically dedicated to this
+# purpose.
 
 # Inferring cell types
 
-```{r inferCells , eval=FALSE}
 
-# SDC data
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
+data(sdc, package = "BulkSignalR")
+bsrdm <- BSRDataModel(counts = sdc)
 bsrdm <- learnParameters(bsrdm)
-bsrinf <- initialInference(bsrdm)
+bsrinf <- BSRInference(bsrdm)
 
 # Common TME cell type signatures
-data(immune.signatures, package="BulkSignalR")
+data(immune.signatures, package = "BulkSignalR")
 unique(immune.signatures$signature)
-immune.signatures <- immune.signatures[immune.signatures$signature %in% c("B cells","Dentritic cells","Macrophages",
-                                                                          "NK cells","T cells","T regulatory cells"),]
-data("tme.signatures", package="BulkSignalR")
-signatures <- rbind(immune.signatures,tme.signatures[tme.signatures$signature%in%c("Endothelial cells","Fibroblasts"),])
+immune.signatures <- immune.signatures[immune.signatures$signature %in% c(
+    "B cells", "Dentritic cells", "Macrophages",
+    "NK cells", "T cells", "T regulatory cells"
+), ]
+data("tme.signatures", package = "BulkSignalR")
+signatures <- rbind(immune.signatures,
+tme.signatures[tme.signatures$signature %in% 
+c("Endothelial cells", "Fibroblasts"), ])
 tme.scores <- scoreSignatures(bsrdm, signatures)
 
 # assign cell types to interactions
@@ -913,88 +819,77 @@ head(lr2ct)
 g.table <- cellularNetworkTable(lr2ct)
 
 gCN <- cellularNetwork(g.table)
-png("cellularNetwork.png")
-plot(gCN, edge.width=5*E(gCN)$score)
 
-```
-![cellularNetwork](../man/figures/cellularNetwork.png)
+plot(gCN, edge.width = 5 * E(gCN)$score)
 
-```{r summarizedCellNetwork , eval=FALSE}
 gSummary <- summarizedCellularNetwork(g.table)
-plot(gSummary, edge.width=1+30*E(gSummary)$score)
-```
-![SumcellularNetwork](../man/figures/summarizedCellularNetwork.png)
-
-```{r testpEMT , eval=FALSE}
+plot(gSummary, edge.width = 1 + 30 * E(gSummary)$score)
 
 # relationship with partial EMT---
 # Should be tested HNSCC data instead of SDC!!
 
 # find the ligands
-data(p.EMT, package="BulkSignalR")
+data(p.EMT, package = "BulkSignalR")
 gs <- p.EMT$gene
 triggers <- relateToGeneSet(bsrinf, gs)
-triggers <- triggers[triggers$n.genes>1,] # at least 2 target genes in the gs
+triggers <- triggers[triggers$n.genes > 1, ] # at least 2 target genes in the gs
 ligands.in.gs <- intersect(triggers$L, gs)
-triggers <- triggers[!(triggers$L%in%ligands.in.gs),]
+triggers <- triggers[!(triggers$L %in% ligands.in.gs), ]
 ligands <- unique(triggers$L)
 
 # link to cell types
-cf <- cellTypeFrequency(triggers, lr2ct, min.n.genes=2)
-missing <- setdiff(rownames(tme.scores),names(cf$s))
+cf <- cellTypeFrequency(triggers, lr2ct, min.n.genes = 2)
+missing <- setdiff(rownames(tme.scores), names(cf$s))
 cf$s[missing] <- 0
 cf$t[missing] <- 0
 
-op <- par(mar=c(2,10,2,2))
-barplot(cf$s,col="lightgray",horiz=T,las=2)
+op <- par(mar = c(2, 10, 2, 2))
+barplot(cf$s, col = "lightgray", horiz = T, las = 2)
 par(op)
-```
 
-![celltypeFreq](../man/figures/cellTypeFrequency.png)
-```{r tesRobustness, eval=FALSE}
 # random selections based on random gene sets
 qval.thres <- 1e-3
 inter <- LRinter(bsrinf)
-tg <- tGenes(bsrinf)
+tg <- tgGenes(bsrinf)
 tcor <- tgCorr(bsrinf)
 good <- inter$qval <= qval.thres
-inter <- inter[good,]
+inter <- inter[good, ]
 tg <- tg[good]
 tcor <- tcor[good]
 all.targets <- unique(unlist(tg))
 r.cf <- list()
-for (k in 1:100){ # should 1000 or more
-  r.gs <- sample(all.targets,length(intersect(gs,all.targets)))
-  r.triggers <- relateToGeneSet(bsrinf, r.gs, qval.thres=qval.thres)
-  r.triggers <- r.triggers[r.triggers$n.genes>1,]
-  r.ligands.in.gs <- intersect(r.triggers$L, r.gs)
-  r.triggers <- r.triggers[!(r.triggers$L%in%r.ligands.in.gs),]
-  r <- cellTypeFrequency(r.triggers, lr2ct, min.n.genes=2)
-  missing <- setdiff(rownames(tme.scores),names(r$s))
-  r$s[missing] <- 0
-  r$t[missing] <- 0
-  o <- order(names(r$t))
-  r$s <- r$s[o]
-  r$t <- r$t[o]
-  r.cf <- c(r.cf,list(r))
+for (k in 1:100) { # should 1000 or more
+    r.gs <- sample(all.targets, length(intersect(gs, all.targets)))
+    r.triggers <- relateToGeneSet(bsrinf, r.gs, qval.thres = qval.thres)
+    r.triggers <- r.triggers[r.triggers$n.genes > 1, ]
+    r.ligands.in.gs <- intersect(r.triggers$L, r.gs)
+    r.triggers <- r.triggers[!(r.triggers$L %in% r.ligands.in.gs), ]
+    r <- cellTypeFrequency(r.triggers, lr2ct, min.n.genes = 2)
+    missing <- setdiff(rownames(tme.scores), names(r$s))
+    r$s[missing] <- 0
+    r$t[missing] <- 0
+    o <- order(names(r$t))
+    r$s <- r$s[o]
+    r$t <- r$t[o]
+    r.cf <- c(r.cf, list(r))
 }
-r.m.s <- foreach(i=seq_len(length(r.cf)),.combine=rbind) %do% {
-  r.cf[[i]]$s
+r.m.s <- foreach(i = seq_len(length(r.cf)), .combine = rbind) %do% {
+    r.cf[[i]]$s
 }
 
 # plot results
-op <- par(mar=c(2,10,2,2))
-boxplot(r.m.s,col="lightgray",horizontal=T,las=2)
-pts <- data.frame(x=as.numeric(cf$s[colnames(r.m.s)]),cty=colnames(r.m.s))
-stripchart(x~cty, data=pts,add=TRUE,pch=19,col="red")
+op <- par(mar = c(2, 10, 2, 2))
+boxplot(r.m.s, col = "lightgray", horizontal = T, las = 2)
+pts <- data.frame(x = as.numeric(cf$s[colnames(r.m.s)]), cty = colnames(r.m.s))
+stripchart(x ~ cty, data = pts, add = TRUE, pch = 19, col = "red")
 par(op)
-for (cty in rownames(tme.scores))
-  cat(cty, ": P=", sum(r.m.s[,cty]>=cf$s[cty])/nrow(r.m.s), "\n", sep="")
-
+for (cty in rownames(tme.scores)) {
+    cat(cty, ": P=", sum(r.m.s[, cty] >= cf$s[cty]) / nrow(r.m.s),
+    "\n", sep = "")
+}
 ```
-![celltypeFreqRobust](../man/figures/cellTypeFrequencyAndRobustness.png)
 
-  
+\
 
 # Acknowledgements
 
@@ -1005,7 +900,7 @@ Gauthier Gadouas for testing the software on different platforms.
 
 Thank you for reading this guide and for using `BulkSignalR`.
 
-  
+\
 
 # Session Information
 

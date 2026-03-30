@@ -12,10 +12,19 @@
 \S4method{tgPval}{BSRSignatureComp}(x)
 }
 \arguments{
-\item{x}{BSRSignature}
+\item{x}{BSRSignatureComp object}
+}
+\value{
+tgPval
+
+tg.pval
 }
 \description{
 Target gene P-values accessor
 
 Target gene P-values accessor
+}
+\examples{
+bsrinf <- new("BSRInferenceComp")
+tgPval(bsrinf)
 }

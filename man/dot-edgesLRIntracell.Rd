@@ -7,7 +7,7 @@
 .edgesLRIntracell(
   pairs,
   pw,
-  t.genes,
+  tg.genes,
   tg.corr,
   id.col,
   gene.col,
@@ -26,8 +26,8 @@
 
 \item{pw}{A table defining the reference pathways.}
 
-\item{t.genes}{Target gene list such as output by
-\code{tGenes(BSRInference)}.}
+\item{tg.genes}{Target gene list such as output by
+\code{tgGenes(BSRInference)}.}
 
 \item{tg.corr}{Target gene correlation list (with the receptor) such as
 output by \code{tgCorr(BSRInference)}.}
@@ -44,14 +44,16 @@ generate the network.}
 
 \item{neg.targets}{A logical imposing that all the network targets must
 display negative correlation or logFC a BSRInferenceComp object is used to
-generate the network. Correlations must be <= -min.cor or logFC <= - min.logFC
+generate the network. Correlations must be
+<= -min.cor or logFC <= - min.logFC
 with this option activated.}
 
 \item{tg.pval}{Target gene P-value list such as returned by
 \code{ tgPval(BSRInferenceComp)}.}
 
 \item{max.pval}{Maximum (regulation) P-value for target genes in case
-a BSRInferenceComp object is used to generate the network.}
+a BSRInferenceComp object is used 
+to generate the network.}
 
 \item{min.logFC}{Minimum logFC required for the target genes in case
 a BSRInferenceComp object is used to generate the network.}

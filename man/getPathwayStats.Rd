@@ -36,19 +36,9 @@ this (hypergeometric test) computation.
 Basic statistics about hit pathways
 }
 \examples{
-print('getPathwayStats')
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrinf, package = "BulkSignalR")
 
 pw.stat <- getPathwayStats(bsrinf)
-head(pw.stat)
+
 
 }

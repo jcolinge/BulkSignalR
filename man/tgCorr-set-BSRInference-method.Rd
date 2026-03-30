@@ -11,6 +11,9 @@
 
 \item{value}{value to be set for bsrinf}
 }
+\value{
+returns \code{NULL}
+}
 \description{
 Target gene correlations setter (internal use only)
 }

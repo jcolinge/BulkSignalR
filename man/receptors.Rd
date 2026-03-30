@@ -13,8 +13,17 @@
 \arguments{
 \item{x}{BSRSignature}
 }
+\value{
+receptors
+
+receptors
+}
 \description{
 receptors accessor
 
 receptors accessor
+}
+\examples{
+bsr.sig <- new("BSRSignature")
+ligands(bsr.sig)
 }

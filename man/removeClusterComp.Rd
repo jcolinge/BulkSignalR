@@ -9,7 +9,7 @@
 }
 \arguments{
 \item{obj}{A BSRDataModelComp object output by
-\code{\link{as.BSRDataModelComp}}.}
+\code{\link{setAs}}.}
 
 \item{cmp.name}{The name of the comparison to remove.}
 }
@@ -25,23 +25,23 @@ comparisons contained in \code{obj}.
 }
 \examples{
 # prepare data
-data(sdc,package='BulkSignalR')
+data(sdc, package = "BulkSignalR")
 normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
+bsrdm <- BSRDataModel(sdc[, -normal])
 
 # define the comparison
-bsrdm.comp <- as.BSRDataModelComp(bsrdm)
-colA <- as.integer(1:5)
-colB <- as.integer(8:15)
+bsrdm.comp <- as(bsrdm, "BSRDataModelComp")
+colA <- as.integer(1:3)
+colB <- as.integer(12:15)
 n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
-                    expr=runif(n, 0, 10))
+stats <- data.frame(
+    pval = runif(n), logFC = rnorm(n, 0, 2),
+    expr = runif(n, 0, 10)
+)
 rownames(stats) <- rownames(ncounts(bsrdm.comp))
-bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
+bsrcc <- BSRClusterComp(bsrdm.comp, colA, colB, stats)
 
 bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
-bsrdm.comp
 bsrdm.comp <- removeClusterComp(bsrdm.comp, "random.example")
-bsrdm.comp
 
 }

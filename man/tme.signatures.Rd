@@ -15,7 +15,7 @@ Becht & al., Genome Biol, 2016; Angelova et al., Genome Biol, 2015.
 data(tme.signatures)
 }
 \description{
-A dataset containing gene signatures for some immune and stromal
+A data set containing gene signatures for some immune and stromal
   cell populations that are present in the microenvironment of a tumor.
 }
 \keyword{datasets}

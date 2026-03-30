@@ -10,7 +10,7 @@ getLRIntracellNetwork(
   qval.thres = NULL,
   min.cor = 0.25,
   max.pval = NULL,
-  min.logFC = 0,
+  min.logFC = NULL,
   pos.targets = FALSE,
   neg.targets = FALSE,
   restrict.pw = NULL,
@@ -18,7 +18,7 @@ getLRIntracellNetwork(
 )
 }
 \arguments{
-\item{bsrinf}{A BSRInference or BSRInference Comp object.}
+\item{bsrinf}{A BSRInference or BSRInferenceComp object.}
 
 \item{pval.thres}{P-value LR interaction threshold.}
 
@@ -51,7 +51,7 @@ signaling network. Default colors and node sizes are assigned,
 which can be changed afterwards if necessary.
 
 The target genes to which the \code{min.cor} correlation is imposed are
-those listed in \code{tGenes(bsrinf)}, correlations are in
+those listed in \code{tgGenes(bsrinf)}, correlations are in
 \code{tgCorr(bsrinf)}.
 The construction of shortest paths from the receptors to those selected
 targets adds other genes, which were either some targets with too low
@@ -63,25 +63,18 @@ the shortest paths from the receptors to correlated
 target genes following Reactome and KEGG pathways.
 }
 \examples{
-print('getLRIntracellNetwork')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrinf, package = "BulkSignalR")
+
 bsrinf.redBP <- reduceToBestPathway(bsrinf)
 
 pairs <- LRinter(bsrinf.redBP)
-top   <- unique(pairs[pairs$pval<1e-20,c("pw.id","pw.name")])
+top <- unique(pairs[pairs$pval < 1e-20, c("pw.id", "pw.name")])
 
-gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP, qval.thres=0.01,
-                                     restrict.pw=top$pw.id)
+gLRintra.res <- getLRIntracellNetwork(bsrinf.redBP,
+qval.thres = 0.01,
+restrict.pw = top[1,]$pw.id
+)
 
 # write.graph(gLRintra, file="SDC-LR-intracellular-network.reduced.graphml",
-          # format="graphml")
-
+# format="graphml")
 }

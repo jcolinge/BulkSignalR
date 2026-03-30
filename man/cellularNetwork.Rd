@@ -16,25 +16,18 @@ A igraph object containing all the links in the cellular network.
 Generate a igraph object including all the links between cell types.
 }
 \examples{
-print('assignCellTypesToInteractions')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrdm, package = "BulkSignalR")
+data(bsrinf, package = "BulkSignalR")
+data("tme.signatures", package = "BulkSignalR")
+data(immune.signatures, package = "BulkSignalR")
 
-# microenvironment cell populations
-data(immune.signatures, package="BulkSignalR")
 immune.signatures <- immune.signatures[immune.signatures$signature \%in\%
-                               c("B cells","Dentritic cells","Macrophages",
-                                 "NK cells","T cells","T regulatory cells"),]
-data("tme.signatures", package="BulkSignalR")
-signatures <- rbind(immune.signatures,tme.signatures[
-          tme.signatures$signature\%in\%c("Endothelial cells","Fibroblasts"),])
+    c("T cells"), ]
+
+signatures <- rbind(immune.signatures, tme.signatures[
+    tme.signatures$signature \%in\% c("Fibroblasts"),
+])
+
 tme.scores <- scoreSignatures(bsrdm, signatures)
 
 # assignment
@@ -43,5 +36,6 @@ lr2ct <- assignCellTypesToInteractions(bsrdm, bsrinf, tme.scores)
 # cellular network
 g.table <- cellularNetworkTable(lr2ct)
 gCN <- cellularNetwork(g.table)
+
 #plot(gCN, edge.width=5*E(gCN)$score)
 }

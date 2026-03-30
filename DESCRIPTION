@@ -1,7 +1,7 @@
 Package: BulkSignalR
 Type: Package
 Title: Infer Ligand-Receptor Interactions from bulk expression (transcriptomics/proteomics) data, or spatial transcriptomics
-Version: 0.0.9
+Version: 1.2.2
 Authors@R: c(
     person("Jacques","Colinge",email="jacques.colinge@inserm.fr",role="aut",comment = c(ORCID = "0000-0003-2466-4824")),
     person("Jean-Philippe","Villemin",email="jpvillemin@gmail.com",role="cre",comment = c(ORCID = "0000-0002-1838-5880")))
@@ -17,35 +17,52 @@ BugReports: https://github.com/jcolinge/BulkSignalR/issues
 License: CeCILL | file LICENSE
 Encoding: UTF-8
 LazyData: FALSE
-Depends: R (>= 4.0)
-biocViews: Network, RNASeq, Software, Proteomics, Transcriptomics, NetworkInference
+Depends: R (>= 4.5)
+biocViews: Network, RNASeq, Software, Proteomics, Transcriptomics, NetworkInference, Spatial
 Imports:
+    BiocFileCache,
+    httr2,
+    RCurl,
+    cli,
+    curl,
     rlang,
+    jsonlite,
+    matrixStats,
     methods,
     doParallel,
     glmnet,
     ggalluvial,
     ggplot2,
     gridExtra,
-    png,
+    grid,
     Rtsne,
     ggrepel,
     foreach,
     multtest,
     igraph,
-    SingleCellSignalR,
     orthogene,
     stabledist,
     circlize (>= 0.4.14),
     ComplexHeatmap (>= 2.0.0),
     stats,
     scales,
-    RANN
+    RANN,
+    SpatialExperiment,
+    SummarizedExperiment,
+    tools
 Suggests: 
     knitr,
-    grid,
-    dplyr,
     markdown,
-    rmarkdown
-RoxygenNote: 7.2.3
+    rmarkdown,
+    STexampleData,
+    testthat (>= 3.0.0),
+    codetools,
+    Matrix,
+    lattice,
+    cluster,
+    survival,
+    MASS,
+    nlme
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr

@@ -7,7 +7,8 @@
 cellularNetworkTable(lr, autocrine = FALSE)
 }
 \arguments{
-\item{lr}{The data.frame output by \code{"\link{assignCellTypesToInteractions}"}.}
+\item{lr}{The data.frame output by
+\code{"\link{assignCellTypesToInteractions}"}.}
 
 \item{autocrine}{A logical indicating whether autocrine interactions should
 be included.}
@@ -23,25 +24,18 @@ Generate a data.frame including all the links between cell types
 mediated by L-R interactions with their respective weights.
 }
 \examples{
-print('assignCellTypesToInteractions')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrdm, package = "BulkSignalR")
+data(bsrinf, package = "BulkSignalR")
+data(immune.signatures, package = "BulkSignalR")
+data(tme.signatures, package = "BulkSignalR")
 
-# microenvironment cell populations
-data(immune.signatures, package="BulkSignalR")
 immune.signatures <- immune.signatures[immune.signatures$signature \%in\%
-                               c("B cells","Dentritic cells","Macrophages",
-                                 "NK cells","T cells","T regulatory cells"),]
-data("tme.signatures", package="BulkSignalR")
-signatures <- rbind(immune.signatures,tme.signatures[
-          tme.signatures$signature\%in\%c("Endothelial cells","Fibroblasts"),])
+    c("T cells"), ]
+
+signatures <- rbind(immune.signatures, tme.signatures[
+    tme.signatures$signature \%in\% c("Fibroblasts"),
+])
+
 tme.scores <- scoreSignatures(bsrdm, signatures)
 
 # assignment

@@ -1,4 +1,4 @@
-#' Get correlated ligand-receptor pairs.
+#' Get correlated ligand-receptor pairs
 #'
 #' Internal function to compute the Spearman correlations
 #' of all the ligand-receptor
@@ -23,41 +23,52 @@
 #' @import doParallel
 #' @keywords internal
 .getCorrelatedLR <- function(ds, min.cor = 0.25, restrict.genes = NULL) {
-
     # local binding
     i <- NULL
 
-    if ((min.cor < -1) || (min.cor > 1))
+    if ((min.cor < -1) || (min.cor > 1)) {
         stop("min.cor must lie in [-1;+1]")
-    if (!is(ds, "BSRDataModel"))
+    }
+    if (!is(ds, "BSRDataModel")) {
         stop("ds must be an object of class BSRDataModel")
-
-    lrgenes <- intersect(c(LRdb$ligand,
-                           LRdb$receptor), rownames(ncounts(ds)))
-    if (!is.null(restrict.genes))
+    }
+    
+    lrgenes <- intersect(c(
+        .SignalR$BulkSignalR_LRdb$ligand,
+        .SignalR$BulkSignalR_LRdb$receptor
+    ), rownames(ncounts(ds)))
+    if (!is.null(restrict.genes)) {
         lrgenes <- intersect(lrgenes, restrict.genes)
+    }
 
     # compute all the correlations at once
     corlr <- stats::cor(t(ncounts(ds)[lrgenes, ]), method = "spearman")
 
     # get the pairs
-    pairs <- foreach::foreach(i = seq_len(nrow(LRdb)),
-                              .combine = rbind) %do% {
-              if (LRdb$ligand[i] %in% rownames(corlr) &&
-                  LRdb$receptor[i] %in% rownames(corlr))
-                  data.frame(L = LRdb$ligand[i],
-                             R = LRdb$receptor[i],
-                             corr = corlr[LRdb$ligand[i],
-                                          LRdb$receptor[i]],
-                             stringsAsFactors = FALSE)
-              else
-                  NULL
+    pairs <- foreach::foreach(
+        i = seq_len(nrow(.SignalR$BulkSignalR_LRdb)),
+        .combine = rbind
+    ) %do% {
+        if (.SignalR$BulkSignalR_LRdb$ligand[i] %in% rownames(corlr) &&
+            .SignalR$BulkSignalR_LRdb$receptor[i] %in% rownames(corlr)) {
+            data.frame(
+                L = .SignalR$BulkSignalR_LRdb$ligand[i],
+                R = .SignalR$BulkSignalR_LRdb$receptor[i],
+                corr = corlr[
+                    .SignalR$BulkSignalR_LRdb$ligand[i],
+                    .SignalR$BulkSignalR_LRdb$receptor[i]
+                ],
+                stringsAsFactors = FALSE
+            )
+        } else {
+            NULL
+        }
     }
 
     good <- pairs$corr >= min.cor
-    pairs[good,]
-
-}  # .getCorrelatedLR
+    pairs[good, ]
+    
+} # .getCorrelatedLR
 
 
 #' Internal function to check receptor signaling downstream
@@ -86,23 +97,43 @@
 #' @importFrom foreach %do% %dopar%
 #' @keywords internal
 .downstreamSignaling <- function(lr, pw, pw.size, rncounts, id.col, gene.col,
-                                 pw.col, min.positive, with.complex = TRUE) {
-    if (!is.matrix(rncounts))
+    pw.col, min.positive, with.complex = TRUE) {
+    if (!is.matrix(rncounts)) {
         stop("rncounts must be a matrix")
+    }
 
     # local binding
     r <- p <- pl <- id <- NULL
 
     # define interaction types
-    control.int <- "controls-expression-of"
-    incomplex.int <- c("in-complex-with","interacts-with")
-    directed.int <- c("controls-state-change-of", "catalysis-precedes",
-                      "controls-expression-of", "controls-transport-of",
-                      "controls-phosphorylation-of")
-    if (with.complex)
+    control.int <- c(
+        "positively-controls-expression-of",
+        "negatively-controls-expression-of",
+        "regulates-transcription-of"
+    )
+
+    incomplex.int <- c("in-complex-with", "interacts-with")
+
+    directed.int <- c(
+        "controls-transport-of",
+        "catalysis-precedes",
+        "positively-controls-expression-of",
+        "negatively-controls-expression-of",
+        "regulates-transcription-of",
+        "controls-dephospho-of",
+        "controls-phospho-of",
+        "regulates-dephospho-of",
+        "regulates-phospho-of",
+        "controls-state-change-of",
+        "controls-state-of-by-metab"
+    )
+
+
+    if (with.complex) {
         correlated.int <- union(control.int, incomplex.int)
-    else
+    } else {
         correlated.int <- control.int
+    }
 
     # compute downstream correlations
     corrg <- stats::cor(t(rncounts), method = "spearman")
@@ -111,51 +142,59 @@
     corrg <- corrg[unique(lr$R), ]
 
     # check each putative LR pair, loop over the receptors
-    reg.proc <- foreach::foreach(r=unique(lr$R),.combine=rbind) %do% {
+    reg.proc <- foreach::foreach(r = unique(lr$R), .combine = rbind) %do% {
         # reg.proc <- NULL
         # for (r in unique(lr$putative.pairs$R)){
 
         # loop over the pathways containing the receptor r
-        pa <- intersect(pw[pw[[gene.col]]==r,id.col],names(pw.size))
-        if (length(pa)>0){
-            receptor.ligands <- unique(lr$L[lr$R==r])
-            best.2nd <- foreach::foreach(p=pa,.combine=rbind) %do% {
+        pa <- intersect(pw[pw[[gene.col]] == r, id.col], names(pw.size))
+        if (length(pa) > 0) {
+            receptor.ligands <- unique(lr$L[lr$R == r])
+            best.2nd <- foreach::foreach(p = pa, .combine = rbind) %do% {
                 # best.2nd <- NULL
                 # for (p in pa){
-                int <- SingleCellSignalR::PwC_ReactomeKEGG[
-                    SingleCellSignalR::PwC_ReactomeKEGG$a.gn %in% pw[pw[[id.col]]==p,gene.col] &
-                    SingleCellSignalR::PwC_ReactomeKEGG$b.gn %in% pw[pw[[id.col]]==p,gene.col],
+                int <- .SignalR$BulkSignalR_Network[
+                    .SignalR$BulkSignalR_Network$a.gn %in% 
+                    pw[pw[[id.col]] == p, gene.col] &
+                        .SignalR$BulkSignalR_Network$b.gn %in% 
+                        pw[pw[[id.col]] == p, gene.col],
                 ]
 
                 # extract the target genes of receptor r
-                if (r %in% int$a.gn || r %in% int$b.gn){
-                
-                    # double the undirected interactions and generate a directed graph
+                if (r %in% int$a.gn || r %in% int$b.gn) {
+                    # double the undirected interactions 
+                    # and generate a directed graph
                     directed <- int$type %in% directed.int
-                    ret <- int[!directed,c("a.gn", "b.gn")]
+                    ret <- int[!directed, c("a.gn", "b.gn")]
                     from <- ret$a.gn
                     ret$a.gn <- ret$b.gn
                     ret$b.gn <- from
-                    d.int <- unique(rbind(int[,c("a.gn", "b.gn")],ret))
-                    g <- igraph::graph_from_data_frame(d.int, directed=TRUE)
+                    d.int <- unique(rbind(int[, c("a.gn", "b.gn")], ret))
+                    g <- igraph::graph_from_data_frame(d.int, directed = TRUE)
 
                     # putative targets in the pathway
-                    target.genes <- setdiff(c(
-                        int[int$type %in% correlated.int & int$a.gn==r, "b.gn"],
-                        int[int$type %in% correlated.int & int$b.gn==r, "a.gn"],
-                        int[int$type %in% directed.int, "b.gn"]),
+                    target.genes <- setdiff(
+                        c(
+                            int[int$type %in% correlated.int & 
+                            int$a.gn == r, "b.gn"],
+                            int[int$type %in% correlated.int & 
+                            int$b.gn == r, "a.gn"],
+                            int[int$type %in% directed.int, "b.gn"]
+                        ),
                         r
                     )
 
                     # reduce putative to reachable from the receptor
                     sp <- igraph::distances(g, r, target.genes)
-                    target.genes <- colnames(sp)[!is.infinite(sp[r,])]
+                    target.genes <- colnames(sp)[!is.infinite(sp[r, ])]
 
                     # eliminate ligands of the receptor if present
-                    target.genes <- intersect(rownames(rncounts),
-                                              setdiff(target.genes, receptor.ligands))
+                    target.genes <- intersect(
+                        rownames(rncounts),
+                        setdiff(target.genes, receptor.ligands)
+                    )
 
-                    if (length(target.genes) >= min.positive){
+                    if (length(target.genes) >= min.positive) {
                         # if all conditions are met, list all target genes with
                         # their correlations to the receptor in a data frame
                         # row. Target genes are sorted wrt correlations.
@@ -163,54 +202,65 @@
                         o <- order(c)
                         c <- c[o]
                         target.genes <- target.genes[o]
-                        data.frame(pathway=p, target.corr=paste(c,collapse=";"),
-                                   target.genes=paste(target.genes,collapse=";"),
-                                   len=length(c),
-                                   stringsAsFactors=FALSE)
-                    }
-                    else
+                        data.frame(
+                            pathway = p, target.corr = paste(c, collapse = ";"),
+                            target.genes = paste(target.genes, collapse = ";"),
+                            len = length(c),
+                            stringsAsFactors = FALSE
+                        )
+                    } else {
                         NULL
-                }
-                else
+                    }
+                } else {
                     NULL
+                }
             }
-            if (!is.null(best.2nd))
+            if (!is.null(best.2nd)) {
                 # one or several pathways containing the receptor r were found,
                 # combine them in |-separated strings
-                data.frame(R=r, pathways=paste(best.2nd$pathway, collapse="|"),
-                           target.corr=paste(best.2nd$target.corr, collapse='|'),
-                           target.genes=paste(best.2nd$target.genes, collapse='|'),
-                           len=paste(best.2nd$len, collapse='|'),
-                           stringsAsFactors=FALSE)
-            else
+                data.frame(
+                    R = r, pathways = paste(best.2nd$pathway, collapse = "|"),
+                    target.corr = paste(best.2nd$target.corr, collapse = "|"),
+                    target.genes = paste(best.2nd$target.genes, collapse = "|"),
+                    len = paste(best.2nd$len, collapse = "|"),
+                    stringsAsFactors = FALSE
+                )
+            } else {
                 NULL
-        }
-        else
+            }
+        } else {
             NULL
+        }
     }
 
     # combine LR pair correlations with R-target gene correlations
     rownames(reg.proc) <- reg.proc$R
-    conf.pairs <- lr[lr$R %in% reg.proc$R,]
+    conf.pairs <- lr[lr$R %in% reg.proc$R, ]
     conf.pairs$pwid <- reg.proc[conf.pairs$R, "pathways"]
     conf.pairs$target.corr <- reg.proc[conf.pairs$R, "target.corr"]
     conf.pairs$len <- reg.proc[conf.pairs$R, "len"]
     conf.pairs$target.genes <- reg.proc[conf.pairs$R, "target.genes"]
-    pw.name <- unique(pw[,c(id.col, pw.col)])
+    pw.name <- unique(pw[, c(id.col, pw.col)])
     pw2name <- stats::setNames(pw.name[[2]], pw.name[[1]])
-    conf.pairs$pwname <- foreach::foreach(pl=conf.pairs$pwid,.combine=c) %do% {
-        paste(foreach::foreach(id=unlist(strsplit(pl,"\\|")),
-                               .combine=c) %do% {
-                                   pw2name[id]
-                               },
-              collapse="|"
+    conf.pairs$pwname <- foreach::foreach(pl = conf.pairs$pwid,
+        .combine = c) %do% {
+        paste(
+            foreach::foreach(
+                id = unlist(strsplit(pl, "\\|")),
+                .combine = c
+            ) %do% {
+                pw2name[id]
+            },
+            collapse = "|"
         )
     }
 
-    conf.pairs[,c("L", "R", "corr", "pwid", "pwname", "len", "target.genes",
-                  "target.corr")]
-
-}  # .downstreamSignaling
+    conf.pairs[, c(
+        "L", "R", "corr", "pwid", "pwname", "len", "target.genes",
+        "target.corr"
+    )]
+    
+} # .downstreamSignaling
 
 
 #' Internal function to check receptor signaling downstream
@@ -260,78 +310,99 @@
 #'
 #' @importFrom methods is
 #' @keywords internal
-.checkReceptorSignaling <- function(ds, lr, reference=c("REACTOME-GOBP",
-                                                     "REACTOME","GOBP"),
-                                    max.pw.size=400, min.pw.size=5,
-                                    min.positive=4, use.full.network=FALSE,
-                                    restrict.pw=NULL, with.complex=TRUE){
-
-    if (!is(ds, "BSRDataModel"))
+.checkReceptorSignaling <- function(ds, lr, reference = c(
+                                        "REACTOME-GOBP",
+                                        "REACTOME", "GOBP"
+                                    ),
+                                    max.pw.size = 400, min.pw.size = 5,
+                                    min.positive = 4, use.full.network = FALSE,
+                                    restrict.pw = NULL, with.complex = TRUE) {
+    if (!is(ds, "BSRDataModel")) {
         stop("ds must be a BSRDataModel object")
+    }
 
     reference <- match.arg(reference)
     results <- list()
 
     # Reactome pathways
-    if (reference %in% c("REACTOME-GOBP","REACTOME")){
-        pw.size <- table(reactome$`Reactome ID`)
-        pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
-        if (use.full.network)
-            react <- reactome
-        else
-            react <- reactome[reactome$`Gene name` %in% rownames(ncounts(ds)),]
-        if (!is.null(restrict.pw))
-            react <- react[react$`Reactome ID` %in% restrict.pw,]
+    if (reference %in% c("REACTOME-GOBP", "REACTOME")) {
+        pw.size <- table(.SignalR$BulkSignalR_Reactome$`Reactome ID`)
+        pw.size <- pw.size[pw.size >= min.pw.size & pw.size <= max.pw.size]
+        if (use.full.network) {
+            react <- .SignalR$BulkSignalR_Reactome
+        } else {
+            react <- .SignalR$BulkSignalR_Reactome[
+            .SignalR$BulkSignalR_Reactome$`Gene name` 
+            %in% rownames(ncounts(ds)), ]
+        }
+        if (!is.null(restrict.pw)) {
+            react <- react[react$`Reactome ID` %in% restrict.pw, ]
+        }
         contains.receptors <- react[react$`Gene name` %in% lr$R, "Reactome ID"]
         pw.size <- pw.size[names(pw.size) %in% contains.receptors]
-        corgenes <- intersect(rownames(ncounts(ds)),
-                              c(lr$R, react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
+        corgenes <- intersect(
+            rownames(ncounts(ds)),
+            c(lr$R, react[react$`Reactome ID` %in% names(pw.size), "Gene name"])
         )
         results$reactome.pairs <- .downstreamSignaling(lr, react, pw.size,
-                ncounts(ds)[corgenes,], id.col="Reactome ID", gene.col="Gene name",
-                pw.col="Reactome name", min.positive, with.complex=with.complex)
+            ncounts(ds)[corgenes, ],
+            id.col = "Reactome ID", gene.col = "Gene name",
+            pw.col = "Reactome name", min.positive, with.complex = with.complex
+        )
     }
 
     # GOBP
-    if (reference %in% c("REACTOME-GOBP","GOBP")){
-        pw.size <- table(gobp$`GO ID`)
-        pw.size <- pw.size[pw.size>=min.pw.size & pw.size<=max.pw.size]
-        if (use.full.network)
-            go <- gobp
-        else
-            go <- gobp[gobp$`Gene name` %in% rownames(ncounts(ds)),]
-        if (!is.null(restrict.pw))
-            go <- go[go$`GO ID` %in% restrict.pw,]
+    if (reference %in% c("REACTOME-GOBP", "GOBP")) {
+        pw.size <- table(.SignalR$BulkSignalR_Gobp$`GO ID`)
+        pw.size <- pw.size[pw.size >= min.pw.size & pw.size <= max.pw.size]
+        if (use.full.network) {
+            go <- .SignalR$BulkSignalR_Gobp
+        } else {
+            go <- .SignalR$BulkSignalR_Gobp[
+            .SignalR$BulkSignalR_Gobp$`Gene name` %in% rownames(ncounts(ds)), ]
+        }
+        if (!is.null(restrict.pw)) {
+            go <- go[go$`GO ID` %in% restrict.pw, ]
+        }
         contains.receptors <- go[go$`Gene name` %in% lr$R, "GO ID"]
         pw.size <- pw.size[names(pw.size) %in% contains.receptors]
-        corgenes <- intersect(rownames(ncounts(ds)),
-                              c(lr$R, go[go$`GO ID` %in% names(pw.size), "Gene name"])
+        corgenes <- intersect(
+            rownames(ncounts(ds)),
+            c(lr$R, go[go$`GO ID` %in% names(pw.size), "Gene name"])
         )
         results$gobp.pairs <- .downstreamSignaling(lr, go, pw.size,
-                ncounts(ds)[corgenes,], id.col="GO ID", gene.col="Gene name", pw.col="GO name",
-                min.positive, with.complex=with.complex)
+            ncounts(ds)[corgenes, ],
+            id.col = "GO ID", gene.col = "Gene name", pw.col = "GO name",
+            min.positive, with.complex = with.complex
+        )
     }
 
     # merge
-    if (reference == "REACTOME-GOBP"){
-        pairs <- unique(rbind(results$reactome.pairs[,1:2],
-                              results$gobp.pairs[,1:2])
-        )
+    if (reference == "REACTOME-GOBP") {
+        pairs <- unique(rbind(
+            results$reactome.pairs[, c(1, 2)],
+            results$gobp.pairs[, c(1, 2)]
+        ))
         react.keys <- paste(results$reactome.pairs[[1]],
-                            results$reactome.pairs[[2]], sep="|")
-        gobp.keys <- paste(results$gobp.pairs[[1]],
-                           results$gobp.pairs[[2]], sep="|")
-        results$merged.pairs <- rbind(results$reactome.pairs,
-                    results$gobp.pairs[!(gobp.keys %in% react.keys),]
+            results$reactome.pairs[[2]],
+            sep = "|"
         )
-    }
-    else if (reference == "REACTOME")
+        gobp.keys <- paste(results$gobp.pairs[[1]],
+            results$gobp.pairs[[2]],
+            sep = "|"
+        )
+        results$merged.pairs <- rbind(
+            results$reactome.pairs,
+            results$gobp.pairs[!(gobp.keys %in% react.keys), ]
+        )
+    } else if (reference == "REACTOME") {
         results$merged.pairs <- results$reactome.pairs
-    else
+    } else {
         results$merged.pairs <- results$gobp.pairs
+    }
 
     results$merged.pairs
-
+    
 } # .checkReceptorSignaling
 
 
@@ -351,82 +422,93 @@
 #' P-values and adjusted P-values.
 #' @keywords internal
 .pValuesLR <- function(pairs, param, rank.p = 0.75,
-                      fdr.proc = c("BH", "Bonferroni", "Holm", "Hochberg",
-                                   "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
-
-    if (rank.p < 0 || rank.p > 1)
+    fdr.proc = c(
+        "BH", "Bonferroni", "Holm", "Hochberg",
+        "SidakSS", "SidakSD", "BY", "ABH", "TSBH")) {
+    
+    if (rank.p < 0 || rank.p > 1) {
         stop("rank.p must lie in [0;1]")
+    }
     fdr.proc <- match.arg(fdr.proc)
 
     # prepare the chosen model CDF
     LR.par <- param$LR.0$model
     RT.par <- param$RT.0$model
-    if (LR.par$distrib != RT.par$distrib)
+    if (LR.par$distrib != RT.par$distrib) {
         stop("Distinct statistical models for LR and RT nulls are not allowed")
-    if (LR.par$distrib == 'censored_normal')
+    }
+    if (LR.par$distrib == "censored_normal") {
         cdf <- .cdfGaussian
-    else if (LR.par$distrib == 'censored_mixed_normal')
+    } else if (LR.par$distrib == "censored_mixed_normal") {
         cdf <- .cdfMixedGaussian
-    else if (LR.par$distrib == 'censored_stable')
+    } else if (LR.par$distrib == "censored_stable") {
         cdf <- .cdfAlphaStable
-    else if (LR.par$distrib == 'empirical')
+    } else if (LR.par$distrib == "empirical") {
         cdf <- .cdfEmpirical
-    else if (LR.par$distrib == 'kernel_empirical')
+    } else if (LR.par$distrib == "kernel_empirical") {
         cdf <- .cdfKernelEmpirical
-    else
-        stop(paste0("Unknown statistical model: ", LR.par$LR.0$model$distrib))
+    } else {
+        stop("Unknown statistical model: ", LR.par$LR.0$model$distrib)
+    }
 
     # estimate P-values
     res <- NULL
-    for (i in 1:nrow(pairs)){
+    for (i in seq_len(nrow(pairs))) {
         # all the data related to each pathway containing a given
         # receptor were collapsed separated by |
         # we need to split those pathways
-        pwid <- unlist(strsplit(pairs$pwid[i],split="\\|"))
-        pwname <- unlist(strsplit(pairs$pwname[i],split="\\|"))
-        tg <- unlist(strsplit(pairs$target.genes[i],split="\\|"))
-        spear <- unlist(strsplit(pairs$target.corr[i],split="\\|"))
-        len <- as.numeric(unlist(strsplit(pairs$len[i],split="\\|")))
+        pwid <- unlist(strsplit(pairs$pwid[i], split = "\\|"))
+        pwname <- unlist(strsplit(pairs$pwname[i], split = "\\|"))
+        tg <- unlist(strsplit(pairs$target.genes[i], split = "\\|"))
+        spear <- unlist(strsplit(pairs$target.corr[i], split = "\\|"))
+        len <- as.numeric(unlist(strsplit(pairs$len[i], split = "\\|")))
 
         # estimate the LR correlation P-value
-        if (pairs$corr[i] >= 0)
+        if (pairs$corr[i] >= 0) {
             # normal case
             p.lr <- 1 - cdf(pairs$corr[i], LR.par)
-        else
+        } else {
             # to enable searching for inhibitory L-R interactions
             p.lr <- cdf(pairs$corr[i], LR.par)
+        }
 
         # estimate the target gene correlation P-value based on rank statistics
         # for the individual correlation Gaussian model
-        for (k in 1:length(len)){
-            spears <- as.numeric(strsplit(spear[k],split=";")[[1]])
-            r <- min(max(1,trunc(rank.p*len[k])),len[k])
+        for (k in seq_len(length(len))) {
+            spears <- as.numeric(strsplit(spear[k], split = ";")[[1]])
+            r <- min(max(1, trunc(rank.p * len[k])), len[k])
             rank.corr <- spears[r]
             # r-1 correlations are < rank.corr, prob to have r-1 or less
             # corr < rank.corr is given by a binomial with success rate
             # equal to the probability to get a corr < rank.corr, i.e.,
             # cdf(rank.corr, RT.par). If rank.corr is high, it becomes
             # difficult to get as little as r-1 corr < rank.corr by chance!
-            p.rt <- stats::pbinom(r-1, len[k], cdf(rank.corr, RT.par))
-            res <- rbind(res,data.frame(pairs[i,c("L","R")],
-                        LR.corr=pairs[i,"corr"], pw.id=pwid[k],
-                        pw.name=pwname[k], rank=r, len=len[k],
-                        rank.corr=rank.corr, target.genes=tg[k],
-                        target.corr=spear[k], pval=p.lr*p.rt,
-                        stringsAsFactors=FALSE))
+            p.rt <- stats::pbinom(r - 1, len[k], cdf(rank.corr, RT.par))
+            res <- rbind(res, data.frame(pairs[i, c("L", "R")],
+                LR.corr = pairs[i, "corr"], pw.id = pwid[k],
+                pw.name = pwname[k], rank = r, len = len[k],
+                rank.corr = rank.corr, target.genes = tg[k],
+                target.corr = spear[k], pval = p.lr * p.rt,
+                stringsAsFactors = FALSE
+            ))
         }
     }
-    
+
     # avoid the impossible
-    key <- paste(res$L, res$R, res$pw.id, sep="||")
+    key <- paste(res$L, res$R, res$pw.id, sep = "||")
     bad <- duplicated(key)
-    res <- res[!bad,]
+    res <- res[!bad, ]
 
     # multiple hypothesis correction
     rawp <- res$pval
-    adj <- multtest::mt.rawp2adjp(rawp,fdr.proc)
-    res$qval <- adj$adjp[order(adj$index),fdr.proc]
+    if (length(rawp) > 1){
+        adj <- multtest::mt.rawp2adjp(rawp, fdr.proc)
+        res$qval <- adj$adjp[order(adj$index), fdr.proc]
+    }
+    else {
+        res$qval <- rawp
+    }
 
     res
-
-}  # .pValuesLR
+    
+} # .pValuesLR

@@ -2,23 +2,23 @@
 % Please edit documentation in R/BSRInference-class.R
 \name{.geneNameConversion}
 \alias{.geneNameConversion}
-\title{Convert gene symbol to another organism}
+\title{Convert gene symbols to another organism}
 \usage{
 .geneNameConversion(genes, conversion.dict)
 }
 \arguments{
-\item{genes}{genes you want to convert}
+\item{genes}{The genes you want to convert.}
 
 \item{conversion.dict}{A data frame containing
-gene names for source species and Homo Sapiens.}
+gene names for the source species and Homo sapiens.}
 }
 \value{
-Depend type of input genes
+Depend on the type of input genes
 LRinter return a vector of genes
-tGenes receptors ligands : return list of list of genes
+tgGenes receptors ligands: return list of list of genes
 }
 \description{
-Convert gene symbol to another organism
-based on a dictionary with human and ortholog species.
+Convert gene symbols to another organism
+based on a dictionary with human and orthologs in the other species.
 }
 \keyword{internal}

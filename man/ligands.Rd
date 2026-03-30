@@ -13,8 +13,17 @@
 \arguments{
 \item{x}{BSRSignature}
 }
+\value{
+ligands
+
+ligands
+}
 \description{
 ligands accessor
 
 ligands accessor
+}
+\examples{
+bsr.sig <- new("BSRSignature")
+ligands(bsr.sig)
 }

@@ -40,40 +40,12 @@ downstream correlations. It is thus possible
 that several pathways are reported for a same LR pair.
 }
 \examples{
-print('reduceToBestPathway')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
-bsrinf.redBP  <- reduceToBestPathway(bsrinf)  
+data(bsrinf, package = "BulkSignalR")
+bsrinf.redBP <- reduceToBestPathway(bsrinf)
 
-print('reduceToBestPathway')
+data(bsrinf.comp, package = "BulkSignalR")
 
-# prepare data
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
 
-# define the comparison
-bsrdm.comp <- as.BSRDataModelComp(bsrdm)
-colA <- as.integer(1:5)
-colB <- as.integer(8:15)
-n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
-                    expr=runif(n, 0, 10))
-rownames(stats) <- rownames(ncounts(bsrdm.comp))
-bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
-bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
-
-# infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
-
-# reduction
-bsrinf.redBP  <- reduceToBestPathway(bsrinf)
+reduceToBestPathway(bsrinf.comp)
 
 }

@@ -11,6 +11,9 @@
 
 \item{value}{value to be set for BRSInference}
 }
+\value{
+returns \code{NULL}
+}
 \description{
 receptors setter (internal use only)
 }

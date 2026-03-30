@@ -28,9 +28,15 @@ orthologs exist.}
 }}
 
 \examples{
-new("BSRDataModel", ncounts=matrix(1.5, nrow=2, ncol=2,
-      dimnames=list(c("A","B"), c("C","D"))),
-      log.transformed=TRUE,
-      normalization="TC")
+BSRDataModel(
+    counts = matrix(1.5,
+                nrow = 2, ncol = 2,
+                dimnames = list(c("A", "B"), c("C", "D"))
+                   ),
+    method = "TC",
+    log.transformed = TRUE,
+    normalize = FALSE,
+    min.LR.found = 0
+)
 
 }

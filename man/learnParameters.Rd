@@ -18,7 +18,8 @@
   quick = FALSE,
   null.model = c("automatic", "mixedNormal", "normal", "kernelEmpirical", "empirical",
     "stable"),
-  filename = "distribution"
+  filename = NULL,
+  min.corr.LR = -1
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ for the receptor-target correlations should be used.}
 null distributions.}
 
 \item{filename}{Name of the output plot.}
+
+\item{min.corr.LR}{The minimum ligand-receptor correlation required.}
 }
 \value{
 A BSRDataModel object with trained model parameters
@@ -101,7 +104,7 @@ Estimates the model parameters that are stored in the
   different parameters though, unless \code{quick} was set to \code{TRUE}).
 
 Note that since the introduction of the use.full.network parameter
-(April 29, 2024) in the initialInference method parameters,
+(April 29, 2024) in the BSRInference method parameters,
 the pathway sizes are always computed before potential
 intersection with the observed data (use.full.network set to FALSE) for
 consistency. Accordingly, the minimum and maximum pathway default values
@@ -110,18 +113,9 @@ use.full.network is set to TRUE, meaning no intersection and hence larger
 pathways.
 }
 \examples{
-print('prepareDataset')
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
-
-print("learnParameters")
-print('prepareDataset')
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
-
-print("learnParameters")
-bsrdm <- learnParameters(bsrdm,plot.folder="./")
-bsrdm
+data(sdc, package = "BulkSignalR")
+idx <- sample(nrow(sdc), 4000)
+bsrdm <- BSRDataModel(sdc[idx, c("N22","SDC17")],min.LR.found = 20)
+bsrdm <- learnParameters(bsrdm, n.rand.LR = 1L,
+verbose=FALSE,quick=TRUE)
 }

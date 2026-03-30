@@ -68,9 +68,9 @@ decreasing order.
 
 In case \code{ds} is set, then correlations between the receptor and
 target genes will be computed for documentation or additional use. The
-row names of \code{stats(cc)} and \code{ncounts(ds)} must match
+row names of \code{differentialStats(cc)} and \code{ncounts(ds)} must match
 exactly (not necessarily in the same order). The same is true for
-\code{stats(scc)} in case \code{scc} is provided.
+\code{differentialStats(scc)} in case \code{scc} is provided.
 
 In a pathway of the reference, i.e., a Reactome pathway or the genes of a
 GOBP term, the target genes are the

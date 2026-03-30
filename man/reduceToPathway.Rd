@@ -48,38 +48,10 @@ Simplifies a ligand-receptor inference object to focus on
 the pathways.
 }
 \examples{
-print('reduceToPathway')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
-bsrinf.redP  <- reduceToPathway(bsrinf)  
-print('reduceToPathway')
+data(bsrinf, package = "BulkSignalR")
 
-# prepare data
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
+bsrinf.redP <- reduceToPathway(bsrinf)
+data(bsrinf.comp, package = "BulkSignalR")
 
-# define the comparison
-bsrdm.comp <- as.BSRDataModelComp(bsrdm)
-colA <- as.integer(1:5)
-colB <- as.integer(8:15)
-n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2),
-                    expr=runif(n, 0, 10))
-rownames(stats) <- rownames(ncounts(bsrdm.comp))
-bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
-bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
-
-# infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp,max.pval=1, "random.example")
-
-# reduction
-bsrinf.redP  <- reduceToPathway(bsrinf)  
+bsrinf.redP <- reduceToPathway(bsrinf.comp)
 }

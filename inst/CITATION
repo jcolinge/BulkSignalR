@@ -1,0 +1,20 @@
+bibentry(
+  bibtype  = "Article",
+  title    = "Inferring ligand-receptor cellular networks from bulk and spatial transcriptomic datasets with BulkSignalR",
+  author = c(person(c("Jean-Philippe"), "Villemin"),
+           person(c("Laia"), "Bassaganyas"),
+           person(c("Didier"), "Pourquier"),
+           person(c("Florence"), "Boissiere"),
+           person(c("Simon"), "Cabello-Aguilar"),
+           person(c("Evelyne"), "Crapez"),
+           person(c("Rita"), "Tanos"),
+           person(c("Emmanuel"), "Cornillot"),
+           person(c("Andrei"), "Turtoi"),
+           person(c("Jacques"), "Colinge")),
+  journal  = "Nucleic Acids Research",
+  year     = "2023",
+  volume   = "51",
+  number   = "10",
+  pages    = "4726-4744",
+  doi      = "10.1093/nar/gkad352"
+)

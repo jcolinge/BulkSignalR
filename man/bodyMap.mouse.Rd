@@ -3,7 +3,7 @@
 \docType{data}
 \name{bodyMap.mouse}
 \alias{bodyMap.mouse}
-\title{Mouse transcriptomes across tissues}
+\title{Mouse transcriptoms across tissues}
 \format{
 A data frame with 24543 rows and 8 variables.
 }
@@ -14,6 +14,6 @@ Bin Li & al., Scientific Reports, 2017;
 data(bodyMap.mouse)
 }
 \description{
-A dataset containing rpkm values of  brain and liver.
+A data set containing RPKM values of brain and liver.
 }
 \keyword{datasets}

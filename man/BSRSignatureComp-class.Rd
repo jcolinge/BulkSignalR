@@ -17,6 +17,8 @@ of samples. This class inherits from BSRSignature.
 \item{\code{tg.pval}}{A list of target genes P-values.}
 
 \item{\code{tg.logFC}}{A list of target genes logFC.}
+
+\item{\code{tg.expr}}{A list of target genes expression}
 }}
 
 \examples{

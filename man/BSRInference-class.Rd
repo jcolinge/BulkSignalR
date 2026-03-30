@@ -26,7 +26,7 @@ with P- and Q-values.}
 
 \item{\code{receptors}}{A list of receptors, one entry per LR interaction.}
 
-\item{\code{t.genes}}{A list of target genes, one entry per LR interaction.}
+\item{\code{tg.genes}}{A list of target genes, one entry per LR interaction.}
 
 \item{\code{tg.corr}}{A list of target gene correlations to the receptor, one
 entry per interaction}
@@ -36,5 +36,4 @@ entry per interaction}
 
 \examples{
 new("BSRInference")
-
 }

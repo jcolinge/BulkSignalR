@@ -25,32 +25,25 @@ Count how many times and with which weights cell types were involved
 in the (L,R,pathway) triples that targeted genes in a gene set.
 }
 \examples{
-print('assignCellTypesToInteractions')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrdm, package = "BulkSignalR")
+data(bsrinf, package = "BulkSignalR")
+data(immune.signatures, package = "BulkSignalR")
+data(tme.signatures, package = "BulkSignalR")
+data(p.EMT, package = "BulkSignalR")
 
-# microenvironment cell populations
-data(immune.signatures, package="BulkSignalR")
 immune.signatures <- immune.signatures[immune.signatures$signature \%in\%
-                               c("B cells","Dentritic cells","Macrophages",
-                                 "NK cells","T cells","T regulatory cells"),]
-data("tme.signatures", package="BulkSignalR")
-signatures <- rbind(immune.signatures,tme.signatures[
-          tme.signatures$signature\%in\%c("Endothelial cells","Fibroblasts"),])
+    c("T cells"), ]
+
+signatures <- rbind(immune.signatures, tme.signatures[
+    tme.signatures$signature \%in\% c("Fibroblasts"),
+])
+
 tme.scores <- scoreSignatures(bsrdm, signatures)
 
 # assignment
 lr2ct <- assignCellTypesToInteractions(bsrdm, bsrinf, tme.scores)
 
 # relate to p-EMT (should be done in HNSCC normally, not in SDC)
-data(p.EMT, package='BulkSignalR')
 p.EMT <- p.EMT$gene
 triggers <- relateToGeneSet(bsrinf, p.EMT)
 

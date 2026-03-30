@@ -3,7 +3,7 @@
 \docType{data}
 \name{sdc}
 \alias{sdc}
-\title{Salivary duct carcinoma transcriptomes}
+\title{Salivary duct carcinoma transcriptoms}
 \format{
 A data frame with 19764 rows and 26 variables.
 }
@@ -14,7 +14,7 @@ A data frame with 19764 rows and 26 variables.
 data(sdc)
 }
 \description{
-A dataset containing the read counts of salivary duct carcinomas
+A data set containing the read counts of salivary duct carcinomas (SDCs)
   and adjacent normal tissues.
 }
 \keyword{datasets}

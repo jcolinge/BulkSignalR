@@ -11,6 +11,9 @@
 
 \item{value}{value to be set to BSRInference}
 }
+\value{
+returns \code{NULL}
+}
 \description{
 LRinter setter (internal use only)
 }

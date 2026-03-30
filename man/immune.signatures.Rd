@@ -18,6 +18,6 @@ PanglaoDB (Franzén et al., Database, 2019).
 data(immune.signatures)
 }
 \description{
-A dataset containing gene signatures for general immune cell populations.
+A data set containing gene signatures for general immune cell populations.
 }
 \keyword{datasets}

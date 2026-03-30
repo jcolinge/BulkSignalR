@@ -10,6 +10,13 @@
 \arguments{
 \item{x}{BSRSignature}
 }
+\value{
+pathways
+}
 \description{
 pathways accessor
+}
+\examples{
+bsr.sig <- new("BSRSignature")
+pathways(bsr.sig)
 }

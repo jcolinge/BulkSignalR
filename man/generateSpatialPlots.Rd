@@ -87,6 +87,9 @@ IDs of spatial locations.}
 \item{ref.colors}{A vector of colors to bypass those automatically chosen
 by ggplot2 for the tissue areas in the reference plot.}
 }
+\value{
+Create PDF file and returns `NULL`, invisibly.
+}
 \description{
 Generate a series of individual spatial score plots in a folder.
 Not limited to BulkSignalR gene signature scores.
@@ -95,10 +98,16 @@ Not limited to BulkSignalR gene signature scores.
 A set of PDF files are created in the provided folder.
 }
 \examples{
-print('generateSpatialPlots')
-if(FALSE){
+data(bsrdm.spa, package = "BulkSignalR")
+data(bsrinf.spa, package = "BulkSignalR")
+data(annotation.spa, package = "BulkSignalR")
 
-generateSpatialPlots(scores, areas, plot.folder)
+thres <- 0.01
+bsrinf.red <- reduceToBestPathway(bsrinf.spa)
+s.red  <- BSRSignature(bsrinf.red, qval.thres=thres)
+scores.red <- scoreLRGeneSignatures(bsrdm.spa,s.red)
 
-}
+generateSpatialPlots(scores.red[1:2,],
+annotation.spa, ".", label.col = "ground_truth")
+
 }

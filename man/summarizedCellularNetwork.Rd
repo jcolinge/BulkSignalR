@@ -18,32 +18,25 @@ weight are normalized to a total of one.
 Generate a igraph object with one link between each cell type.
 }
 \examples{
-print('assignCellTypesToInteractions')
-data(sdc,package='BulkSignalR')
-bsrdm <- prepareDataset(counts = sdc)
-bsrdm <- learnParameters(bsrdm, 
-         null.model = "normal",
-         quick = FALSE, 
-         plot.folder = "./",
-         filename = "sdc",
-         verbose = TRUE)
-bsrinf <- initialInference(bsrdm)
+data(bsrdm, package = "BulkSignalR")
+data(bsrinf, package = "BulkSignalR")
+data("tme.signatures", package = "BulkSignalR")
+data(immune.signatures, package = "BulkSignalR")
 
-# microenvironment cell populations
-data(immune.signatures, package="BulkSignalR")
 immune.signatures <- immune.signatures[immune.signatures$signature \%in\%
-                               c("B cells","Dentritic cells","Macrophages",
-                                 "NK cells","T cells","T regulatory cells"),]
-data("tme.signatures", package="BulkSignalR")
-signatures <- rbind(immune.signatures,tme.signatures[
-          tme.signatures$signature\%in\%c("Endothelial cells","Fibroblasts"),])
+    c("T cells"), ]
+
+signatures <- rbind(immune.signatures, tme.signatures[
+    tme.signatures$signature \%in\% c("Fibroblasts"),
+])
+
 tme.scores <- scoreSignatures(bsrdm, signatures)
 
 # assignment
 lr2ct <- assignCellTypesToInteractions(bsrdm, bsrinf, tme.scores)
 
 # cellular network
-g.table <- cellularNetworkTable(lr2ct)
+g.table <- cellularNetworkTable(lr2ct[c(1:25),])
 gSummary <- summarizedCellularNetwork(g.table)
-#plot(gSummary, edge.width=1+30*E(gSummary)$score)
+# plot(gSummary, edge.width=1+30*E(gSummary)$score)
 }

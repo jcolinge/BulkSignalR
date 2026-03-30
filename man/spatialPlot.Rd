@@ -84,6 +84,9 @@ IDs of spatial locations.}
 \item{ref.colors}{A vector of colors to bypass those automatically chosen
 by ggplot2 for the tissue areas in the reference plot.}
 }
+\value{
+A spatial plot
+}
 \description{
 Generate a plot with scores at the spatial coordinates of the corresponding
 sample locations. Not limited to BulkSignalR gene signature scores.
@@ -93,13 +96,20 @@ A single (scores) or side-by-side (reference tissue & scores) plot
 is generated.
 }
 \examples{
-print('spatialPlot')
-if(FALSE){
-img <- png::readPNG(path.to.file)
+data(bsrinf.spa, package = "BulkSignalR")
+data(bsrdm.spa, package = "BulkSignalR")
+data(annotation.spa, package = "BulkSignalR")
 
-spatialPlot(v,
-    areas,
-    inter.name="L->R",
-    image.raster=img)
-}
+thres <- 0.01
+bsrinf.red <- reduceToBestPathway(bsrinf.spa)
+s.red  <- BSRSignature(bsrinf.red, qval.thres=thres)
+scores.red <- scoreLRGeneSignatures(bsrdm.spa,s.red)
+
+inter <- "{SLIT2} / {GPC1}"
+
+spatialPlot(scores.red[inter, ], annotation.spa, inter,
+   ref.plot = TRUE, ref.plot.only = FALSE,
+   image.raster = NULL, dot.size = 1,
+   label.col = "ground_truth")
+
 }

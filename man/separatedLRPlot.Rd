@@ -45,7 +45,7 @@ row named "{\code{L}} / {\code{R}}" will be used.}
 \item{ncounts}{The (normalized) expression matrix with column names equal
 to the IDs of each location.}
 
-\item{areas}{A data.frame containing at least the x and y
+\item{areas}{A data.frame containing at leastcluster_columns the x and y
 coordinates of the locations as well as the unique IDs of spatial locations.
 In case \code{ref.plot} is set to TRUE,
 a label column is required additionally.}
@@ -94,6 +94,9 @@ IDs of spatial locations.}
 \item{ref.colors}{A vector of colors to bypass those automatically chosen
 by ggplot2 for the tissue areas in the reference plot.}
 }
+\value{
+A set of spatial plots.
+}
 \description{
 Generate a detailed view related to a chosen interaction made of series of
 small individual spatial plots: tissue organization (optional), gene
@@ -105,15 +108,18 @@ reference tissue plot (image or areas represented), the gene signature
 scores, the ligand expression values, and the receptor expression values.
 }
 \examples{
-print('separatedLRPlot')
-if(FALSE){
-img <- png::readPNG(path.to.file)
+data(bsrdm.spa, package = "BulkSignalR")
+data(bsrinf.spa, package = "BulkSignalR")
+data(annotation.spa, package = "BulkSignalR")
 
-separatedLRPlot(v,
-    L,
-    R,
-    ncounts,
-    areas,
-    image.raster=img)
-}
+thres <- 0.01
+bsrinf.red <- reduceToBestPathway(bsrinf.spa)
+s.red  <- BSRSignature(bsrinf.red, qval.thres=thres)
+scores.red <- scoreLRGeneSignatures(bsrdm.spa,s.red)
+
+separatedLRPlot(scores.red, "SLIT2", "GPC1", 
+ncounts(bsrdm.spa), 
+annotation.spa,
+label.col = "ground_truth")
+
 }

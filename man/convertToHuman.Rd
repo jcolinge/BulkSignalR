@@ -9,8 +9,9 @@ convertToHuman(counts, dictionary)
 \arguments{
 \item{counts}{A table or matrix of read counts.}
 
-\item{dictionary}{A data frame where the first column is made of gene symbols
-for the actual organism and row names are the ortholog human gene symbols.}
+\item{dictionary}{A data frame where the first column 
+is made of gene symbols for the actual organism 
+and row names are the ortholog human gene symbols.}
 }
 \value{
 Return a counts matrix transposed for Human.
@@ -21,13 +22,19 @@ In order to work with other organisms, gene names need to be first converted
 to human by orthology.
 }
 \examples{
-print('convertToHuman')
 data(bodyMap.mouse)
 
-ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
-                                    from_values = rownames(bodyMap.mouse))
+idx <- sample(nrow(bodyMap.mouse), 500)
+bodyMap.mouse <- bodyMap.mouse[idx,]
 
-matrix.expression.human <- convertToHuman(counts = bodyMap.mouse,   
-dictionary = ortholog.dict)
+ortholog.dict <- findOrthoGenes(
+    from_organism = "mmusculus",
+    from_values = rownames(bodyMap.mouse)
+)
+
+matrix.expression.human <- convertToHuman(
+    counts = bodyMap.mouse,
+    dictionary = ortholog.dict
+)
 
 }

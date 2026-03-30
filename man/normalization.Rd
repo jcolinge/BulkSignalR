@@ -8,8 +8,24 @@
 \S4method{normalization}{BSRDataModel}(x)
 }
 \arguments{
-\item{x}{oject BSRDatamModel}
+\item{x}{object BSRDatamModel}
+}
+\value{
+normalization
 }
 \description{
 Normalization accessor
+}
+\examples{
+bsrdm <- BSRDataModel(
+    counts = matrix(1.5,
+                nrow = 2, ncol = 2,
+                dimnames = list(c("A", "B"), c("C", "D"))
+                   ),
+    method = "TC",
+    log.transformed = TRUE,
+    normalize = FALSE,
+    min.LR.found = 0
+)
+normalization(bsrdm)
 }

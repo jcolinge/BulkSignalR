@@ -2,7 +2,7 @@
 % Please edit documentation in R/inference.R
 \name{.getCorrelatedLR}
 \alias{.getCorrelatedLR}
-\title{Get correlated ligand-receptor pairs.}
+\title{Get correlated ligand-receptor pairs}
 \usage{
 .getCorrelatedLR(ds, min.cor = 0.25, restrict.genes = NULL)
 }

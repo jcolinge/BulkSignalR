@@ -11,6 +11,9 @@
 
 \item{value}{value to be set for BSRDataModel}
 }
+\value{
+returns \code{NULL}
+}
 \description{
 Normalized count matrix setter (internal use only)
 }

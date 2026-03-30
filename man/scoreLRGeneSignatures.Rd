@@ -63,47 +63,23 @@ Compute ligand-receptor gene signature scores over a BSRDataModelComp
 specific comparison.
 }
 \examples{
-print('prepareDataset')
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
+data(bsrdm, package = "BulkSignalR")
+data(bsrinf, package = "BulkSignalR")
 
-print("learnParameters")
-bsrdm <- learnParameters(bsrdm)
-bsrdm
-
-print('perform inference')
-bsrinf <- initialInference(bsrdm)
-bsrinf.redBP <- reduceToBestPathway(bsrinf) 
-bsrsig.redBP <- getLRGeneSignatures(bsrinf.redBP,
-qval.thres=0.001)
-
-scoresLR <- scoreLRGeneSignatures(bsrdm,bsrsig.redBP,
-                       name.by.pathway=FALSE)
+bsrinf.redBP <- reduceToBestPathway(bsrinf)
+bsrsig.redBP <- BSRSignature(bsrinf.redBP, qval.thres = 0.001)
+res <-scoreLRGeneSignatures(bsrdm, bsrsig.redBP,
+    name.by.pathway = FALSE
+)
 # prepare data
-data(sdc,package='BulkSignalR')
-normal <- grep("^N", names(sdc))
-bsrdm <- prepareDataset(sdc[,-normal])
-
-# define the comparison
-bsrdm.comp <- as.BSRDataModelComp(bsrdm)
-colA <- as.integer(1:5)
-colB <- as.integer(8:15)
-n <- nrow(ncounts(bsrdm.comp))
-stats <- data.frame(pval=runif(n), logFC=rnorm(n, 0, 2))
-rownames(stats) <- rownames(ncounts(bsrdm.comp))
-bsrcc <- defineClusterComp(bsrdm.comp, colA, colB, stats)
-bsrdm.comp <- addClusterComp(bsrdm.comp, bsrcc, "random.example")
-
-# infer ligand-receptor interactions from the comparison
-bsrinf <- initialInference(bsrdm.comp,max.pval=1,  "random.example")
+data(bsrdm.comp, package = "BulkSignalR")
+data(bsrinf.comp, package = "BulkSignalR")
 
 # reduction
-bsrinf.red <- reduceToBestPathway(bsrinf)
-
+bsrinf.red <- reduceToBestPathway(bsrinf.comp)
 # signature extraction and scoring
-bsrsig.red <- getLRGeneSignatures(bsrinf.red, qval.thres=1e-6)
+bsrsig.red <- BSRSignatureComp(bsrinf.red, qval.thres = 1e-6)
 scores.red <- scoreLRGeneSignatures(bsrdm.comp, bsrsig.red,
-                         name.by.pathway=TRUE, rownames.LRP=TRUE)
-
+    name.by.pathway = TRUE, rownames.LRP = TRUE
+)
 }

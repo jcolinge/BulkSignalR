@@ -16,7 +16,7 @@ their reduced versions.
 
 \item{\code{receptors}}{A list of receptors, one entry per LR interaction.}
 
-\item{\code{t.genes}}{A list of target genes, one entry per LR interaction.}
+\item{\code{tg.genes}}{A list of target genes, one entry per LR interaction.}
 
 \item{\code{pathways}}{An atomic vector of pathway names, one per interaction.}
 
@@ -25,5 +25,4 @@ their reduced versions.
 
 \examples{
 new("BSRSignature")
-
 }

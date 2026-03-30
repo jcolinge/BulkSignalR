@@ -3,7 +3,7 @@
 \name{resetToInitialOrganism}
 \alias{resetToInitialOrganism}
 \alias{resetToInitialOrganism,BSRInference-method}
-\title{Reset gene names to initial organism providen in first instance}
+\title{Reset gene names to initial organism provided in the first instance}
 \usage{
 \S4method{resetToInitialOrganism}{BSRInference}(obj, conversion.dict)
 }
@@ -15,29 +15,53 @@
 \value{
 An BSRInference object updated for gene names.
 The gene names are replaced by the ones from
-the organism providen in first instance.
+the organism provided in the first instance.
 }
 \description{
-Reset gene names to initial organism providen in first instance
+Reset gene names to initial organism provided in the first instance
 }
 \examples{
-data(bodyMap.mouse)
-ortholog.dict    <- findOrthoGenes (from_organism = "mmusculus", 
-                                    from_values = rownames(bodyMap.mouse))
+data(bodyMap.mouse, package = "BulkSignalR")
+data(bsrinf.mouse, package = "BulkSignalR")
+data(ortholog.dict, package = "BulkSignalR")
 
-matrix.expression.human <- convertToHuman(counts = bodyMap.mouse, 
-                                          dictionary = ortholog.dict)
+#idx <- sample(nrow(bodyMap.mouse), 7500)
 
-bsrdm  <- prepareDataset(counts = matrix.expression.human,
-          species = "mmusculus",
-          conversion.dict = ortholog.dict)
+#bodyMap.mouse <- bodyMap.mouse[idx,1:3]
 
-bsrdm <- learnParameters(bsrdm, null.model="normal" , quick = FALSE, 
-          plot.folder="./",filename = "bodyMap.mouse",
-          verbose = TRUE)
+#ortholog.dict <- findOrthoGenes(
+#    from_organism = "mmusculus",
+#    from_values = rownames(bodyMap.mouse)
+#)
 
-bsrinf  <- initialInference(bsrdm)
+#matrix.expression.human <- convertToHuman(
+#    counts = bodyMap.mouse,
+#    dictionary = ortholog.dict
+#)
 
-bsrinf  <- resetToInitialOrganism(bsrinf, conversion.dict=ortholog.dict)
+#bsrdm <- BSRDataModel(
+#    counts = matrix.expression.human,
+#    species = "mmusculus",
+#    conversion.dict = ortholog.dict
+#)
 
+#bsrdm <- learnParameters(bsrdm,
+#    quick = TRUE  
+#)
+
+#reactSubset <- getResource(resourceName = "Reactome",
+#cache = TRUE)
+
+#subset <- c("REACTOME_BASIGIN_INTERACTIONS",
+#"REACTOME_SYNDECAN_INTERACTIONS",
+#"REACTOME_ECM_PROTEOGLYCANS",
+#"REACTOME_CELL_JUNCTION_ORGANIZATION")
+
+#reactSubset <- reactSubset[
+#reactSubset$`Reactome name` \%in\% subset,]
+
+#bsrinf.mouse <- BSRInference(bsrdm,reference="REACTOME")
+
+bsrinf <- resetToInitialOrganism(bsrinf.mouse, 
+conversion.dict = ortholog.dict)
 }
