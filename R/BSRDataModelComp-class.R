@@ -325,7 +325,7 @@ setMethod("removeClusterComp", "BSRDataModelComp", function(obj, cmp.name) {
 #' containing the x coordinates in the dafaframe returned by rowData(), usually 
 #' named array_row.
 #' @param y.col  In a SpatialExperiment object, the index of the column
-#' containing the y coordinates in the dafaframe returned by rowData(), usually 
+#' containing the y coordinates in the data.frame returned by rowData(), usually 
 #' named array_col.
 #' @param barcodeID.col   In a SpatialExperiment object, the index of the column
 #' containing the barcodeID in the dafaframe returned by colData(), usually
