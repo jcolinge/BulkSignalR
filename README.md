@@ -59,7 +59,8 @@ devtools::install_github("jcolinge/BulkSignalR",build_vignettes = TRUE)
 ## Notes
 
 For a version history/change logs, see the [NEWS file](https://github.com/jcolinge/BulksignalR/blob/master/NEWS).
-Previous versions of BulkSignalR (before introduction in Bioconductor) are availabe in
+
+**Previous versions of BulkSignalR** (before introduction in Bioconductor) are availabe in
 the branch named before_BC at GitHub.com/jcolinge/BulkSignalR.
 
 **BulkSignalR** has been successfully installed on Mac OS X, Linux, and Windows using R version 4.5.
